@@ -1340,8 +1340,8 @@ bool MVAEInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &
         //decl->getDeclContext()->dumpDeclContext();
     }else{
         //return false;
-        cout << "MVAE TYPE2 - 1"<<endl;
-        decl->dumpColor();
+        //cout << "MVAE TYPE2 - 1"<<endl;
+        //decl->dumpColor();
         if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
 
             //cout << "MVAV TYPE2 - 2"<<i << endl;
