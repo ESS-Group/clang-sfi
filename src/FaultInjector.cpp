@@ -1005,7 +1005,7 @@ bool MVIVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &
         //cout << "SIZE: "<<list.size()<<endl;
         for(const BinaryOperator* op:list){
             
-            if(isValueAssignment(op)){
+            if(isValueAssignment(op) && C2(op, Context)){
                 //op->dump(Context.getSourceManager());
                 nodeCallback(binding, op);
             }
