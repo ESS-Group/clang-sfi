@@ -146,7 +146,6 @@ class MVIVInjector: public FaultInjector{
         MVIVInjector();
         std::string toString() override;
         std::string inject(StmtBinding current, ASTContext &Context) override;
-        //bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
         bool checkStmt(const Decl* decl, std::string binding, ASTContext &Context) override;
 };
 
@@ -156,8 +155,14 @@ class MVAVInjector: public FaultInjector{
         MVAVInjector();
         std::string toString() override;
         std::string inject(StmtBinding current, ASTContext &Context) override;
-        //bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
         bool checkStmt(const Decl* decl, std::string binding, ASTContext &Context) override;
-        bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
+};
+
+class MVAEInjector: public FaultInjector{
+    public:
+        MVAEInjector();
+        std::string toString() override;
+        std::string inject(StmtBinding current, ASTContext &Context) override;
+        bool checkStmt(const Decl* decl, std::string binding, ASTContext &Context) override;
 };
 #endif

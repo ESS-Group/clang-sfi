@@ -12,6 +12,8 @@ class Testitest{
 			int x = 10;
 			for(int i = 0 ; i < 10 ; i++){
 				int j=9;
+				int z ;
+				z=200;
 				x=20;
 			}
 			for(int i = 0 ; i < 10 ; i++){

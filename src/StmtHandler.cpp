@@ -38,12 +38,21 @@ void StmtHandler::run(const MatchFinder::MatchResult &Result){
                 //cout << "StmtHandler::run5" << endl;
             }
         } else if(const Decl *stmt = Result.Nodes.getNodeAs<clang::Decl>(binding)){
+            //cout<<"StmtHandler->run0"<<endl;
             if(const Decl *stmt = Result.Nodes.getNodeAs<clang::Decl>(binding)){
-
+            //cout<<"StmtHandler->run1"<<endl;
             std::string name(Result.Context->getSourceManager().getFilename(stmt->getLocStart()));
+            //cout<<"StmtHandler->run2"<<endl;
             if(faultInjector->getFileName().compare(name)==0){//nur Nodes aus dem zu parsenden File beachten!!
-                if(faultInjector->checkStmt(stmt, binding, *Result.Context))//nur Statemets die durch checkStmt erlaubt sind
+                //cout<<"StmtHandler->run3"<<endl;
+                if(faultInjector->checkStmt(stmt, binding, *Result.Context)){//nur Statemets die durch checkStmt erlaubt sind
+                    //cout<<"StmtHandler->run4.1"<<endl;
+                    //stmt->dumpColor();
+                    //cout<<"StmtHandler->run4.2"<<endl;
                     faultInjector->nodeCallback(binding, stmt);
+                    //cout<<"StmtHandler->run4.3"<<endl;
+                }
+                //cout<<"StmtHandler->run5"<<endl;
                 //cout<<"testitest"<<endl;
                 }
             }

@@ -65,10 +65,12 @@ int main(int argc, const char **argv){
     injectors.push_back(new MIEBInjector);
     injectors.push_back(new MFCInjector);
     injectors.push_back(new MLACInjector);
-    injectors.push_back(new MLOCInjector);*/
+    injectors.push_back(new MLOCInjector);
+    injectors.push_back(new MFCInjector);
+    injectors.push_back(new MVIVInjector);*/
     //injectors.push_back(new MVAVInjector);
-    injectors.push_back(new MVIVInjector);
-    //injectors.push_back(new MFCInjector);
+    injectors.push_back(new MVAEInjector);
+
     bool verbose = VerboseOption.getValue();
     
     //cout << "start tool" << endl;
