@@ -21,22 +21,17 @@ class FaultInjector;
 #include <iostream>
 using namespace clang;
 using namespace clang::tooling;
-//using namespace clang::driver;
 using namespace clang::ast_matchers;
 
 using namespace std;
 
-/*
-vector<SourceRange> locations;
-int countIf = 0,
-    countElse = 0;*/
+
 class StmtHandler : public MatchFinder::MatchCallback{
 
     public:
         StmtHandler(FaultInjector *pFaultInjector, std::string name, std::vector<std::string> bindings);
         virtual void run(const MatchFinder::MatchResult &Result);
     private:
-        //SourceManager *sourceManager;
         std::string fileName;
         std::vector<std::string> bindings;
         FaultInjector *faultInjector;

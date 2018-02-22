@@ -26,62 +26,19 @@ using namespace clang::ast_matchers;
 using namespace std;
 
 
-SFIASTConsumer::SFIASTConsumer(/*Rewriter &R,*/ std::string name, std::vector<FaultInjector*> injectors ): faultInjectors(injectors), fileName(name)/*,Rewrite(R)*/{
-    /*for(FaultInjector injector: injectors.begin()){
-
-    }
-
-
-    std::vector<std::string> bindings;
-    for(FaultInjector binding: injectors.begin())
-        bindings.push_back(binding);
-    stmtHandler = new StmtHandler(R.getSourceMgr(), name, bindings, nodeCallback);
-    //Rw = R;
-    //RW = &R;
-    Matcher.addMatcher(ifStmt().bind("ifStmt"), &HandlerForIf);*/
-
-        //cout << "SFIASTConsumer::SFIASTConsumer" << endl;
+SFIASTConsumer::SFIASTConsumer(std::string name, std::vector<FaultInjector*> injectors ): faultInjectors(injectors), fileName(name){
     for(FaultInjector *injector: faultInjectors){
-        //Rewriter rw;
-        //rw.setSourceMgr(R.getSourceMgr(), R.getLangOpts());
-        //cout<<"SET REWRITER AND SOURCEMANAGER"<<endl;
-        //injector.Rewrite = rw;
-        //injector.setSourceMgr(R.getSourceMgr());
-        //cout<<"name:"<<name<<endl;
-        injector->setFileName(name);
-        //cout << injector<< endl;
-        //cout << injector->getFileName() << endl;
-    
+        injector->setFileName(name);    
     }
 }
-void SFIASTConsumer::HandleTranslationUnit(ASTContext &Context) /*override*/{
+
+void SFIASTConsumer::HandleTranslationUnit(ASTContext &Context){
     for(FaultInjector *injector: faultInjectors){
-        //injector.setSourceMgr(Rewrite.getSourceMgr());
-        //cout << "SFIASTConsumer::HandleTranslationUnit0" << endl;
-        injector->matchAST(Context);
+
+        injector->matchAST(Context);//Match AST and find injection locations
 
         cout << "Found " << injector->locations.size() << " " <<  injector->toString() << " injection locations" << endl;
-        //cout << "SFIASTConsumer::HandleTranslationUnit1" << endl;
-        //ASTContext &Context
-        //Rewriter rw;
-        //rw.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
-                //rw.setSourceMgr(Rewrite.getSourceMgr() , lo);
-        injector->inject(injector->locations, Context);
 
-        //cout << injector<< endl;
-
-        //cout << "SFIASTConsumer::HandleTranslationUnit2" << endl;
+        injector->inject(injector->locations, Context);//inject Faults
     }
-
-
-
-    //Matcher.matchAST(Context);
 }
-        //void nodeCallback(std::string, const Stmt*){}
-        //StmtHandler *stmtHandler;
-        //IfStmtHandler HandlerForIf;
-        //MatchFinder Matcher;
-//        Rewriter Rewrite;
-//        std::string fileName;
-//        std::vector<FaultInjector> faultInjectors;
-

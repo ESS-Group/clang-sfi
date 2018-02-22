@@ -25,14 +25,9 @@ using namespace std;
 
 class SFIASTConsumer: public ASTConsumer{
     public:
-        SFIASTConsumer(/*Rewriter &R,*/ std::string name, std::vector<FaultInjector*> injectors );
+        SFIASTConsumer(std::string name, std::vector<FaultInjector*> injectors );
         void HandleTranslationUnit(ASTContext &Context) override;
     private:
-        //void nodeCallback(std::string, const Stmt*){}
-        //StmtHandler *stmtHandler;
-        //IfStmtHandler HandlerForIf;
-        //MatchFinder Matcher;
-        //Rewriter Rewrite;
         std::string fileName;
         std::vector<FaultInjector*> faultInjectors;
 };
@@ -45,6 +40,6 @@ class SFIAction : public SyntaxOnlyAction{
         void EndSourceFileAction() override;
         std::unique_ptr<ASTConsumer> CreateASTConsumer( CompilerInstance &CI,
                                                         StringRef file) override;
-    //private:
-        //Rewriter Rewrite;
+    private:
+        std::string fileName;
 };

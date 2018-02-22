@@ -28,21 +28,17 @@ using namespace std;
 
 
 SFIAction::SFIAction(std::vector<FaultInjector*> injs):injectors(injs){}
-void SFIAction::EndSourceFileAction() /*override*/ {
-    //Rewrite.getEditBuffer(Rewrite.getSourceMgr().getMainFileID()).write(llvm::outs());//an dieser Stelle durch änderungen durchiterieren (mit begin() den iterator erhalten)
-    //cout<<locations.size();
-    cout<<"done";
-    //cout<<"testitest"<<endl<<countIf<<":"<<countElse<<endl;
+void SFIAction::EndSourceFileAction() {
+
+    cout<<"Parsed file "<<fileName/*<<" - done."*/<<endl;
 }
 std::unique_ptr<ASTConsumer> SFIAction::CreateASTConsumer( CompilerInstance &CI,
                                                 StringRef file){
-    //llvm::errs() << "createing ASTConsumer for "<<file<<"\n";
-    //sm = CI.getSourceManager();
-    //lo = CI.getLangOpts();
-    cout << "Parsing file '" << file.data() << "'" << endl;
-
+    fileName = file.data();
+    cout << "Parsing file '" << fileName << "'" << endl;
+    
     CI.getDiagnostics().setClient(new IgnoringDiagConsumer());//keine warnings ausgeben
 
     //Rewrite.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
-    return llvm::make_unique<SFIASTConsumer>(/*Rewrite,*/ file, injectors);
+    return llvm::make_unique<SFIASTConsumer>(file, injectors);
 }
