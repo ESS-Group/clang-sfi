@@ -1,8 +1,5 @@
 MLOCInjector::MLOCInjector(){
-    //anyOf(ifStmt(), doStmt(), switchStmt(), whileStmt())
-    //hasAncestor(ifStmt())
     Matcher.addMatcher(binaryOperator(anyOf(hasAncestor(expr(anyOf(hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt())))),hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt()))).bind("FunctionCall"), createStmtHandler("FunctionCall"));
-    //Matcher.addMatcher(callExpr().bind("FunctionCall"), createStmtHandler("FunctionCall"));
 }
 
 std::string MLOCInjector::toString(){
@@ -31,7 +28,6 @@ bool MLOCInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
     return ((const BinaryOperator *)stmt)->getOpcode() == 19;
 }
 void MLOCInjector::inject(std::vector<StmtBinding> target, ASTContext &Context){
-    //cout<<"FAULTINJECTOR::INJECT:size:"<< target.size() <<endl;
     int i = 0;
     for(StmtBinding current : target){
         if(verbose)
@@ -56,7 +52,6 @@ void MLOCInjector::inject(std::vector<StmtBinding> target, ASTContext &Context){
             writeDown(result, i-1);
         } else
             cerr << "-Failed"<<endl;
-        //i++;
     }
 }
 std::string MLOCInjector::inject(StmtBinding current, ASTContext &Context){
