@@ -1,16 +1,17 @@
 MVAVInjector::MVAVInjector(){
+/*
         Matcher.addMatcher(
         varDecl(
                 hasInitializer(
                     expr(unless(anyOf(callExpr(),cxxNewExpr(),binaryOperator(),unaryOperator(),unless(hasAncestor(compoundStmt())))))
                 )
             ).bind("variable"), createStmtHandler("variable"));
-
+*/
 
     Matcher.addMatcher(
             varDecl(
                     hasAncestor(compoundStmt())
-            ).bind("notInitialized"), createStmtHandler("notInitialized")); // in this case get next assignement
+            ).bind("notInitialized"), createStmtHandler("notInitialized")); 
 
 }
 
@@ -40,8 +41,8 @@ std::string MVAVInjector::inject(StmtBinding current, ASTContext &Context){
 }
 
 
-bool MVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){//no else
-    if(binding.compare("notInitialized") == 0 && isa<VarDecl>(decl) /*&& false /**//*&&i++ == 0*/){
+bool MVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
+    if(binding.compare("notInitialized") == 0 && isa<VarDecl>(decl)){
         std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl, true);
         for(const BinaryOperator* op:list){
             if(isValueAssignment(op)){

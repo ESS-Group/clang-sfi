@@ -48,8 +48,8 @@ std::string MVAEInjector::inject(StmtBinding current, ASTContext &Context){
 }
 
 
-bool MVAEInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){//no else
-    if(binding.compare("notInitialized") == 0 && isa<VarDecl>(decl) /*&& false /**//*&&i++ == 0*/){
+bool MVAEInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
+    if(binding.compare("notInitialized") == 0 && isa<VarDecl>(decl) ){
         std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl, true);
         for(const BinaryOperator* op:list){
             
