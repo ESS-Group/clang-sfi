@@ -2,7 +2,10 @@ clang-sfi
 Makefile
 CMake*
 !CMakeLists.txt
+*.cmake
 cmake*
+DartConfiguration.tcl
+compile_commands.json
 *.a
 *.patch
 *.cpp

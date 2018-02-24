@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 set(PROJECT_NAME "clang-sfi")
 project(${PROJECT_NAME})
 
+SET(CMAKE_EXPORT_COMPILE_COMMANDS true)
 SET(CMAKE_C_COMPILER clang)
 SET(CMAKE_CXX_COMPILER clang++)
 # Clang is compiled with -fno-rtti by default, so we have to use it too. (Could be activated in Clangs CMakeFile if needed.) Otherwise the compiler might try to use typeinfo symbols of Clang, which are just not there.
