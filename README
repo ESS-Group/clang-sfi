@@ -1,0 +1,2 @@
+Zum builden muss in CMakeLists.txt LLVM_DIR angepasst werden
+
