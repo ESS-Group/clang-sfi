@@ -1,4 +1,5 @@
 MVAEInjector::MVAEInjector(){
+    /*
         Matcher.addMatcher(
         varDecl(
                 hasInitializer(
@@ -8,14 +9,13 @@ MVAEInjector::MVAEInjector(){
                     )
                 )
             ).bind("variable"), createStmtHandler("variable"));
-
-
-
+    */
 
     Matcher.addMatcher(
             varDecl(
-                    hasAncestor(compoundStmt())
-            ).bind("notInitialized"), createStmtHandler("notInitialized"));
+                //commented to include global assignements
+//                    hasAncestor(compoundStmt())
+            ).bind("varDecl"), createStmtHandler("varDecl"));
 
 }
 
@@ -49,24 +49,24 @@ std::string MVAEInjector::inject(StmtBinding current, ASTContext &Context){
 
 
 bool MVAEInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
-    if(binding.compare("notInitialized") == 0 && isa<VarDecl>(decl) ){
+    if(binding.compare("varDecl") == 0 && isa<VarDecl>(decl) ){
         std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl, true);
         for(const BinaryOperator* op:list){
             
             if(isExprAssignment(op)){
-                if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
+                /*if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
                     if(isParentOf(forstmt->getCond(), decl, Context) || isParentOf(forstmt->getInc(), decl,Context)){
                     } else if(C2(op, Context)){
                         nodeCallback(binding, op);
                     }
-                } else if(C2(op, Context)){
+                } else if(C2(op, Context)){*/
                     nodeCallback(binding, op);
-                }
+                /*}*/
             }
         }
 
         return false;
-    }else{
+    }/*else{
         if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
             if(isParentOf(forstmt->getCond(), decl, Context) || isParentOf(forstmt->getInc(), decl,Context)){
             } else {
@@ -75,6 +75,6 @@ bool MVAEInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &
         } else { 
             return C2(decl, Context);
         }
-    }
+    }*/
     return false;
 }

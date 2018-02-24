@@ -16,9 +16,10 @@ std::string MIFSInjector::inject(StmtBinding current, ASTContext &Context){
     return getEditedString(R, Context);
 }
 bool MIFSInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){//no else
-    if(const IfStmt* ifS = (IfStmt *)(stmt)){
-        if(!C9(ifS->getThen()))
-            return false;
-        return C8(ifS) && C2(stmt, Context);
-    } else return false;
+    //if(const IfStmt* ifS = (IfStmt *)(stmt)){
+    //commented to also inject, when the then-block contains more than 5 statements
+    //if(!C9(ifS->getThen()))
+    //    return false;
+    return C8(ifS) ;// && C2(stmt, Context); //also if the statement is the only statement in the block
+    //} else return false;
 }

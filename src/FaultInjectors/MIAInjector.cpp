@@ -1,4 +1,4 @@
-MIAInjector::MIAInjector(){//Missing if construct plus statements
+MIAInjector::MIAInjector(){//Missing if construct around statements
     Matcher.addMatcher(ifStmt().bind("ifStmt"), createStmtHandler("ifStmt"));
 }
 
@@ -15,9 +15,10 @@ std::string MIAInjector::inject(StmtBinding current, ASTContext &Context){
     return getEditedString(R, Context);
 }
 bool MIAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){//no else
-       if(const IfStmt* ifS = (IfStmt *)(stmt)){
-        if(!C9(ifS->getThen()))
-            return false;
-        return C8(ifS);
-    } else return false;
+    //if(const IfStmt* ifS = (IfStmt *)(stmt)){
+    //commented to also inject, when the then-block contains more than 5 statements
+    //if(!C9(ifS->getThen())) 
+    //    return false;
+    return C8(ifS);
+    //} else return false;
 }

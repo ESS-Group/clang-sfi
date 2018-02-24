@@ -1,13 +1,15 @@
 MVIVInjector::MVIVInjector(){
     Matcher.addMatcher(
         varDecl(hasInitializer(
-            allOf(
+            //allOf(
             unless(anyOf(
-                callExpr(),cxxNewExpr(),binaryOperator(),unaryOperator(),
-                hasAncestor(forStmt()),hasAncestor(doStmt()),hasAncestor(whileStmt())
-            )),
-            hasAncestor(compoundStmt())
-            )
+                callExpr(),cxxNewExpr(),binaryOperator(),unaryOperator()
+                //commented to also include initialisations inside of loops
+                //,hasAncestor(forStmt()),hasAncestor(doStmt()),hasAncestor(whileStmt())
+            ))
+            //commeted to also include global initialisations
+            //,hasAncestor(compoundStmt())
+            //)
         )).bind("variable"), createStmtHandler("variable"));
 /*
     Matcher.addMatcher(
@@ -29,21 +31,21 @@ std::string MVIVInjector::toString(){
 std::string MVIVInjector::inject(StmtBinding current, ASTContext &Context){
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
-    if(current.isStmt){
+    /*if(current.isStmt){
         SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
         R.RemoveText(range);
-    } else {
+    } else {*/
         VarDecl temp (*((const VarDecl*)current.decl));
         temp.setInit(NULL);
         const VarDecl* tempP = &temp;
         std::string withoutInit = stmtToString(tempP, Context.getLangOpts());
         SourceRange range(current.decl->getLocStart(), current.decl->getLocEnd());
         R.ReplaceText(range, withoutInit);
-    }
+    //}
     return getEditedString(R, Context);
 }
 bool MVIVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
-    if(binding.compare("notInitialized") == 0 && isa<VarDecl>(decl) ){
+    /*if(binding.compare("notInitialized") == 0 && isa<VarDecl>(decl) ){
         std::vector<const BinaryOperator*> list = getChildForFindInitForVar(getParentCompoundStmt(decl, Context), (const VarDecl*)decl, false);
         for(const BinaryOperator* op:list){
             if(isValueAssignment(op) && C2(op, Context)){
@@ -54,5 +56,7 @@ bool MVIVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &
         return false;
         ((const VarDecl*)decl)->getInit()->dump(Context.getSourceManager());
     }else
-        return C2(decl, Context);
+        return C2(decl, Context);*/
+    //also if statement is the only statement in the block
+    return true;
 }
