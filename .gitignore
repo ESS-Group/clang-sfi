@@ -1,0 +1,10 @@
+clang-sfi
+Makefile
+CMake*
+!CMakeLists.txt
+cmake*
+*.a
+*.patch
+*.cpp
+!src/*
+!src/FaultInjectors/*
