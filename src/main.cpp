@@ -60,7 +60,7 @@ int main(int argc, const char **argv){
     //nun kann SFIAction via templating einen std::vector<FaultInjector> erhalten
     std::vector<FaultInjector *> injectors;
     //MIFSInjector inj;
-    /*injectors.push_back(new MIFSInjector);
+    /**/injectors.push_back(new MIFSInjector);
     injectors.push_back(new MIAInjector);
     injectors.push_back(new MIEBInjector);
     injectors.push_back(new MFCInjector);
