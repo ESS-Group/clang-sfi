@@ -55,7 +55,8 @@ class Testitest{
 		int length(char* str){
 			int l = 0;
 			char f;
-
+			f='c';
+			f='d';
 			int i = 0;
 			while(1){
 				if(str[i]!=0){

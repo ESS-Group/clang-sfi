@@ -10,7 +10,7 @@ WVAVInjector::WVAVInjector(){
 
     Matcher.addMatcher(
             varDecl(
-                    //hasAncestor(compoundStmt())
+                    hasAncestor(compoundStmt())
             ).bind("varDecl"), createStmtHandler("varDecl")); 
 
 }
@@ -20,28 +20,52 @@ std::string WVAVInjector::toString(){
 };
 
 
+bool isInitializedBefore(const DeclRefExpr* ref, ASTContext &Context){
+    const VarDecl* decl =  (const VarDecl*) ref->getDecl();
+    if( decl->getInit() != NULL)//if declaration is initialization => every use after that is an assignment
+        return true;
+    else{
+        ref->dumpColor();
+        const CompoundStmt* parent = getParentCompoundStmt(decl, Context);
+        std::vector<const BinaryOperator*> inits = getChildForFindInitForVar(parent, decl, false);
+        for(const BinaryOperator* init : inits){//else check if ref is used in initialization
+            if(init->getLHS() == ref)
+                return false;
+        }
+        return true;
+    }
 
+}
+/*
+bool isInitialized(const VarDecl* ref, ASTContext &Context){
+    return ref->getInit() != NULL;
+}*/
 
 std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context){
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     //if(current.isStmt){
         //(isa<IntegerLiteral>(stmt) || isa<CXXBoolLiteralExpr>(stmt) || isa<CharacterLiteral>(stmt) || isa<FloatingLiteral>(stmt) || isa<clang::StringLiteral>(stmt) ))
-        Expr* val = ((const BinaryOperator *)current.stmt)->getRHS();
-        SourceRange range(val->getLocStart(), val->getLocEnd());
-        if(isa<CXXBoolLiteralExpr>(val)){
-            bool value = ((const CXXBoolLiteralExpr *)val)->getValue();
-            if(value){
-                R.ReplaceText(range, "false");
+        //
+        //if(){
+            Expr* val = ((const BinaryOperator *)current.stmt)->getRHS();
+            SourceRange range(val->getLocStart(), val->getLocEnd());
+            if(isa<CXXBoolLiteralExpr>(val)){
+                bool value = ((const CXXBoolLiteralExpr *)val)->getValue();
+                if(value){
+                    R.ReplaceText(range, "false");
+                } else {
+                    R.ReplaceText(range, "true");
+                }
             } else {
-                R.ReplaceText(range, "true");
+                //R.ReplaceText(range, "true");
+                std::string text = R.getRewrittenText(range);
+                R.ReplaceText(range, text+"^0xFF");
+                //R.InsertText( ((const BinaryOperator *)current.stmt)->getRHS()->Expr::getLocEnd(), "^0xFF");
             }
-        } else {
-            //R.ReplaceText(range, "true");
-            std::string text = R.getRewrittenText(range);
-            R.ReplaceText(range, text+"^0xFF");
-            //R.InsertText( ((const BinaryOperator *)current.stmt)->getRHS()->Expr::getLocEnd(), "^0xFF");
-        }
+        //}
+        //((const DeclRefExpr *)((const BinaryOperator *)current.stmt)->getLHS())->getDecl()->dumpColor();
+        
         //SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
         //R.RemoveText(range);
     /*} else {
@@ -61,7 +85,9 @@ bool WVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &
     if(binding.compare("varDecl") == 0 && isa<VarDecl>(decl)){
         std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl, true);
         for(const BinaryOperator* op:list){
-            if(isValueAssignment(op)){
+            if(isValueAssignment(op) && 
+            isInitializedBefore((const DeclRefExpr*)((op)->getLHS()), Context)
+            ){
                 /*if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
                     if(isParentOf(forstmt->getCond(), decl, Context) || isParentOf(forstmt->getInc(), decl,Context)){
                     } else if(C2(op, Context)){
