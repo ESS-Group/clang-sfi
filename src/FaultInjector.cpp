@@ -227,6 +227,7 @@ void FaultInjector::writeDown(std::string data, int i){
 #include "FaultInjectors/MVIVInjector.cpp"
 #include "FaultInjectors/MVAVInjector.cpp"
 #include "FaultInjectors/MVAEInjector.cpp"
+#include "FaultInjectors/WVAVInjector.cpp"
 //todo: WVAV
 
 //Interface faults
