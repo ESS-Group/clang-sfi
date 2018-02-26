@@ -360,12 +360,17 @@ const T* getParentOfType(const Decl* decl, ASTContext &Context, int maxDepth = 1
     T* ret = NULL;
     //cout<<"-line1"<<endl;
     if(maxDepth!=0){
+        //cout << 1<<endl;
         ASTContext::DynTypedNodeList list = Context.getParents(*decl);
-
+        //cout << 2<<endl;
         //cout<<"-line2"<<endl;
         for(auto p : list){
             //cout<<"-line3"<<endl;
-            if(isa<T>(p.get<Stmt>())){
+            if(p.get<Stmt>() == NULL){
+                //if(p.get<Decl>())
+                //    cout << "DECL"<<endl;
+                //cout << "FEEEEHHHHLLLLEEERRR"<<endl;
+            }else if(isa<T>(p.get<Stmt>())){
 
             //cout<<"-line3.1.1"<<endl;
                 return p.get<T>();

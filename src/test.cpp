@@ -8,7 +8,8 @@ bool asfawgw = true;
 bool x = testitest();
 class Testitest{
 	public:
-		Testitest(){
+		Testitest(){}
+		Testitest(bool xyz){
 			int x = 10;
 			for(int i = 0 ; i < 10 ; i++){
 				int j=9;
