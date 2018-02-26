@@ -232,4 +232,4 @@ void FaultInjector::writeDown(std::string data, int i){
 
 //Interface faults
 //todo: WPFV
-//todo: WAEP
+#include "FaultInjectors/WAEPInjector.cpp"

@@ -303,6 +303,57 @@ const T* getParentOfType(const Stmt* stmt, ASTContext &Context, int maxDepth = 1
         return const_cast<const T*>(ret);
 }
 
+template<class T>
+bool hasChildOfType(const Stmt* stmt){
+    if(stmt==NULL)
+        return false;
+    //if(maxDepth!=0){
+        for(Stmt::child_iterator i = cast_away_const(stmt->child_begin()), e = cast_away_const(stmt->child_end());i!=e;++i){
+            if(isa<T>(*i))
+                return true;
+            else if(hasChildOfType<T>(*i))
+                return true;
+        }
+        return false;
+    //}
+    //cout<<"+line6"<<endl;
+    /*if(ret == NULL)
+        return NULL;
+    else
+        return const_cast<const T*>(ret);*/
+}
+/*
+template<class T>
+std::vector<const T*> getInnerstChildOfType(const Stmt* stmt, ASTContext &Context, int maxDepth = 1){//MaxDepth = -1 for to the root
+    //T* ret;
+    std::vector<const T*> ret;
+    //cout<<"+line1"<<endl;
+    if(stmt==NULL)
+        return NULL;
+    if(maxDepth!=0){
+        //cout<<"+line2"<<endl;
+        ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
+        //cout<<"+line3"<<endl;
+        for(auto p : list){
+            //cout<<"+line4"<<endl;
+            if(isa<T>(p.get<Stmt>())){
+                //cout<<"+line5.1.1"<<endl;
+                return p.get<T>();
+                //cout<<"+line5.1.2"<<endl;
+            }else if(ret == NULL){
+                //cout<<"+line5.2.1"<<endl;
+                ret = (T*)(&(*getParentOfType<T>(p.get<T>(), Context, maxDepth-1)));
+                //cout<<"+line5.2.2"<<endl;
+            }
+        }
+    }
+    //cout<<"+line6"<<endl;
+    if(ret == NULL)
+        return NULL;
+    else
+        return const_cast<const T*>(ret);
+}
+*/
 //getParentOfType<ForStmt>(decl,Context,3)
 template<class T>
 const T* getParentOfType(const Decl* decl, ASTContext &Context, int maxDepth = 1){//MaxDepth = -1 for to the root

@@ -42,7 +42,7 @@ std::string MLACInjector::inject(StmtBinding current, ASTContext &Context, bool 
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     SourceLocation start, end;
     if(left){
-        start = ((const BinaryOperator *)current.stmt)->getOperatorLoc().getLocWithOffset(-1);//.getLocWithOffset(1);
+        start = ((const BinaryOperator *)current.stmt)->getOperatorLoc();//.getLocWithOffset(-1);//.getLocWithOffset(1);
         end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocEnd();
     }else {
         start = ((const BinaryOperator *)current.stmt)->getLHS()->getLocStart();

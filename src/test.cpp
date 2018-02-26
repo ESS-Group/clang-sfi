@@ -36,9 +36,13 @@ class Testitest{
 			initialize(testitest()?"abc":"cde");
 			if(testitest()&&testitest()||false)
 				initialize(testitest()&&testitest()||testitest()||false);
+			else
+				initialize(testitest()&&testitest()||testitest()||false, testitest()&&testitest()||testitest());
 		}
 	private:
 		void initialize(bool b){
+		}
+		void initialize(bool b, bool c){
 		}
 		void initialize(char* str){
 			
