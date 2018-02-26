@@ -118,6 +118,14 @@ class WAEPInjector: public FaultInjector{
         bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
 };
 
+class WPFVInjector: public FaultInjector{
+    public:
+        WPFVInjector();
+        std::string toString() override;
+        std::string inject(StmtBinding current, ASTContext &Context) override;
+        bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
+};
+
 class MFCInjector: public FaultInjector{
     public:
         MFCInjector();

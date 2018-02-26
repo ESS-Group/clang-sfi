@@ -71,7 +71,8 @@ int main(int argc, const char **argv){
     injectors.push_back(new MVAVInjector);
     injectors.push_back(new WVAVInjector);
     injectors.push_back(new MVAEInjector);
-    injectors.push_back(new WAEPInjector);
+    injectors.push_back(new WAEPInjector);/**/
+    injectors.push_back(new WPFVInjector);
 
     bool verbose = VerboseOption.getValue();
     

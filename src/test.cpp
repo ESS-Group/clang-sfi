@@ -34,6 +34,12 @@ class Testitest{
 			cout<<"public constructor"<<endl;
 			initialize("abc");
 			initialize(testitest()?"abc":"cde");
+
+			initialize(a,c);
+			initialize(a,true);
+			initialize(true,a);
+			initialize(a);
+			initialize(true);
 			if(testitest()&&testitest()||false)
 				initialize(testitest()&&testitest()||testitest()||false);
 			else
