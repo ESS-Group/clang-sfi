@@ -393,6 +393,9 @@ const T* getParentOfType(const Decl* decl, ASTContext &Context, int maxDepth = 1
 
 
 bool isParentOf(const Stmt* parent, const Stmt* stmt){
+    if(parent == NULL)
+        return false;
+        
     for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());i!=e;++i){
         if(*i == stmt)
             return true;
@@ -402,6 +405,9 @@ bool isParentOf(const Stmt* parent, const Stmt* stmt){
     return false;
 }
 bool isParentOf(const Stmt* parent, const Decl* decl, ASTContext &Context){
+    if(parent == NULL)
+        return false;
+        
     const DeclStmt* stmt = getParentOfType<DeclStmt>(decl,Context,3);
     if(stmt==NULL)
         return false;
