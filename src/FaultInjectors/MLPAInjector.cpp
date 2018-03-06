@@ -135,19 +135,23 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block){
         }
     }
     if(___verbose)cout <<"1"<<endl;
+    if(___verbose)cout<<"hell"<<" "<<"jeah"<<" "<<"1"<<endl;
     if(index <= 0 && (ret.size()==0 || ret[0].size()==0)){
         std::vector<std::vector<const Stmt*>> ret;
         return ret;
     }
+
+    if(___verbose)cout<<"hell"<<" "<<"jeah"<<" "<<"2"<<endl;
     if(___verbose)cout<<"blocks"<<ret[0].size()<<endl;
     if(___verbose)cout <<"2"<<endl;
     //for(auto list:ret){
     std::vector<std::vector<const Stmt*>>::reverse_iterator rit = ret.rbegin();
-
+    if(___verbose)cout<<"hell"<<" "<<"jeah"<<" "<<"3"<<endl;
     if(___verbose)cout <<"3"<<endl;
     //std::vector<const Stmt*>::iterator toDeleteIt;
     //std::vector<const Stmt*>::iterator* toDelete = NULL;
     bool deleteIt = false;
+    if(___verbose)cout<<"hell"<<" "<<"jeah"<<" "<<"4"<<endl;
     for(;rit!=ret.rend();/*++rit*/){
 
         if(___verbose)cout <<"3.1"<<endl;
@@ -200,30 +204,32 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block){
 
                 if(___verbose)cout <<"3.4.1.3"<<endl;
             }
-            if(___verbose)cout << "REFFFF"<<endl;
-            if(ref==NULL){
-                if(___verbose)cout<<NULL<<endl;
-            }else{
+            if(ref!=NULL){
+                if(___verbose)cout << "REFFFF"<<endl;
+                if(ref==NULL){
+                    if(___verbose)cout<<"NULL"<<endl;
+                }else{
+                    if(___verbose)ref->dumpColor();
+                }
+                if(___verbose)cout <<"3.4.2"<<endl;
+                //if(ref!=NULL)ref->getLocStart().dump();
+                if(___verbose)cout <<list.size()<<endl;
+                if(___verbose)list.back()->dumpColor();
                 if(___verbose)ref->dumpColor();
-            }
-            if(___verbose)cout <<"3.4.2"<<endl;
-            //if(ref!=NULL)ref->getLocStart().dump();
-            if(___verbose)cout <<list.size()<<endl;
-            if(___verbose)list.back()->dumpColor();
-            if(___verbose)ref->dumpColor();
-            if(___verbose)declstmt->dumpColor();
-            if(list.back()->getLocEnd()<ref->getLocStart())
-                if(___verbose)cout<<"IS AFTER"<<endl;
-            if(std::find(list.begin(), list.end(), declstmt)!=list.end())
-                if(___verbose)cout<<"Found DECL"<<endl;
-            if(ref!=NULL && list.back()->getLocEnd()<ref->getLocStart() && std::find(list.begin(), list.end(), declstmt)!=list.end()){
-                const DeclStmt* statement = (const DeclStmt*)declstmt;//declStmt;
-                notPossible.push_back(statement);
-            }
-            if(___verbose)cout<<"notPossiblesize: "<<notPossible.size()<<endl;
-            //wenn letzte ref nicht mehr in list dann liste verkleinern sodass ref nicht mehr drin ist, evtl liste in 2 splitten, da ja vorher und nachher stmts drin sein können
+                if(___verbose)declstmt->dumpColor();
+                if(list.back()->getLocEnd()<ref->getLocStart())
+                    if(___verbose)cout<<"IS AFTER"<<endl;
+                if(std::find(list.begin(), list.end(), declstmt)!=list.end())
+                    if(___verbose)cout<<"Found DECL"<<endl;
+                if(ref!=NULL && list.back()->getLocEnd()<ref->getLocStart() && std::find(list.begin(), list.end(), declstmt)!=list.end()){
+                    const DeclStmt* statement = (const DeclStmt*)declstmt;//declStmt;
+                    notPossible.push_back(statement);
+                }
+                if(___verbose)cout<<"notPossiblesize: "<<notPossible.size()<<endl;
+                //wenn letzte ref nicht mehr in list dann liste verkleinern sodass ref nicht mehr drin ist, evtl liste in 2 splitten, da ja vorher und nachher stmts drin sein können
 
-            if(___verbose)cout <<"3.4.3"<<endl;
+                if(___verbose)cout <<"3.4.3"<<endl;
+            }
         }
 
         if(___verbose)cout <<"3.5"<<endl;
@@ -324,12 +330,13 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block){
             ++rit;
         }
     }
-
+    if(___verbose)cout<<"hell"<<" "<<"jeah"<<" "<<"4"<<endl;
     if(___verbose)cout <<"4"<<endl;
 
 
     //TODO: delete all empty lists??
-    
+    //ret;
+    if(___verbose)cout<<"hell"<<" "<<"jeah"<<" "<<"5"<<endl;
 
     return ret;
 
@@ -396,12 +403,12 @@ std::string MLPAInjector::toString(){
 
 
 std::string MLPAInjector::inject(StmtBinding current, ASTContext &Context){
-    //cout<<"aljkgaeoigh"<<endl;
-    //cout<<(current.isList?"list":"0")<<(current.isStmt?"stmt":"decl")<<endl;
+    if(___verbose)cout<<"aljkgaeoigh"<<endl;
+    if(___verbose)cout<<(current.isList?"list":"0")<<(current.isStmt?"stmt":"decl")<<endl;
     std::vector<const Stmt*> list = current.stmtlist;
-    //cout<<"huhu1"<<endl;
+    if(___verbose)cout<<"huhu1"<<endl;
     SourceLocation begin=list[0]->getLocStart(), end=list[0]->getLocEnd();
-    //cout<<"huhu2"<<endl;
+    if(___verbose)cout<<"huhu2"<<endl;
     for(const Stmt *stmt:list){
         if(stmt->getLocStart() < begin)
             begin = stmt->getLocStart();
@@ -435,11 +442,17 @@ std::string MLPAInjector::inject(StmtBinding current, ASTContext &Context){
 
 
 bool MLPAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){
+    if(___verbose)cout<<"check - 1"<<endl;
     const CompoundStmt * compoundStmt = (const CompoundStmt *)stmt;
+    stmt->dumpColor();
+    if(___verbose)cout<<"check - 2"<<endl;
     std::vector<std::vector<const Stmt*>> stmtlists = getStmtLists(compoundStmt);
+    if(___verbose)cout<<"check - 3"<<endl;
 
     for(std::vector<const Stmt*> it:stmtlists){
+        if(___verbose)cout<<"1"<<endl;
         if(it.size()>=2){
+            if(___verbose)cout<<"2"<<endl;
             int size = it.size();
             if(verbose){
                 cout<<"--- new List ---"<<size<<endl;
@@ -447,13 +460,17 @@ bool MLPAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
                             stmt->dumpColor();
                 }
             }
+            if(___verbose)cout<<"3"<<endl;
             if(size>10)
                 size=10;
             //cout<<"fullsize:"<<size<<endl;
             for(;size>=2;size--){
+                if(___verbose)cout<<"3.1"<<endl;
                 if(verbose)cout<<"size:"<<size<<endl;
                 std::vector<std::vector<const Stmt*>> injectionpoints = getMLPAListOfSize(it, size, compoundStmt);
+                if(___verbose)cout<<"3.2"<<endl;
                 if(verbose)cout << "found"<<injectionpoints.size()<<endl;
+                if(___verbose)cout<<"3.3"<<endl;
                 for(std::vector<const Stmt*> injectionpoint: injectionpoints){
                     if(verbose){
                         cout<<"--sublist:"<<injectionpoint.size()<<endl;
@@ -463,8 +480,12 @@ bool MLPAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
                     }
                     nodeCallback(binding, injectionpoint);
                 }
+                if(___verbose)cout<<"3.4"<<endl;
             }
+            if(___verbose)cout<<"4"<<endl;
         }
+        if(___verbose)cout<<"5"<<endl;
     }
+    if(___verbose)cout<<"6"<<endl;
     return false;
 }
