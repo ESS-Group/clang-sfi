@@ -61,6 +61,16 @@ void FaultInjector::push(std::string binding, const Decl *st){
     _sort();
 }
 
+void FaultInjector::push(std::string binding, std::vector<const Stmt *> list){
+    StmtBinding sb(binding, list);
+    locations.push_back(sb);
+    _sort();
+}
+void FaultInjector::push(std::string binding, std::vector<const Decl *> list){
+    StmtBinding sb(binding, list);
+    locations.push_back(sb);
+    _sort();
+}
 void FaultInjector::matchAST(ASTContext &Context){
     Matcher.matchAST(Context);
 }
@@ -82,6 +92,12 @@ void FaultInjector::nodeCallback(std::string binding, const Decl* decl){
     push(binding, decl);
 }
 
+void FaultInjector::nodeCallback(std::string binding, std::vector<const Stmt*> list){
+    push(binding, std::vector<const Stmt*>(list.begin(),list.end()));
+}
+void FaultInjector::nodeCallback(std::string binding, std::vector<const Decl*> list){
+    push(binding, std::vector<const Decl*>(list.begin(),list.end()));
+}
 void FaultInjector::_sort(){
     std::sort(
         locations.begin(),
@@ -92,15 +108,39 @@ void FaultInjector::_sort(){
 
 bool FaultInjector::comparefunc(StmtBinding st1, StmtBinding st2){
     SourceLocation l1,l2;
-    if(st1.isStmt)
-        l1 = st1.stmt->getLocStart();
-    else
-        l1 = st1.decl->getLocStart();
+    if(st1.isList){
+        if(st1.isStmt){
+            l1=st1.stmtlist[0]->getLocStart();
+            for(const Stmt* stmt: st1.stmtlist)
+                if(stmt->getLocStart()<l1)l1 = stmt->getLocStart();
+        }else{
+            l1=st1.decllist[0]->getLocStart();
+            for(const Decl* decl: st1.decllist)
+                if(decl->getLocStart()<l1)l1 = decl->getLocStart();
+        }
+    } else {
+        if(st1.isStmt)
+            l1 = st1.stmt->getLocStart();
+        else
+            l1 = st1.decl->getLocStart();
+    }
 
-    if(st2.isStmt)
-        l2 = st2.stmt->getLocStart();
-    else
-        l2 = st2.decl->getLocStart();
+    if(st2.isList){
+        if(st2.isStmt){
+            l2=st2.stmtlist[0]->getLocStart();
+            for(const Stmt* stmt: st2.stmtlist)
+                if(stmt->getLocStart()<l2)l2 = stmt->getLocStart();
+        }else{
+            l2=st2.decllist[0]->getLocStart();
+            for(const Decl* decl: st2.decllist)
+                if(decl->getLocStart()<l2)l2 = decl->getLocStart();
+        }
+    } else {
+        if(st2.isStmt)
+            l2 = st2.stmt->getLocStart();
+        else
+            l2 = st2.decl->getLocStart();
+    }
     return l1<l2;//l2<l1;
 }
 
@@ -160,11 +200,20 @@ std::string FaultInjector::sourceRangeToString(const Decl *decl,const SourceMana
 void FaultInjector::printStep(StmtBinding current, const SourceManager &sourceManager, const LangOptions &langOpts, int i, int size){
     cout<<"injecting '"<<toString()<<"' ["<<i+1<<"/"<<size<<"]"<<endl;
     if(current.isStmt){
-        cout << sourceRangeToString(current.stmt,sourceManager)<<endl;
-        cout << stmtToString(current.stmt, langOpts)<<endl;
+        if(current.isList){
+            //cout << sourceRangeToString(current.stmt,sourceManager)<<endl;
+            cout << "List with "<<current.stmtlist.size()<<" Statements"<<endl;
+        } else {
+            cout << sourceRangeToString(current.stmt,sourceManager)<<endl;
+            cout << stmtToString(current.stmt, langOpts)<<endl;
+        }
     } else {
-        cout << sourceRangeToString(current.decl,sourceManager)<<endl;
-        cout << stmtToString(current.decl, langOpts)<<endl;
+        if(current.isList){
+            cout << "List with "<<current.decllist.size()<<" Decl"<<endl;
+        } else {
+            cout << sourceRangeToString(current.decl,sourceManager)<<endl;
+            cout << stmtToString(current.decl, langOpts)<<endl;
+        }
     }
 }//with printing statements
 
@@ -216,7 +265,7 @@ void FaultInjector::writeDown(std::string data, int i){
 #include "FaultInjectors/MFCInjector.cpp"
 #include "FaultInjectors/MIFSInjector.cpp"
 #include "FaultInjectors/MIEBInjector.cpp"
-//todo: MLPA
+#include "FaultInjectors/MLPAInjector.cpp"
 
 //Checking faults
 #include "FaultInjectors/MIAInjector.cpp"
@@ -232,3 +281,13 @@ void FaultInjector::writeDown(std::string data, int i){
 //Interface faults
 #include "FaultInjectors/WAEPInjector.cpp"
 #include "FaultInjectors/WPFVInjector.cpp"
+
+
+
+
+//weitere
+
+//interace
+#include "FaultInjectors/MRSInjector.cpp"
+//algorithm
+#include "FaultInjectors/MIESInjector.cpp"

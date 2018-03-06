@@ -17,7 +17,7 @@ std::string MIEBInjector::inject(StmtBinding current, ASTContext &Context){
 bool MIEBInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){//no else
         const IfStmt* ifS = (IfStmt *)(stmt);
         //commented to also inject, when the then-block contains more than 5 statements
-        //if(!C9(ifS->getThen()))
-        //    return false;
+        if(!C9(ifS->getThen()))
+            return false;
         return !C8(ifS); //Else construct needed (ODC type)
 }

@@ -1,0 +1,6 @@
+{
+    "injectors":[
+        "MIFS",
+        "MFC"
+    ]
+}

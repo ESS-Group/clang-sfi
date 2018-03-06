@@ -10,7 +10,7 @@ MVAVInjector::MVAVInjector(){
 
     Matcher.addMatcher(
             varDecl(
-                    //hasAncestor(compoundStmt())
+                    hasAncestor(compoundStmt())
             ).bind("varDecl"), createStmtHandler("varDecl")); 
 
 }
@@ -46,15 +46,15 @@ bool MVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &
         std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl, true);
         for(const BinaryOperator* op:list){
             if(isValueAssignment(op)){
-                /*if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
+                if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
                     if(isParentOf(forstmt->getCond(), decl, Context) || isParentOf(forstmt->getInc(), decl,Context)){
                     } else if(C2(op, Context)){
                         nodeCallback(binding, op);
                     }
-                } else if(C2(op, Context)){*/
+                } else if(C2(op, Context)){
                 //commented to include assignements inside a for construct
                     nodeCallback(binding, op);
-                //}
+                }
             }
         }
 

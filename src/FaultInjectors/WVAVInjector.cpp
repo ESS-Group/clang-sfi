@@ -80,7 +80,7 @@ std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context){
     return getEditedString(R, Context);
 }
 
-
+//is local => has parent compoundStmt or functiondecl or ifstmt??
 bool WVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
     if(binding.compare("varDecl") == 0 && isa<VarDecl>(decl)){
         std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl, true);
@@ -88,15 +88,18 @@ bool WVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &
             if(isValueAssignment(op) && 
             isInitializedBefore((const DeclRefExpr*)((op)->getLHS()), Context)
             ){
-                /*if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
+                if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
                     if(isParentOf(forstmt->getCond(), decl, Context) || isParentOf(forstmt->getInc(), decl,Context)){
-                    } else if(C2(op, Context)){
+                    //} else if(C2(op, Context)){
+                    //} else if(getParentOfType<CompoundStmt>(decl,Context,3) != NULL){//local variable
+                    }else{
                         nodeCallback(binding, op);
                     }
-                } else if(C2(op, Context)){*/
+                //} else if(C2(op, Context)){
+                } else {
                 //commented to include assignements inside a for construct
                     nodeCallback(binding, op);
-                //}
+                }
             }
         }
 

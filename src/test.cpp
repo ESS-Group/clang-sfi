@@ -1,5 +1,16 @@
 #include <iostream>
 using namespace std;
+
+int _main(int argc, const char **argv, bool oO){
+	55;
+	int i=0;
+	3;
+	if(true)
+		3;
+	6;
+	i=3;
+	7;
+}
 //#include <stdio.h>
 bool testitest(){
 	return false;
@@ -102,3 +113,4 @@ int main(int argc, const char **argv){
 		2;
 	}
 }
+/**/

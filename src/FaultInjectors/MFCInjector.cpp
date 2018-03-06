@@ -14,5 +14,5 @@ std::string MFCInjector::inject(StmtBinding current, ASTContext &Context){
     return getEditedString(R, Context);
 }
 bool MFCInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){//no else
-    return true;
+    return C2(stmt, Context);
 }

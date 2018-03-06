@@ -14,7 +14,7 @@ MVAEInjector::MVAEInjector(){
     Matcher.addMatcher(
             varDecl(
                 //commented to include global assignements
-//                    hasAncestor(compoundStmt())
+                    hasAncestor(compoundStmt())
             ).bind("varDecl"), createStmtHandler("varDecl"));
 
 }
@@ -54,14 +54,14 @@ bool MVAEInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &
         for(const BinaryOperator* op:list){
             
             if(isExprAssignment(op)){
-                /*if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
+                if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
                     if(isParentOf(forstmt->getCond(), decl, Context) || isParentOf(forstmt->getInc(), decl,Context)){
                     } else if(C2(op, Context)){
                         nodeCallback(binding, op);
                     }
-                } else if(C2(op, Context)){*/
+                } else if(C2(op, Context)){
                     nodeCallback(binding, op);
-                /*}*/
+                }
             }
         }
 

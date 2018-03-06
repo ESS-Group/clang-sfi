@@ -144,7 +144,7 @@ bool WPFVInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
             
         }
         //cout << 2<<endl;
-        if(varcount >= 2)
+        if(varcount >= 2)///////////////////////////////////////////////////////maybe >=1 !!!!!  because i do not add the variable that is replaced
             nodeCallback(binding, i);
         //i->getDecl()->getDeclContext()->dumpDeclContext();
     }

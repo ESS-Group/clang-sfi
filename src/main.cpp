@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <string>
 //include <unistd.h>
@@ -18,6 +19,10 @@
 #include "StmtHandler.h"
 #include "FaultInjector.h"
 #include "ASTConsumer.h"
+
+#include "libs/json.hpp"
+
+using json = nlohmann::json;
 
 using namespace clang;
 using namespace clang::driver;
@@ -58,24 +63,59 @@ int main(int argc, const char **argv){
     
     //            cout<<"test"<<endl;
     //nun kann SFIAction via templating einen std::vector<FaultInjector> erhalten
+    std::vector<FaultInjector *> available;
     std::vector<FaultInjector *> injectors;
-    //MIFSInjector inj;
-    /**/injectors.push_back(new MIFSInjector);
-    injectors.push_back(new MIAInjector);
-    injectors.push_back(new MIEBInjector);
-    injectors.push_back(new MFCInjector);
-    injectors.push_back(new MLACInjector);
-    injectors.push_back(new MLOCInjector);
-    injectors.push_back(new MFCInjector);
-    injectors.push_back(new MVIVInjector);
-    injectors.push_back(new MVAVInjector);
-    injectors.push_back(new WVAVInjector);
-    injectors.push_back(new MVAEInjector);
-    injectors.push_back(new WAEPInjector);/**/
-    injectors.push_back(new WPFVInjector);
 
     bool verbose = VerboseOption.getValue();
     
+
+
+    //MIFSInjector inj;
+    available.push_back(new MIFSInjector);
+    available.push_back(new MIAInjector);
+    available.push_back(new MIEBInjector);
+    available.push_back(new MFCInjector);
+    available.push_back(new MLACInjector);
+    available.push_back(new MLOCInjector);
+    available.push_back(new MFCInjector);
+    available.push_back(new MVIVInjector);
+    available.push_back(new MVAVInjector);
+    available.push_back(new WVAVInjector);
+    available.push_back(new MVAEInjector);
+    available.push_back(new WAEPInjector);
+    available.push_back(new WPFVInjector);
+    available.push_back(new MLPAInjector);
+    available.push_back(new MRSInjector);
+    available.push_back(new MIESInjector);
+
+
+    struct stat buf;
+
+    if(stat("config.json", &buf) != -1){
+        std::ifstream i("config.json");
+        json j;
+        i>>j;
+        
+        if(j.find("injectors")!=j.end()){
+            for(json::iterator it=j.find("injectors")->begin();it!=j.find("injectors")->end();++it){
+                for(FaultInjector * injector:available){
+                    if(injector->toString().compare(*it)==0){
+                        cout<<injector->toString()<<endl;
+                        injectors.push_back(injector);
+                        break;
+                    }
+                }
+            }
+        } else {
+            for(FaultInjector * injector:available){
+                injectors.push_back(injector);
+            }
+        }
+    } else {
+        for(FaultInjector * injector:available){
+            injectors.push_back(injector);
+        }
+    }
     //cout << "start tool" << endl;
     //cout<<(VerboseOption.getValue()?1:0)<<endl;
     std::string dir=DirectoryOption.getValue();
