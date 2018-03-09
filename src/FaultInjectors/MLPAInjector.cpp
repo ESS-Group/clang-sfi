@@ -389,7 +389,9 @@ std::vector<std::vector<const Stmt*>> getMLPAListOfSize(std::vector<const Stmt*>
 
 MLPAInjector::MLPAInjector(){
     Matcher.addMatcher(
-                compoundStmt().bind("compoundStmt"), 
+                compoundStmt(
+                    unless(hasParent(declStmt()))
+                ).bind("compoundStmt"), 
                 createStmtHandler("compoundStmt")
         );
 
@@ -444,7 +446,7 @@ std::string MLPAInjector::inject(StmtBinding current, ASTContext &Context){
 bool MLPAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){
     if(___verbose)cout<<"check - 1"<<endl;
     const CompoundStmt * compoundStmt = (const CompoundStmt *)stmt;
-    stmt->dumpColor();
+    //stmt->dumpColor();
     if(___verbose)cout<<"check - 2"<<endl;
     std::vector<std::vector<const Stmt*>> stmtlists = getStmtLists(compoundStmt);
     if(___verbose)cout<<"check - 3"<<endl;
@@ -454,17 +456,18 @@ bool MLPAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
         if(it.size()>=2){
             if(___verbose)cout<<"2"<<endl;
             int size = it.size();
+            //TODO: if whole block then "-1" so that at least 1 statement will remain!!!!!
             if(verbose){
                 cout<<"--- new List ---"<<size<<endl;
-                for(const Stmt * stmt:it){
+                /*for(const Stmt * stmt:it){
                             stmt->dumpColor();
-                }
+                }*/
             }
             if(___verbose)cout<<"3"<<endl;
             if(size>10)
                 size=10;
             //cout<<"fullsize:"<<size<<endl;
-            for(;size>=2;size--){
+            for(;size>=1;size--){
                 if(___verbose)cout<<"3.1"<<endl;
                 if(verbose)cout<<"size:"<<size<<endl;
                 std::vector<std::vector<const Stmt*>> injectionpoints = getMLPAListOfSize(it, size, compoundStmt);

@@ -219,11 +219,11 @@ void FaultInjector::printStep(StmtBinding current, const SourceManager &sourceMa
 
 void FaultInjector::printStep(StmtBinding current,  const SourceManager &sourceManager, int i, int size){
     cout<<"injecting '"<<toString()<<"' ["<<i+1<<"/"<<size<<"]"<<endl;
-    if(current.isStmt){
+    /*if(current.isStmt){
         cout << sourceRangeToString(current.stmt,sourceManager)<<endl;//current.stmt -> getLocStart().printToString(Context.getSourceManager())<< " - "<<current.stmt -> getLocEnd().printToString(Context.getSourceManager())<<endl;
     } else {
         cout << sourceRangeToString(current.decl,sourceManager)<<endl;//current.stmt -> getLocStart().printToString(Context.getSourceManager())<< " - "<<current.stmt -> getLocEnd().printToString(Context.getSourceManager())<<endl;
-    }
+    }*/
 }//only position
 
 void FaultInjector::setVerbose(bool v){

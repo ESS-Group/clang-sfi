@@ -25,7 +25,7 @@ bool isInitializedBefore(const DeclRefExpr* ref, ASTContext &Context){
     if( decl->getInit() != NULL)//if declaration is initialization => every use after that is an assignment
         return true;
     else{
-        ref->dumpColor();
+        //ref->dumpColor();
         const CompoundStmt* parent = getParentCompoundStmt(decl, Context);
         std::vector<const BinaryOperator*> inits = getChildForFindInitForVar(parent, decl, false);
         for(const BinaryOperator* init : inits){//else check if ref is used in initialization

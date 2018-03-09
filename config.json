@@ -1,0 +1,15 @@
+{
+    "injectors":[
+        "MFC",
+        "MVIV",
+        "MVAV",
+        "MVAE",
+        "MIA",
+        "MIFS",
+        "MIEB",
+        "MLAC",
+        "MLOC",
+        "MLPA",
+        "WVAV"
+    ]
+}

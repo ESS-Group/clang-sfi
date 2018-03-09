@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <math.h>
 //include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -133,6 +134,35 @@ int main(int argc, const char **argv){
     //cout<<DirectoryOption.getValue()<<endl;
     //cout<<(DirectoryOption.getValue().compare("")?1:0)<<endl;
     Tool.run(newSFIFrontendActionFactory(injectors).get());
+    json summary;
+    int injectioncount = 0;
+    cout<<endl<<endl<<endl;
+    cout<<">>>>> SUMMARY <<<<<"<<endl;
+    for(FaultInjector * injector:injectors){
+        int size = injector->locations.size();
+        injectioncount += size;
+    }
+    for(FaultInjector * injector:injectors){
+        json injection;
+        int size = injector->locations.size();
+        std::string type = injector->toString();
+        //injectioncount += size;
+        injection["type"] = type;
+        injection["count"] = size;
+        summary["types"].push_back(type);
+        summary["injections"].push_back(injection);
+        float part = ((float)size)/injectioncount*100.0;
+
+        cout<<"Injected "<<size<<" "<<type<<" faults."<<endl<<"> "<<size<<"/"<<injectioncount<<" ("<< roundf(part*100)/100 <<"\%)"<<endl;
+    }
+    cout<<">>> Total Injected faults: "<<injectioncount<<endl;
+    summary["injectionCount"] = injectioncount;
+
+    std::ofstream o((dir.compare("")?dir+"/":"")+"summary.json");
+    o <<summary;
+    o.flush();
+    o.close();
+    cout << "saved summary at \""<<(dir.compare("")?dir+"/":"")+"summary.json"<<"\""<<endl;
     //cout<<"end tool"<<endl;
     return 0;
 };

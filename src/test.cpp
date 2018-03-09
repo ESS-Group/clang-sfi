@@ -1,3 +1,17 @@
+class Testitest1{
+	public:
+		Testitest1(){}
+	private:
+		int test1(){return 3;}
+};
+struct{
+	int a,b,c;
+	union S{
+		char x; 
+		int y;
+		};
+}a;
+
 #include <iostream>
 using namespace std;
 
