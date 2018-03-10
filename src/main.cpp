@@ -33,6 +33,7 @@ using namespace clang::tooling;
 static llvm::cl::OptionCategory oCategory("Matcher Sample");
 static llvm::cl::opt<bool> VerboseOption("verbose", llvm::cl::cat(oCategory));
 static llvm::cl::opt<std::string> DirectoryOption("dir", llvm::cl::cat(oCategory));
+static llvm::cl::opt<std::string> ConfigOption("config", llvm::cl::cat(oCategory));
 
 std::unique_ptr<FrontendActionFactory> newSFIFrontendActionFactory(std::vector<FaultInjector*> injectors){
     class SFIFrontendActionFactory: public FrontendActionFactory{
@@ -92,7 +93,24 @@ int main(int argc, const char **argv){
 
     struct stat buf;
 
-    if(stat("config.json", &buf) != -1){
+    
+    std::string cfgFile= ConfigOption.getValue();
+
+    std::string dir=DirectoryOption.getValue();
+    if(dir.compare("")!=0){
+        cout<<"Changing destination directory to '"<<dir<<"'"<<endl;
+        if(mkdir(dir.c_str(), ACCESSPERMS) && errno != EEXIST){
+            cerr<<"-Failed"<<endl;
+            return 1;
+        }
+    }
+    if(cfgFile.compare("")!=0){
+
+    } else 
+        cfgFile = "config.json";
+
+    if(stat(cfgFile.c_str(), &buf) != -1){
+        cout<<"Using config ("<<cfgFile<<"). Injecting:"<<endl;
         std::ifstream i("config.json");
         json j;
         i>>j;
@@ -113,20 +131,14 @@ int main(int argc, const char **argv){
             }
         }
     } else {
+        cout<<"Config not found: default action - inject all errors"<<endl;
+
         for(FaultInjector * injector:available){
             injectors.push_back(injector);
         }
     }
     //cout << "start tool" << endl;
     //cout<<(VerboseOption.getValue()?1:0)<<endl;
-    std::string dir=DirectoryOption.getValue();
-    if(dir.compare("")!=0){
-        cout<<"Changing destination directory to '"<<dir<<"'"<<endl;
-        if(mkdir(dir.c_str(), ACCESSPERMS) && errno != EEXIST){
-            cerr<<"-Failed"<<endl;
-            return 1;
-        }
-    }
     for(FaultInjector *inj : injectors){
         inj->setVerbose(verbose);
         inj->setDirectory(dir);
