@@ -1,1 +1,1 @@
-make && ./clang-sfi -verbose -dir faluts src/test.cpp
+make && ./clang-sfi -verbose -dir faults src/test.cpp

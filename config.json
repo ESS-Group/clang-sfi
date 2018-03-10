@@ -1,16 +1,17 @@
 {
     "injectors":[
-        "_MFC",
-        "_MVIV",
-        "_MVAV",
-        "_MVAE",
-        "_MIA",
-        "_MIFS",
-        "_MIEB",
-        "_MLAC",
-        "_MLOC",
-        "_MLPA",
-        "_WVAV",
-        "WPFV"
+        "MFC",
+        "MVIV",
+        "MVAV",
+        "MVAE",
+        "MIA",
+        "MIFS",
+        "MIEB",
+        "MLAC",
+        "MLOC",
+        "MLPA",
+        "WVAV",
+        "WPFV",
+        "WAEP"
     ]
 }

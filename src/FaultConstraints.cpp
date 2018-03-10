@@ -24,6 +24,7 @@ bool C9(const clang::Stmt::const_child_iterator &begin, const clang::Stmt::const
     while(it!=cast_away_const(end)){
         if(isa<ForStmt>(*it) || isa<WhileStmt>(*it) || isa<DoStmt>(*it))//schleife
             return false;
+        else if(isa<IfStmt>(*it) || isa<SwitchStmt>(*it))//other jumps
         num++;
         it++;
     }
