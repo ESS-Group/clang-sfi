@@ -25,8 +25,14 @@ int _main(int argc, const char **argv, bool oO){
 	i=3;
 	7;
 }
+
 //#include <stdio.h>
 bool testitest(){
+	return false;
+}
+bool testitest(bool z){
+	char x = true;
+	_main(1, NULL,z);
 	return false;
 }
 bool asfawgw = true;
