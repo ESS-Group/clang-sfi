@@ -1,3 +1,19 @@
+int huhu(){
+	int i=0;
+	switch(i){
+		case 0:
+		{
+
+		}
+		break;
+		case 1:
+		break;
+		case 2:
+		break;
+	}
+	return 3;
+}
+
 class Testitest1{
 	public:
 		Testitest1(){}

@@ -110,7 +110,7 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block){
                 index = 0;
                 if(___verbose)cout<<"end"<<endl;
             }
-            if(!isa<IfStmt>(*i) && !isa<ForStmt>(*i) && !isa<WhileStmt>(*i) && !isa<DoStmt>(*i)){
+            if(!isa<IfStmt>(*i) && !isa<ForStmt>(*i) && !isa<WhileStmt>(*i) && !isa<DoStmt>(*i)&&!isa<SwitchStmt>(*i)){
                 if(isa<CompoundStmt>(*i)){
                     if(ret[index].size()>0){
                         std::vector<const Stmt*> list;
@@ -390,7 +390,10 @@ std::vector<std::vector<const Stmt*>> getMLPAListOfSize(std::vector<const Stmt*>
 MLPAInjector::MLPAInjector(){
     Matcher.addMatcher(
                 compoundStmt(
-                    unless(hasParent(declStmt()))
+                    allOf(
+                        unless(hasParent(declStmt())),
+                        unless(hasParent(switchStmt()))
+                    )
                 ).bind("compoundStmt"), 
                 createStmtHandler("compoundStmt")
         );
@@ -456,17 +459,14 @@ bool MLPAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
         if(it.size()>=2){
             if(___verbose)cout<<"2"<<endl;
             int size = it.size();
-            //TODO: if whole block then "-1" so that at least 1 statement will remain!!!!!
+            if(size == compoundStmt->size())//because 1 statement must remain within the compoundStmt
+                size--;
             if(verbose){
                 cout<<"--- new List ---"<<size<<endl;
-                /*for(const Stmt * stmt:it){
-                            stmt->dumpColor();
-                }*/
             }
-            if(___verbose)cout<<"3"<<endl;
-            if(size>10)
-                size=10;
-            //cout<<"fullsize:"<<size<<endl;
+            if(size>5)
+                size=5;
+            
             for(;size>=1;size--){
                 if(___verbose)cout<<"3.1"<<endl;
                 if(verbose)cout<<"size:"<<size<<endl;
