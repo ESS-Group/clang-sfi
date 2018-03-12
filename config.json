@@ -1,6 +1,8 @@
 {
     "destDirectory":"faults",
     "verbose":true,
+    "timeout":500,
+    "multipleRuns":3,
     "compileCommand":"/usr/bin/clang++",
     "compileCommandArgs":["src/test.cpp"],
     "fileToExec":"./a.out",

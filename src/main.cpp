@@ -257,6 +257,16 @@ int main(int argc, const char **argv){
             //cout<<1<<endl;
             if(j.find("timeout")!=j.end())
                 timeout = j["timeout"].get<int>();
+
+            executionSummary["timeout"]=timeout;
+
+            int multipleRuns = 1;
+            //cout<<1<<endl;
+            if(j.find("multipleRuns")!=j.end())
+                multipleRuns = j["multipleRuns"].get<int>();
+            if(multipleRuns<1)
+                multipleRuns = 1;
+            executionSummary["runs"]=multipleRuns;
             //cout<<1<<endl;
             std::string outputdir = ((dir.compare("")?dir+"/":"")+"output");
             if(mkdir(outputdir.c_str(), ACCESSPERMS) && errno != EEXIST){
@@ -451,104 +461,141 @@ int main(int argc, const char **argv){
                     if(success){
                         //cout <<"Compiled."<<endl;
                         if(verbose)cout << "Executing '"<< fileName << "' ("<<fault<<" ["<<i+1<<"/"<<count<<"])"<<endl;
-                        if(fork()==0){
-                            
-                            int fd1 = open((outputdir+"/"+baseFilename+".stdout").c_str(), O_RDWR|O_CREAT, S_IRUSR | S_IWUSR);
-                            int fd2 = open((outputdir+"/"+baseFilename+".stderr").c_str(), O_RDWR|O_CREAT, S_IRUSR | S_IWUSR);
 
+                        for(int k = 1 ; k<=multipleRuns ; k++){
+                            if(multipleRuns != 1 && verbose)
+                                cout <<"Run ["<<k<<"/"<<multipleRuns<<"]";
 
-                            dup2(fd1,1);
-                            dup2(fd2,2);
-                            //timeout
-
-                            close(fd1);
-                            close(fd2);
-                            int exitCode = 0;
-                            if(timeout!=0){
-                                execTimeoutReturn _exitCode = exec_with_timeout(args.data(), timeout);
-                                exitCode = _exitCode.exitCode;
-                                /*if(exitCode.timeout){
-                                    json err;
-                                    err["fault"] = fault;
-                                    err["index"] = i;
-                                    err["timeout"] = true;
-                                    err["exitCode"] = exitCode.exitCode;
-                                    executionSummary["failRuns"].push_back(err);
-                                    cout<<"deine Mudda1"<<endl;
-                                } else if(exitCode.exitCode){
-                                    json err;
-                                    err["fault"] = fault;
-                                    err["index"] = i;
-                                    err["exitCode"] = exitCode.exitCode;
-                                    executionSummary["failRuns"].push_back(err);
-                                    cout<<"deine Mudda2"<<endl;
-                                }*/
-                            }else{
-                                /*cout<<fileToExec.c_str()<<endl;
-                                for(char* arg:args){
-                                    cout<<"arg "<<(arg==NULL?"NULL":arg)<<endl;
-                                }*/
-
-                                /*
-                                cout<<"command: "<<fileToExec<<endl;
-                                for(char* arg:args){
-                                    if(arg!=NULL)
-                                        cout <<"arg "<<arg<<endl;
-                                    else
-                                        cout << "arg NULL"<<endl;
-                                }*/
-
-
-                                execv(fileToExec.c_str(), args.data());
+                            execTimeoutReturn *ret = (execTimeoutReturn *)mmap(NULL,sizeof(execTimeoutReturn), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+                            ret->timeout = false;
+                            ret->exitCode = 0;
+                            msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
+                            int exitCode=0;
+                            int child_pid = fork();
+                            if(child_pid==0){
                                 
-                                exitCode = errno;
-                                //cout<<"huhu"<<exitCode;
-                                /*if(exitCode){
+                                int fd1 = open((outputdir+"/"+baseFilename+".stdout").c_str(), O_RDWR|O_CREAT, S_IRUSR | S_IWUSR);
+                                int fd2 = open((outputdir+"/"+baseFilename+".stderr").c_str(), O_RDWR|O_CREAT, S_IRUSR | S_IWUSR);
+
+
+                                dup2(fd1,1);
+                                dup2(fd2,2);
+                                //timeout
+
+                                close(fd1);
+                                close(fd2);
+                                cout<<"test"<<endl;
+                                int exitCode = 0;
+                                execTimeoutReturn _exitCode;
+                                if(timeout!=0){
+                                    _exitCode = exec_with_timeout(args.data(), timeout);
+                                    ret->exitCode = _exitCode.exitCode;
+                                    ret->timeout = _exitCode.timeout;
+                                    //exitCode = _exitCode.exitCode;
+                                    msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
+                                    /*if(exitCode.timeout){
+                                        json err;
+                                        err["fault"] = fault;
+                                        err["index"] = i;
+                                        err["timeout"] = true;
+                                        err["exitCode"] = exitCode.exitCode;
+                                        executionSummary["failRuns"].push_back(err);
+                                        cout<<"deine Mudda1"<<endl;
+                                    } else if(exitCode.exitCode){
+                                        json err;
+                                        err["fault"] = fault;
+                                        err["index"] = i;
+                                        err["exitCode"] = exitCode.exitCode;
+                                        executionSummary["failRuns"].push_back(err);
+                                        cout<<"deine Mudda2"<<endl;
+                                    }*/
+                                }else{
+                                    /*cout<<fileToExec.c_str()<<endl;
+                                    for(char* arg:args){
+                                        cout<<"arg "<<(arg==NULL?"NULL":arg)<<endl;
+                                    }*/
+                                    /*
+                                    
+                                    cout<<"command: "<<fileToExec<<endl;
+                                    for(char* arg:args){
+                                        if(arg!=NULL)
+                                            cout <<"arg "<<arg<<endl;
+                                        else
+                                            cout << "arg NULL"<<endl;
+                                    }
+                                    */
+
+                                    ret->exitCode = exitCode;
+                                    ret->timeout = false;
+                                    msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
+                                    execv(fileToExec.c_str(), args.data());
+                                    exitCode = errno;
+                                    cout<<"Exited with errno: "<<exitCode<<endl;
+                                    ret->exitCode = exitCode;
+                                    ret->timeout = false;
+                                    //cout<<"huhu"<<exitCode;
+                                    /*if(exitCode){
+                                        json err;
+                                        err["fault"] = fault;
+                                        err["index"] = i;
+                                        err["exitCode"] = exitCode;
+                                        executionSummary["failRuns"].push_back(err);
+                                        cout<<executionSummary<<endl;
+                                        cout<<"deine Mudda3|"<<exitCode<<"|"<<i<<"|"<<fault<<endl;
+                                        errors++;
+                                    }*/
+                                }
+                                msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
+                                exit(exitCode);//exit child process
+                            } else {
+                                //cout << "running" << endl;
+                                //wait(NULL);//waits for execution of all child processes (here everytime only 1)
+                                //cout << ">done." << endl;
+
+                                
+                                pid_t exited_pid = waitpid(child_pid,&exitCode,0);
+                                bool timedout = false;
+                                //cout<<"hoho"<<endl;
+                                //cout<<"hihi"<<endl;
+                                if(timeout){
+                                    //bool timeout = false;
+                                    //cout<<ret->exitCode<<"|"<<(ret->timeout?1:0)<<endl;
+                                    //if(ret->timeout != false || ret->exitCode != 0){
+                                        exitCode = ret->exitCode;
+                                        timedout = ret->timeout;
+                                    //}
+                                }
+                                //cout<<ret->exitCode<<"|"<<(ret->timeout?1:0)<<endl;
+                                munmap(ret, sizeof(execTimeoutReturn));
+                                int status = WEXITSTATUS(exitCode);
+                                if(status){
                                     json err;
                                     err["fault"] = fault;
                                     err["index"] = i;
                                     err["exitCode"] = exitCode;
+                                    err["status"] = status;
+                                    err["timeout"] = timedout;
+                                    err["run"] = k;
                                     executionSummary["failRuns"].push_back(err);
-                                    cout<<executionSummary<<endl;
-                                    cout<<"deine Mudda3|"<<exitCode<<"|"<<i<<"|"<<fault<<endl;
-                                    errors++;
-                                }*/
+
+                                    if(verbose)cout<<">failed (exitCode: "<<exitCode<<", status: "<<status<<")"<<endl;
+                                    //cout<<executionSummary<<endl;
+                                    //cout<<"deine Mudda3|"<<exitCode<<"|"<<i<<"|"<<fault<<endl;
+                                    //errors++;
+                                } else {
+
+
+                                    json succ;
+                                    succ["fault"] = fault;
+                                    succ["index"] = i;
+                                    succ["exitCode"] = exitCode;
+                                    succ["status"] = status;
+                                    executionSummary["succRuns"].push_back(succ);
+                                    if(verbose)cout<<">done."<<endl;
+
+                                }
+                                //cout<<"Exit code:"<<exitCode<<endl;
                             }
-
-                            exit(exitCode);//exit child process
-                        } else {
-                            //cout << "running" << endl;
-                            //wait(NULL);//waits for execution of all child processes (here everytime only 1)
-                            //cout << ">done." << endl;
-
-                            int exitCode=0;
-                            pid_t exited_pid = waitpid(-1,&exitCode,0);
-                            int status = WEXITSTATUS(exitCode);
-                            if(status){
-                                json err;
-                                err["fault"] = fault;
-                                err["index"] = i;
-                                err["exitCode"] = exitCode;
-                                err["status"] = status;
-                                executionSummary["failRuns"].push_back(err);
-
-                                if(verbose)cout<<">failed (exitCode: "<<exitCode<<", status: "<<status<<")"<<endl;
-                                //cout<<executionSummary<<endl;
-                                //cout<<"deine Mudda3|"<<exitCode<<"|"<<i<<"|"<<fault<<endl;
-                                //errors++;
-                            } else {
-
-
-                                json succ;
-                                succ["fault"] = fault;
-                                succ["index"] = i;
-                                succ["exitCode"] = exitCode;
-                                succ["status"] = status;
-                                executionSummary["succRuns"].push_back(succ);
-                                if(verbose)cout<<">done."<<endl;
-
-                            }
-                            //cout<<"Exit code:"<<exitCode<<endl;
                         }
                     }
                     //cout<<"huhu"<<errors;

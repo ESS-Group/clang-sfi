@@ -40,6 +40,7 @@ int _main(int argc, const char **argv, bool oO){
 	6;
 	i=3;
 	7;
+	return 12;
 }
 
 //#include <stdio.h>
@@ -130,6 +131,11 @@ class Testitest{
 };
 
 int main(int argc, const char **argv){
+	for(int i = 0; true ; i++){
+		3;
+		if(i==5)
+			break;
+	}
 	Testitest *t = new Testitest();
 	if(argc==2){
 		if(argv[1][0] == '2'){
