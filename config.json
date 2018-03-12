@@ -1,5 +1,6 @@
 {
     "destDirectory":"faults",
+    "verbose":true,
     "compileCommand":"/usr/bin/clang++",
     "compileCommandArgs":["src/test.cpp"],
     "fileToExec":"./a.out",

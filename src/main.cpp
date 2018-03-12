@@ -123,8 +123,13 @@ int main(int argc, const char **argv){
     std::vector<FaultInjector *> injectors;
 
     bool verbose = VerboseOption.getValue();
-    
-
+    /*
+    if(VerboseOption.getNumOccurrences()!=0)
+        cout<<1<<endl;
+    else
+        cout<<0<<endl;
+    return 0;
+    */
 
     //MIFSInjector inj;
     available.push_back(new MIFSInjector);
@@ -159,7 +164,8 @@ int main(int argc, const char **argv){
         cout<<"Using config ("<<cfgFile<<")."<<endl;
         std::ifstream i("config.json");
         i>>j;
-        
+        if(j.find("verbose")!=j.end() && !verbose)
+                verbose = j["verbose"].get<bool>();
         if(dir.compare("")==0 && j.find("destDirectory")!=j.end()){
             dir = j["destDirectory"].get<std::string>();
         }
@@ -246,7 +252,6 @@ int main(int argc, const char **argv){
         bool backedup = false;
         json executionSummary;
         if(j.find("compileCommand")!=j.end() && j.find("fileToExec")!=j.end()){
-
             //cout << "huhu"<<endl;
             int timeout = 0;
             //cout<<1<<endl;
@@ -364,7 +369,10 @@ int main(int argc, const char **argv){
 
                         //int exitCode = 0;
 
-                        cout << "Compiling '"<< fileName << "'"<<endl;
+                        if(verbose)
+                            cout << "Compiling '"<< fileName << "' ("<<fault<<" ["<<i+1<<"/"<<count<<"])"<<endl;
+                        else
+                            cout << fault<<" ["<<i+1<<"/"<<count<<"]"<<endl;
                         bool success = false;
                         int pid = fork();
                         if(pid == 0){
@@ -413,17 +421,17 @@ int main(int argc, const char **argv){
                             //cout <<exited_pid<<endl;
 
                             int status = WEXITSTATUS(exitCode);
-                            if(exitCode){
+                            if(status){
                                 json err;
                                 err["fault"] = fault;
                                 err["index"] = i;
                                 err["exitCode"] = exitCode;
                                 err["status"] = status;
                                 executionSummary["failCompileRuns"].push_back(err);
-                                cout<<">failed (exitCode: "<<exitCode<<", status: "<<status<<")"<<endl;
+                                if(verbose)cout<<">failed (exitCode: "<<exitCode<<", status: "<<status<<")"<<endl;
                                 //cout<<pid<<endl;
                             }else{
-                                cout<<">done."<<endl;
+                                if(verbose)cout<<">done."<<endl;
                                 success = true;
                             }
                             //cout << "Compilation done" << endl;
@@ -442,7 +450,7 @@ int main(int argc, const char **argv){
                     } else */
                     if(success){
                         //cout <<"Compiled."<<endl;
-                        cout << "Executing '"<< fileName << "'"<<endl;
+                        if(verbose)cout << "Executing '"<< fileName << "' ("<<fault<<" ["<<i+1<<"/"<<count<<"])"<<endl;
                         if(fork()==0){
                             
                             int fd1 = open((outputdir+"/"+baseFilename+".stdout").c_str(), O_RDWR|O_CREAT, S_IRUSR | S_IWUSR);
@@ -516,26 +524,47 @@ int main(int argc, const char **argv){
                             int exitCode=0;
                             pid_t exited_pid = waitpid(-1,&exitCode,0);
                             int status = WEXITSTATUS(exitCode);
-                            if(exitCode){
+                            if(status){
                                 json err;
                                 err["fault"] = fault;
                                 err["index"] = i;
                                 err["exitCode"] = exitCode;
                                 err["status"] = status;
                                 executionSummary["failRuns"].push_back(err);
+
+                                if(verbose)cout<<">failed (exitCode: "<<exitCode<<", status: "<<status<<")"<<endl;
                                 //cout<<executionSummary<<endl;
                                 //cout<<"deine Mudda3|"<<exitCode<<"|"<<i<<"|"<<fault<<endl;
                                 //errors++;
+                            } else {
+
+
+                                json succ;
+                                succ["fault"] = fault;
+                                succ["index"] = i;
+                                succ["exitCode"] = exitCode;
+                                succ["status"] = status;
+                                executionSummary["succRuns"].push_back(succ);
+                                if(verbose)cout<<">done."<<endl;
+
                             }
                             //cout<<"Exit code:"<<exitCode<<endl;
-                            if(exitCode)
-                                cout<<">failed (exitCode: "<<exitCode<<", status: "<<status<<")"<<endl;
-                            else
-                                cout<<">done."<<endl;
                         }
                     }
                     //cout<<"huhu"<<errors;
                 }
+            }
+            cout<<endl<<endl;
+            cout<<"Summary:"<<endl;
+            if(executionSummary.find("failCompileRuns")!=executionSummary.end()){
+                cout << "- "<<std::distance(executionSummary.find("failCompileRuns")->begin(), executionSummary.find("failCompileRuns")->end()) << " failed compile runs."<<endl;
+            } else {
+                cout << "- No failed compile runs."<<endl;
+            }
+            if(executionSummary.find("failRuns")!=executionSummary.end()){
+                cout << "- "<<std::distance(executionSummary.find("failRuns")->begin(), executionSummary.find("failRuns")->end()) << " failed runs."<<endl;
+            } else {
+                cout << "- No failed runs."<<endl;
             }
             std::ofstream o((dir.compare("")?dir+"/":"")+"executionsummary.json");
             //cout << summary;
