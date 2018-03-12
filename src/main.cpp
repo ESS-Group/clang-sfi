@@ -467,6 +467,7 @@ int main(int argc, const char **argv){
                                 cout <<"Run ["<<k<<"/"<<multipleRuns<<"]";
 
                             execTimeoutReturn *ret = (execTimeoutReturn *)mmap(NULL,sizeof(execTimeoutReturn), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+                            int *tErrno = (int *)mmap(NULL,sizeof(int), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
                             ret->timeout = false;
                             ret->exitCode = 0;
                             msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
@@ -530,9 +531,11 @@ int main(int argc, const char **argv){
                                     msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
                                     execv(fileToExec.c_str(), args.data());
                                     exitCode = errno;
-                                    cout<<"Exited with errno: "<<exitCode<<endl;
-                                    ret->exitCode = exitCode;
-                                    ret->timeout = false;
+                                    cerr<<"Exited with errno: "<<exitCode<<endl;
+                                    *tErrno=errno
+                                    msync(tErrno,sizeof(int), MS_SYNC|MS_INVALIDATE);
+                                    //ret->exitCode = exitCode;
+                                    //ret->timeout = false;
                                     //cout<<"huhu"<<exitCode;
                                     /*if(exitCode){
                                         json err;
@@ -566,15 +569,25 @@ int main(int argc, const char **argv){
                                     //}
                                 }
                                 //cout<<ret->exitCode<<"|"<<(ret->timeout?1:0)<<endl;
+                                int errornum = *tErrno;
+                                if(errornum == 0 && ret->errnumber)
+                                    errornum = ret->errnumber;
                                 munmap(ret, sizeof(execTimeoutReturn));
+                                munmap(errornum, sizeof(tErrno));
+
                                 int status = WEXITSTATUS(exitCode);
-                                if(status){
+                                if(status || errornum){
                                     json err;
                                     err["fault"] = fault;
                                     err["index"] = i;
-                                    err["exitCode"] = exitCode;
-                                    err["status"] = status;
-                                    err["timeout"] = timedout;
+                                    if(errornum){
+                                        err["errno"] = errornum;
+                                    } else {
+                                        err["exitCode"] = exitCode;
+                                        err["status"] = status;
+                                        err["timeout"] = timedout;
+                                    }
+                                    
                                     err["run"] = k;
                                     executionSummary["failRuns"].push_back(err);
 
