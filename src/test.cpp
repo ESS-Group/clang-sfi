@@ -48,7 +48,7 @@ bool testitest(){
 }
 bool testitest(bool z){
 	char x = true;
-	_main(1, NULL,z);
+	_main(1, 0,z);
 	return false;
 }
 bool asfawgw = true;
@@ -79,7 +79,7 @@ class Testitest{
 			c = testitest();
 			testitest();
 			testitest() && testitest();
-			cout<<"public constructor"<<endl;
+			//cout<<"public constructor"<<endl;
 			initialize("abc");
 			initialize(testitest()?"abc":"cde");
 
@@ -102,7 +102,7 @@ class Testitest{
 			
 			if(str[0]==123)
 				return;
-			cout<<length(str)<<endl;
+			//cout<<length(str)<<endl;
 		}
 		bool huhu(){
 			return testitest();
@@ -142,11 +142,21 @@ int main(int argc, const char **argv){
 			3;
 			//cout << 2 << endl;
 		}else if(argv[1][0] == '3' && true)
-			cout<<"test"<<endl;
+			11;//cout<<"test"<<endl;
 	}
 
 	if(1){
 		2;
+		2;
+		2;
+		2;
+		2;
 	}
+
+
+	if(true){
+		return 0;
+	}
+	return 2;
 }
 /**/

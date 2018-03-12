@@ -7,6 +7,7 @@ cmake*
 DartConfiguration.tcl
 compile_commands.json
 *.a
+*.out
 *.patch
 *.cpp
 !src/*

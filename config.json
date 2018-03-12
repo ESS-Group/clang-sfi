@@ -1,5 +1,9 @@
 {
     "destDirectory":"faults",
+    "compileCommand":"/usr/bin/clang++",
+    "compileCommandArgs":["src/test.cpp"],
+    "fileToExec":"./a.out",
+    "-fileToExec":"/home/daniel/ba/BA-Repo/faultinjector/out.a",
     "injectors":[
         "MFC",
         "MVIV",
