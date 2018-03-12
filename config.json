@@ -1,4 +1,5 @@
 {
+    "destDirectory":"faults",
     "injectors":[
         "MFC",
         "MVIV",
