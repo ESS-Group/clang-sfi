@@ -532,7 +532,7 @@ int main(int argc, const char **argv){
                                     execv(fileToExec.c_str(), args.data());
                                     exitCode = errno;
                                     cerr<<"Exited with errno: "<<exitCode<<endl;
-                                    *tErrno=errno
+                                    *tErrno=errno;
                                     msync(tErrno,sizeof(int), MS_SYNC|MS_INVALIDATE);
                                     //ret->exitCode = exitCode;
                                     //ret->timeout = false;
@@ -573,7 +573,7 @@ int main(int argc, const char **argv){
                                 if(errornum == 0 && ret->errnumber)
                                     errornum = ret->errnumber;
                                 munmap(ret, sizeof(execTimeoutReturn));
-                                munmap(errornum, sizeof(tErrno));
+                                munmap(tErrno, sizeof(tErrno));
 
                                 int status = WEXITSTATUS(exitCode);
                                 if(status || errornum){
