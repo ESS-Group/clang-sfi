@@ -452,7 +452,7 @@ bool MLPAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
             if(size>5)
                 size=5;
             
-            for(;size>=1;size--){
+            for(;size>=2;size--){
 
                 if(verbose)cout<<"size:"<<size<<endl;
                 std::vector<std::vector<const Stmt*>> injectionpoints = getMLPAListOfSize(it, size, compoundStmt);

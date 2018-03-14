@@ -12,5 +12,8 @@ compile_commands.json
 *.cpp
 !src/*
 !src/FaultInjectors/*
+!src/libs/*
 faluts
 faults
+mcpp.sh
+test.ii
