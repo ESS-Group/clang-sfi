@@ -1,12 +1,12 @@
 {
     "destDirectory":"faults",
-    "verbose":true,
+    "verbose":false,
     "timeout":500,
-    "multipleRuns":3,
-    "compileCommand":"/usr/bin/clang++",
+    "multipleRuns":1,
+    "_compileCommand":"/usr/bin/clang++",
     "compileCommandArgs":["src/test.cpp"],
     "fileToExec":"./a.out",
-    "-fileToExec":"/home/daniel/ba/BA-Repo/faultinjector/out.a",
+    "_fileToExec":"/home/daniel/ba/BA-Repo/faultinjector/out.a",
     "injectors":[
         "MFC",
         "MVIV",
@@ -17,7 +17,7 @@
         "MIEB",
         "MLAC",
         "MLOC",
-        "MLPA",
+        "_MLPA",
         "WVAV",
         "WPFV",
         "WAEP"
