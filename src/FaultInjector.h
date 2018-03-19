@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <sstream>
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/AST/AST.h"
@@ -19,6 +20,37 @@ class FaultInjector{
     public:
         class StmtBinding{
             public:
+                class Location{
+                    public:
+                        unsigned int line;
+                        unsigned int column;
+                        Location(unsigned int pLine, unsigned int pColumn):line(pLine),column(pColumn){};
+                        Location(){};
+                        std::string toString(){
+                            std::stringstream ss;
+                            ss<<line<<":"<<column;
+                            return ss.str();
+                        }
+                };
+                class Range{
+                    public:
+                        Location begin;
+                        Location end;
+                        Range(Location pBegin, Location pEnd):begin(pBegin),end(pEnd),valid(true){};
+                        Range():valid(false){};
+                        bool isValid(){
+                            return valid;
+                        };
+                        std::string toString(){
+                            if(isValid()){
+                                std::stringstream ss;
+                                ss<<begin.toString()<<" - "<<end.toString()<<endl;
+                                return ss.str();
+                            } else return "INVALID";
+                        }
+                    private:
+                        bool valid;
+                };
                 StmtBinding(std::string binding, const Decl* decl):binding(binding){
                     this->decl = decl;
                     decllist.push_back(decl);
@@ -38,6 +70,54 @@ class FaultInjector{
                 StmtBinding(std::string binding, std::vector<const Stmt*> list):binding(binding),stmtlist(list.begin(),list.end()){
                     isStmt = true;
                     isList = true;
+                }
+                void calculateRange(ASTContext &Context){
+                    SourceLocation begin,end;
+                    if(isList){
+                        if(isStmt){
+                            for(int i = 0 ; i < stmtlist.size() ; i++){
+                                if(i==0){
+                                    begin = stmtlist[0]->getLocStart();
+                                    end = stmtlist[0]->getLocEnd();
+                                } else {
+                                    SourceLocation _begin = stmtlist[i]->getLocStart(),
+                                            _end = stmtlist[i]->getLocEnd();
+                                    if(end<_end)
+                                        end = _end;
+                                    if(_begin<begin)
+                                        begin = _begin;
+                                }
+                            }
+                        } else {
+                            for(int i = 0 ; i < decllist.size() ; i++){
+                                if(i==0){
+                                    begin = decllist[0]->getLocStart();
+                                    end = decllist[0]->getLocEnd();
+                                } else {
+                                    SourceLocation _begin = decllist[i]->getLocStart(),
+                                            _end = decllist[i]->getLocEnd();
+                                    if(end<_end)
+                                        end = _end;
+                                    if(_begin<begin)
+                                        begin = _begin;
+                                }
+                            }
+                        }
+                    } else {
+                        
+                        if(isStmt){
+                            begin = stmt->getLocStart();
+                            end = stmt->getLocEnd();
+                        } else {
+                            begin = decl->getLocStart();
+                            end = decl->getLocEnd();
+                        }
+                    }
+                    if(begin.isValid() && end.isValid()){
+                        FullSourceLoc fBegin = Context.getFullLoc(begin),
+                                    fEnd = Context.getFullLoc(end);
+                        location = Range(Location(fBegin.getLineNumber(), fBegin.getColumnNumber()), Location(fEnd.getLineNumber(), fEnd.getColumnNumber()));
+                    }
                 }
                 const void *get(){
                     if(isList){
@@ -59,6 +139,7 @@ class FaultInjector{
                 const Decl* decl;
                 std::vector<const Stmt*> stmtlist;
                 std::vector<const Decl*> decllist;
+                Range location;
         };
         StmtHandler* createStmtHandler(std::string binding);
         //std::vector<StmtHandler> test;

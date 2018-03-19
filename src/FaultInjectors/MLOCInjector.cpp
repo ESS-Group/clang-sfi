@@ -1,35 +1,26 @@
 void MLOCInjector::inject(std::vector<StmtBinding> target, ASTContext &Context){
     int i = 0;
     for(StmtBinding current : target){
-        /*
-        if(verbose)
-            printStep(current, Context.getSourceManager(), Context.getLangOpts(),2*(i++),target.size()*2);
-        else
-            printStep(current, Context.getSourceManager(),2*(i++),target.size()*2);
-        */
-        if(verbose)
-            printStep(current, Context.getSourceManager(), Context.getLangOpts(),i++,target.size());
-        else
-            printStep(current, Context.getSourceManager(),i++,target.size());
-        std::string result = inject(current, Context, true);
-        if(result.compare("")){
-            cout<<"-Success (1/2)"<<endl;
-            writeDown(result, i-1);
-        } else
-            cerr << "-Failed (1/2)"<<endl;
-
-
-        /*if(verbose)
-            printStep(current, Context.getSourceManager(), Context.getLangOpts(),2*((i))-1,target.size()*2);
-        else
-            printStep(current, Context.getSourceManager(),2*((i))-1,target.size()*2);*/
-        result = inject(current, Context, false);
-        if(result.compare("")){
-            cout<<"-Success (2/2)"<<endl;
-            writeDown(result, i-1);
-        } else
-            cerr << "-Failed (2/2)"<<endl;
-        //i++;
+        std::string result = "";
+        if(i%2==0){
+            if(verbose)
+                printStep(current, Context.getSourceManager(), Context.getLangOpts(),i++,target.size()/2);
+            else
+                printStep(current, Context.getSourceManager(),i++,target.size()/2);
+            result = inject(current, Context, true);
+            if(result.compare("")){
+                cout<<"-Success (1/2)"<<endl;
+                writeDown(result, i-1);
+            } else
+                cerr << "-Failed (1/2)"<<endl;
+        } else {
+            result = inject(current, Context, false);
+            if(result.compare("")){
+                cout<<"-Success (2/2)"<<endl;
+                writeDown(result, i-1);
+            } else
+                cerr << "-Failed (2/2)"<<endl;
+        }
     }
 }
 std::string MLOCInjector::inject(StmtBinding current, ASTContext &Context){
@@ -104,8 +95,10 @@ bool MLOCInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
     } else 
         return false;
     for(const BinaryOperator* op : binaryOperators){
-        if(op->getOpcode()==BinaryOperatorKind::BO_LOr)
+        if(op->getOpcode()==BinaryOperatorKind::BO_LOr){
             nodeCallback("MLOC",op);
+            nodeCallback("MLOC",op);
+        }
     }
     return false;
 }
