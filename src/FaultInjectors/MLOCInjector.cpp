@@ -14,6 +14,7 @@ void MLOCInjector::inject(std::vector<StmtBinding> target, ASTContext &Context){
             } else
                 cerr << "-Failed (1/2)"<<endl;
         } else {
+            i++;
             result = inject(current, Context, false);
             if(result.compare("")){
                 cout<<"-Success (2/2)"<<endl;
