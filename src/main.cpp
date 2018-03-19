@@ -104,11 +104,7 @@ void replaceFileContent(std::string dest, std::string src){
 
 int main(int argc, const char **argv){
     CommonOptionsParser op(argc, argv, oCategory);
-    //std::vector<std::string> srcs;
-    //srcs.push_back("src/test.cpp");
-    //std::cout << op.getSourcePathList().size() << std::endl << op.getCompilations() << std::endl;
-    //clang::tooling::CompilationDatabase comp = ;
-    //clang::tooling::CompilationDatabase cd = clang::tooling::CompilationDatabase.autoDetectFromSource(srcs, "ERROR");
+    
     std::string fileforInjection = "";
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
     if(op.getSourcePathList().size()!=1){
@@ -116,22 +112,15 @@ int main(int argc, const char **argv){
         return 1;
     } else
         fileforInjection = op.getSourcePathList()[0];
-    
-    //            cout<<"test"<<endl;
-    //nun kann SFIAction via templating einen std::vector<FaultInjector> erhalten
+        
+
+
     std::vector<FaultInjector *> available;
     std::vector<FaultInjector *> injectors;
 
     bool verbose = VerboseOption.getValue();
-    /*
-    if(VerboseOption.getNumOccurrences()!=0)
-        cout<<1<<endl;
-    else
-        cout<<0<<endl;
-    return 0;
-    */
+    
 
-    //MIFSInjector inj;
     available.push_back(new MIFSInjector);
     available.push_back(new MIAInjector);
     available.push_back(new MIEBInjector);
@@ -203,15 +192,14 @@ int main(int argc, const char **argv){
             return 1;
         }
     }
-    //cout << "start tool" << endl;
-    //cout<<(VerboseOption.getValue()?1:0)<<endl;
+    
+
     for(FaultInjector *inj : injectors){
         inj->setVerbose(verbose);
         inj->setDirectory(dir);
     }
-    //return 0;
-    //cout<<DirectoryOption.getValue()<<endl;
-    //cout<<(DirectoryOption.getValue().compare("")?1:0)<<endl;
+    
+
     int ret = Tool.run(newSFIFrontendActionFactory(injectors).get());
     if(ret==2){
         cout << "Some Files were skipped, because there was no compileCommand for them in compile_commands.json!!!"<<endl;
@@ -232,14 +220,25 @@ int main(int argc, const char **argv){
             json injection;
             int size = injector->locations.size();
             std::string type = injector->toString();
-            //injectioncount += size;
+            
             injection["type"] = type;
             injection["count"] = size;
+            
+            int i = 0;
+            for(FaultInjector::StmtBinding& binding:injector->locations){
+                json loc;
+                loc["begin"] = binding.location.begin.toString();
+                loc["end"] = binding.location.end.toString();
+                loc["index"] = i;
+                summary[type].push_back(loc);
+                i++;
+            }
             summary["types"].push_back(type);
             summary["injections"].push_back(injection);
             float part = ((float)size)/injectioncount*100.0;
 
             cout<<"Injected "<<size<<" "<<type<<" faults."<<endl<<"> "<<size<<"/"<<injectioncount<<" ("<< roundf(part*100)/100 <<"\%)"<<endl;
+            
         }
         cout<<">>> Total Injected faults: "<<injectioncount<<endl;
         summary["injectionCount"] = injectioncount;
@@ -251,30 +250,33 @@ int main(int argc, const char **argv){
         cout << "saved summary at \""<<(dir.compare("")?dir+"/":"")+"summary.json"<<"\""<<endl;
         bool backedup = false;
         json executionSummary;
+
+
+
         if(j.find("compileCommand")!=j.end() && j.find("fileToExec")!=j.end()){
-            //cout << "huhu"<<endl;
+            
             int timeout = 0;
-            //cout<<1<<endl;
+            
             if(j.find("timeout")!=j.end())
                 timeout = j["timeout"].get<int>();
 
             executionSummary["timeout"]=timeout;
 
             int multipleRuns = 1;
-            //cout<<1<<endl;
+            
             if(j.find("multipleRuns")!=j.end())
                 multipleRuns = j["multipleRuns"].get<int>();
             if(multipleRuns<1)
                 multipleRuns = 1;
             executionSummary["runs"]=multipleRuns;
-            //cout<<1<<endl;
+            
             std::string outputdir = ((dir.compare("")?dir+"/":"")+"output");
             if(mkdir(outputdir.c_str(), ACCESSPERMS) && errno != EEXIST){
                 cerr<<"Error creating dir for output"<<endl;
                 return 1;
             }
 
-            //cout << "huhu"<<endl;
+
             std::vector<char *> compileArgs;
             std::string _cmd = j["compileCommand"].get<std::string>();
             char *__cmd = new char[_cmd.length()+1];
@@ -282,26 +284,23 @@ int main(int argc, const char **argv){
             compileArgs.push_back(__cmd);
             
             if(j.find("compileCommandArgs")!=j.end()){
-                //cout << "1"<<endl;
                 for(json::iterator it=j.find("compileCommandArgs")->begin();it!=j.find("compileCommandArgs")->end();++it){
-                    //cout << "1.1"<<endl;
                     std::string arg = it->get<std::string>();
                     char *_arg = new char[arg.length()+1];
                     strcpy(_arg, arg.c_str());
                     compileArgs.push_back(_arg);
-                    //cout << "1.2"<<endl;
                 }
-                //cout << "2"<<endl;
+                
             }
             compileArgs.push_back(NULL);
 
-            //cout << "huhu"<<endl;
+
             std::vector<char *> args;
 
             _cmd = j["fileToExec"].get<std::string>();
             __cmd = new char[_cmd.length()+1];
             strcpy(__cmd, _cmd.c_str());
-            //compileArgs.push_back(__cmd);
+            
 
             args.push_back(__cmd);
 
@@ -318,7 +317,7 @@ int main(int argc, const char **argv){
             }
             args.push_back(NULL);
 
-            //if(j.find("compileCommand")!=j.end())
+
             std::string compileCommand = j["compileCommand"].get<std::string>();;
             std::string fileToExec = j["fileToExec"].get<std::string>();;
             cout << "Found compileCommand in config ..."<<endl;
@@ -328,14 +327,9 @@ int main(int argc, const char **argv){
                 replaceFileContent((dir.compare("")?dir+"/":"")+"backup.cpp", fileforInjection);
             }
             
-            /*
-            std::ifstream i(fileforInjection);
-            std::ofstream o((dir.compare("")?dir+"/":"")+"backup.cpp", std::ofstream::trunc);
-            o<<i;
-            o.flush();
-            o.close();
-            i.close();
-            */
+            
+
+
             cout<<"... done."<<endl;
             for(FaultInjector * injector:injectors){
                 cout << "Injecting Fault ("<<injector->toString()<<")"<<endl;
@@ -350,34 +344,6 @@ int main(int argc, const char **argv){
                     std::string fileName;
                     ss1>>fileName;
                     replaceFileContent(fileforInjection,fileName);
-                    /*cout << compileCommand.c_str() << " " << endl;
-                    for(auto i : compileArgs){
-                        if(i!=NULL)
-                            cout << "Arg "<<i<<endl;
-                        else
-                            cout << "Arg "<<"NULL"<<endl;
-                    }*/
-                    //char* const argss[] = {"/usr/bin/clang++","src/test.cpp",NULL};
-                        //cout << errno<<endl;
-                    //compileCommands, compileArgs
-                    //if(int exitCode = execl("/usr/bin/clang++","-v","src/test.cpp",NULL)){
-                    //if(int exitCode = execv_cpp("/usr/bin/clang++",compileArgs)){
-                    /*std::vector<char *> _args;
-                    _args.reserve(compileArgs.size() + 1);
-                    for (auto s : compileArgs)
-                        _args.push_back(strdup(s.c_str()));
-                    _args.push_back(NULL);*/
-                    //cout << "huhu"<<endl;
-
-
-
-
-
-
-
-
-
-                        //int exitCode = 0;
 
                         if(verbose)
                             cout << "Compiling '"<< fileName << "' ("<<fault<<" ["<<i+1<<"/"<<count<<"])"<<endl;
@@ -389,46 +355,22 @@ int main(int argc, const char **argv){
                             
                             int fd1 = open((outputdir+"/"+baseFilename+".compile.stdout").c_str(), O_RDWR|O_CREAT, S_IRUSR | S_IWUSR);
                             int fd2 = open((outputdir+"/"+baseFilename+".compile.stderr").c_str(), O_RDWR|O_CREAT, S_IRUSR | S_IWUSR);
-                            //cout<<(outputdir+"/"+baseFilename+".compile.stderr").c_str()<<fd1<<"|"<<fd2<<endl;
+                            
                             dup2(fd1,1);
                             dup2(fd2,2);
 
                             close(fd1);
                             close(fd2);
-                            //dup2(fd2,3);
-                            //timeout
+                            
                             int exitCode = 0;
-                            /*cout<<"command: "<<compileCommand<<endl;
-                            for(char* arg:compileArgs){
-                                if(arg!=NULL)
-                                    cout <<"arg "<<arg<<endl;
-                                else
-                                    cout << "arg NULL"<<endl;
-                            }*/
+                            
                             exitCode = execv(compileCommand.c_str(), compileArgs.data());
                             int serrno = errno;
-                            //cout<<errno<<endl;
-                            //cout <<"hohoho"<<endl;
-                            /*if(exitCode){
-                                json err;
-                                err["fault"] = fault;
-                                err["index"] = i;
-                                err["exitCode"] = exitCode;
-                                executionSummary["failCompileRuns"].push_back(err);
-                            }
-                            */
-                            
-                            //cout <<exitCode<<endl;
+
                             _exit(errno);//exit child process
                         } else {
-                            //cout << "Compilation running" << endl;
-                            //wait(NULL);//waits for execution of all child processes (here everytime only 1)
                             int exitCode=0;
-                            //cout <<exitCode<<endl;
                             pid_t exited_pid = waitpid(pid,&exitCode,0);
-                            //cout <<exitCode<<endl;
-
-                            //cout <<exited_pid<<endl;
 
                             int status = WEXITSTATUS(exitCode);
                             if(status){
@@ -439,27 +381,15 @@ int main(int argc, const char **argv){
                                 err["status"] = status;
                                 executionSummary["failCompileRuns"].push_back(err);
                                 if(verbose)cout<<">failed (exitCode: "<<exitCode<<", status: "<<status<<")"<<endl;
-                                //cout<<pid<<endl;
                             }else{
                                 if(verbose)cout<<">done."<<endl;
                                 success = true;
                             }
-                            //cout << "Compilation done" << endl;
                         }
+                        
 
 
-
-
-
-                    //int errors = 0;
-
-
-                    /*if(exitCode){
-                        cout << errno<<endl;
-                        cout << "Compilation of '"<<fileName<<"' exited with "<< exitCode<<endl;
-                    } else */
                     if(success){
-                        //cout <<"Compiled."<<endl;
                         if(verbose)cout << "Executing '"<< fileName << "' ("<<fault<<" ["<<i+1<<"/"<<count<<"])"<<endl;
 
                         for(int k = 1 ; k<=multipleRuns ; k++){
@@ -492,40 +422,8 @@ int main(int argc, const char **argv){
                                     _exitCode = exec_with_timeout(args.data(), timeout);
                                     ret->exitCode = _exitCode.exitCode;
                                     ret->timeout = _exitCode.timeout;
-                                    //exitCode = _exitCode.exitCode;
                                     msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
-                                    /*if(exitCode.timeout){
-                                        json err;
-                                        err["fault"] = fault;
-                                        err["index"] = i;
-                                        err["timeout"] = true;
-                                        err["exitCode"] = exitCode.exitCode;
-                                        executionSummary["failRuns"].push_back(err);
-                                        cout<<"deine Mudda1"<<endl;
-                                    } else if(exitCode.exitCode){
-                                        json err;
-                                        err["fault"] = fault;
-                                        err["index"] = i;
-                                        err["exitCode"] = exitCode.exitCode;
-                                        executionSummary["failRuns"].push_back(err);
-                                        cout<<"deine Mudda2"<<endl;
-                                    }*/
                                 }else{
-                                    /*cout<<fileToExec.c_str()<<endl;
-                                    for(char* arg:args){
-                                        cout<<"arg "<<(arg==NULL?"NULL":arg)<<endl;
-                                    }*/
-                                    /*
-                                    
-                                    cout<<"command: "<<fileToExec<<endl;
-                                    for(char* arg:args){
-                                        if(arg!=NULL)
-                                            cout <<"arg "<<arg<<endl;
-                                        else
-                                            cout << "arg NULL"<<endl;
-                                    }
-                                    */
-
                                     ret->exitCode = exitCode;
                                     ret->timeout = false;
                                     msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
@@ -534,41 +432,17 @@ int main(int argc, const char **argv){
                                     cerr<<"Exited with errno: "<<exitCode<<endl;
                                     *tErrno=errno;
                                     msync(tErrno,sizeof(int), MS_SYNC|MS_INVALIDATE);
-                                    //ret->exitCode = exitCode;
-                                    //ret->timeout = false;
-                                    //cout<<"huhu"<<exitCode;
-                                    /*if(exitCode){
-                                        json err;
-                                        err["fault"] = fault;
-                                        err["index"] = i;
-                                        err["exitCode"] = exitCode;
-                                        executionSummary["failRuns"].push_back(err);
-                                        cout<<executionSummary<<endl;
-                                        cout<<"deine Mudda3|"<<exitCode<<"|"<<i<<"|"<<fault<<endl;
-                                        errors++;
-                                    }*/
                                 }
                                 msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
                                 exit(exitCode);//exit child process
                             } else {
-                                //cout << "running" << endl;
-                                //wait(NULL);//waits for execution of all child processes (here everytime only 1)
-                                //cout << ">done." << endl;
-
-                                
                                 pid_t exited_pid = waitpid(child_pid,&exitCode,0);
                                 bool timedout = false;
-                                //cout<<"hoho"<<endl;
-                                //cout<<"hihi"<<endl;
                                 if(timeout){
-                                    //bool timeout = false;
-                                    //cout<<ret->exitCode<<"|"<<(ret->timeout?1:0)<<endl;
-                                    //if(ret->timeout != false || ret->exitCode != 0){
-                                        exitCode = ret->exitCode;
-                                        timedout = ret->timeout;
-                                    //}
+                                    exitCode = ret->exitCode;
+                                    timedout = ret->timeout;
                                 }
-                                //cout<<ret->exitCode<<"|"<<(ret->timeout?1:0)<<endl;
+
                                 int errornum = *tErrno;
                                 if(errornum == 0 && ret->errnumber)
                                     errornum = ret->errnumber;
@@ -592,9 +466,6 @@ int main(int argc, const char **argv){
                                     executionSummary["failRuns"].push_back(err);
 
                                     if(verbose)cout<<">failed (exitCode: "<<exitCode<<", status: "<<status<<")"<<endl;
-                                    //cout<<executionSummary<<endl;
-                                    //cout<<"deine Mudda3|"<<exitCode<<"|"<<i<<"|"<<fault<<endl;
-                                    //errors++;
                                 } else {
 
 
@@ -607,11 +478,9 @@ int main(int argc, const char **argv){
                                     if(verbose)cout<<">done."<<endl;
 
                                 }
-                                //cout<<"Exit code:"<<exitCode<<endl;
                             }
                         }
                     }
-                    //cout<<"huhu"<<errors;
                 }
             }
             cout<<endl<<endl;
