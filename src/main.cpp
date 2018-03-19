@@ -172,7 +172,7 @@ int main(int argc, const char **argv){
         if(j.find("injectors")!=j.end()){
             for(json::iterator it=j.find("injectors")->begin();it!=j.find("injectors")->end();++it){
                 for(FaultInjector * injector:available){
-                    if(injector->toString().compare(*it)==0){
+                    if(injector->toString().compare(it->get<std::string>())==0){
                         //cout<<injector->toString()<<endl;
                         injectors.push_back(injector);
                         break;
