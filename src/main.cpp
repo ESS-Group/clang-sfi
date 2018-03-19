@@ -48,7 +48,7 @@ void replaceFileContent(std::string dest, std::string src){
 
 void compile(json j){
         std::string dir = j["directory"];
-        bool verbose = j["verbose"] || true;
+        bool verbose = j["verbose"];
         std::string fileforInjection = j["fileName"];
         bool backedup = false;
         json executionSummary;
