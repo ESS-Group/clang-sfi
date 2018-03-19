@@ -3,10 +3,10 @@
     "verbose":false,
     "timeout":500,
     "multipleRuns":1,
-    "_compileCommand":"/usr/bin/clang++",
+    "compileCommand":"/usr/bin/clang++",
     "compileCommandArgs":["src/test.cpp"],
     "fileToExec":"./a.out",
-    "_fileToExec":"/home/daniel/ba/BA-Repo/faultinjector/out.a",
+    "fileToExec":"/home/daniel/ba/BA-Repo/faultinjector/out.a",
     "injectors":[
         "MFC",
         "MVIV",
