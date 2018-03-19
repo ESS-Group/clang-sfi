@@ -62,10 +62,23 @@ bool WAEPInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
     if(hasChildOfType<BinaryOperator>(stmt)){
         std::vector<const BinaryOperator*> arguments = getChildrenFlat<BinaryOperator>(stmt);
         for(const BinaryOperator* op : arguments){
+            int code = op->getOpcode();
+            if(code == BinaryOperatorKind::BO_Mul||
+            code == BinaryOperatorKind::BO_Div ||
+            code == BinaryOperatorKind::BO_Rem ||
+            code == BinaryOperatorKind::BO_Add ||
+            code == BinaryOperatorKind::BO_Sub ||
+            code == BinaryOperatorKind::BO_Shl ||
+            code == BinaryOperatorKind::BO_Shr ||
+            code == BinaryOperatorKind::BO_And ||
+            code == BinaryOperatorKind::BO_Or ||
+            code == BinaryOperatorKind::BO_Xor
+            ){
             const BinaryOperator* rightest = getBinaryOperatorWithRightedtRHS(op);
 
             //rightest->getRHS()->dumpColor();
             nodeCallback(binding, rightest);
+            }
         }
     }
     return false;
