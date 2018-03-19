@@ -1,10 +1,19 @@
+template <class T>
+void deleteFromList(std::vector<T>& src, std::vector<T>& toDelete){
+    bool deleted = false;
+    for(std::vector<const BinaryOperator*>::iterator i = src.begin();i!=src.end();deleted?i:i++){
+        deleted = false;
+        for(T c:toDelete){
+            if(*i==c){
+                i = src.erase(i);
+                deleted = true;
+                break;
+            }
+        }
+    }
+}
 const CompoundStmt* getParentCompoundStmt(const Stmt *stmt, ASTContext &Context){
     ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
-    //cout << list.size() << " Parents";
-    /*cout<<"----------------------------"<<endl;
-        for(auto p : list){
-            p.get<Stmt>()->dump(Context.getSourceManager());
-        }*/
     if(!list.empty()){
         if(list[0].get<Stmt>()!=NULL){
             if(isa<CompoundStmt>(list[0].get<Stmt>())){
@@ -12,23 +21,12 @@ const CompoundStmt* getParentCompoundStmt(const Stmt *stmt, ASTContext &Context)
                 return container;
             } else return NULL;
         }
-        /*cout<<"----------------------------"<<endl;
-        for(auto p : list){
-            p.get<Stmt>()->dump(Context.getSourceManager());
-        }*/
-    } //else
-        //return false;
-        //cout<<"++++++++++++++++++++++++++++++++++++++++++++"<<endl;
-    //cout<<"#######################"<<endl;
+    } 
     return NULL;
 }
 const CompoundStmt* getParentCompoundStmt(const Decl *decl, ASTContext &Context){
     ASTContext::DynTypedNodeList list = Context.getParents(*decl);
-    //cout << list.size() << " Parents";
-    //cout<<"----------------------------"<<endl;
-      //  for(auto p : list){
-        //    p.get<Stmt>()->dump(Context.getSourceManager());
-        //}
+
     if(!list.empty()){
         if(list[0].get<Stmt>() != NULL){
             if(isa<CompoundStmt>(list[0].get<Stmt>())){
@@ -38,14 +36,7 @@ const CompoundStmt* getParentCompoundStmt(const Decl *decl, ASTContext &Context)
                 return getParentCompoundStmt(list[0].get<Stmt>(), Context);
             } else return NULL;
         }
-        /*cout<<"----------------------------"<<endl;
-        for(auto p : list){
-            p.get<Stmt>()->dump(Context.getSourceManager());
-        }*/
-    } //else
-        //return false;
-        //cout<<"++++++++++++++++++++++++++++++++++++++++++++"<<endl;
-    //cout<<"#######################"<<endl;
+    } 
     return NULL;
 }
 template<class T>
@@ -53,12 +44,11 @@ void concatVector(std::vector<T> &dst, std::vector<T> &src){
     dst.insert(dst.end(), src.begin(), src.end());
 }
 bool isAssignment(const BinaryOperator* op){
-    return op->getOpcode()==20;
+    return op->getOpcode()==BinaryOperatorKind::BO_Assign/*20*/;
 }
-//isValueDeclaration
+
 bool isValueAssignment(const BinaryOperator* op){
     if(isAssignment(op)){
-        //Stmt::child_iterator i = cast_away_const(op->child_begin());
         const Stmt *stmt = op->getRHS();
         if(stmt!=NULL && (isa<IntegerLiteral>(stmt) || isa<CXXBoolLiteralExpr>(stmt) || isa<CharacterLiteral>(stmt) || isa<FloatingLiteral>(stmt) || isa<clang::StringLiteral>(stmt) ))
             return true;
@@ -86,63 +76,79 @@ const T* getFirstChild(const Stmt *parent){
     }
     return NULL;
 }
-/*
-std::string stmtToString(const Decl* decl, const LangOptions &langOpts){
-    std::string statement;
-    raw_string_ostream stream(statement);
-    decl->print(stream, PrintingPolicy(langOpts));
-    stream.flush();
-    return statement;
-}*/
 
-std::vector<const BinaryOperator*> getChildForFindInitForVar(const Stmt *parent, const VarDecl* var, bool alsoinloop = false){
+std::vector<const BinaryOperator*> getChildForFindInitForVar(const Stmt *parent, const VarDecl* var, bool alsoinloop = false, bool alsoinforconstruct = true){
     std::vector<const BinaryOperator*> ret;
-    for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());i!=e;++i){
-        if(*i == NULL){
-
-            //cout << "getChildForFindInitForVar >> Found NULL" << endl;
-        }else if(isa<BinaryOperator>(*i)){
-            ////cout << "getChildForFindInitForVar >> Found BinaryOperator" << endl;
-            if(isAssignment((const BinaryOperator*)*i)){
-                ////cout << "getChildForFindInitForVar >> Found BinaryOperator >> isValueDeclaration" << endl;
-                //i->dumpColor();
-                if(const DeclRefExpr* exp = getFirstChild<DeclRefExpr>(*i)){
-                    ////exp->dumpColor();
-                    ////var->dumpColor();
-                    //cout << var->getName().data()<<endl;
-                    if(exp->getDecl() == var){
-                        ret.push_back((const BinaryOperator*) *i);
-                        break;
-                    }
+    if(parent==NULL)
+        return ret;
+    if(var==NULL)
+        return ret;
+    if(isa<BinaryOperator>(parent)){
+        if(isAssignment((const BinaryOperator*)parent)){
+            if(const DeclRefExpr* exp = getFirstChild<DeclRefExpr>(parent)){
+                if(exp->getDecl() == var){
+                    ret.push_back((const BinaryOperator*) parent);
                 }
             }
-        }else if(isa<Stmt>(*i) && *i != NULL){
-            if(isa<IfStmt>(*i)){
+        }
+    } else {
+        for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());i!=e;++i){
+            if(*i == NULL){
 
-                //cout << "getChildForFindInitForVar >> Found IfStmt" << endl;
-                IfStmt *ifS = (IfStmt *)*i;
-
-                std::vector<const BinaryOperator*> inThen = getChildForFindInitForVar(ifS->getThen(), var);
-                if(inThen.size()!=0){
-                    concatVector<const BinaryOperator*>(ret,inThen);
-                }
-                if(const Stmt* elseS = ifS->getElse()){
-                    std::vector<const BinaryOperator*> inElse = getChildForFindInitForVar(elseS, var);
-                    if(inElse.size()!=0){
-                        concatVector<const BinaryOperator*>(ret,inElse);
-                        if(inThen.size()!=0)
-                            break;//initialization in both
+            }else if(isa<BinaryOperator>(*i)){
+                if(isAssignment((const BinaryOperator*)*i)){
+                    if(const DeclRefExpr* exp = getFirstChild<DeclRefExpr>(*i)){
+                        if(exp->getDecl() == var){
+                            ret.push_back((const BinaryOperator*) *i);
+                            break;
+                        }
                     }
                 }
-            }else if(alsoinloop || (!isa<ForStmt>(*i) && !isa<WhileStmt>(*i) && !isa<DoStmt>(*i))){
+            }else if(isa<Stmt>(*i) && *i != NULL){
+                if(isa<IfStmt>(*i)){
 
-                //cout << "getChildForFindInitForVar >> Found Other" << endl;
-                std::vector<const BinaryOperator*> temp = getChildForFindInitForVar(*i, var), inloop;
-                if(temp.size()!=0){
-                    concatVector<const BinaryOperator*>(ret,temp);
-                    break;
+                    IfStmt *ifS = (IfStmt *)*i;
+
+                    std::vector<const BinaryOperator*> inThen = getChildForFindInitForVar(ifS->getThen(), var);
+                    if(inThen.size()!=0){
+                        concatVector<const BinaryOperator*>(ret,inThen);
+                    }
+                    if(const Stmt* elseS = ifS->getElse()){
+                        std::vector<const BinaryOperator*> inElse = getChildForFindInitForVar(elseS, var);
+                        if(inElse.size()!=0){
+                            concatVector<const BinaryOperator*>(ret,inElse);
+                            if(inThen.size()!=0)
+                                break;//initialization in both
+                        }
+                    }
+                }else if(alsoinloop || (!isa<ForStmt>(*i) && !isa<WhileStmt>(*i) && !isa<DoStmt>(*i))){
+                    if(isa<ForStmt>(*i)){
+                        std::vector <const BinaryOperator*> temp;
+                        if(alsoinforconstruct){
+                            temp = getChildForFindInitForVar(((const ForStmt*)*i)->getInit(), var, alsoinloop, alsoinforconstruct);
+                            if(temp.size()!=0){
+                                concatVector<const BinaryOperator*>(ret,temp);
+                                break;
+                            }
+                        }
+                    }
+
+                    std::vector<const BinaryOperator*> temp = getChildForFindInitForVar(*i, var), inloop;
+                    if(temp.size()!=0){
+                        concatVector<const BinaryOperator*>(ret,temp);
+                        break;
+                    }
+                    
+                } else if(isa<ForStmt>(*i)){
+                        std::vector <const BinaryOperator*> temp;
+                    if(alsoinforconstruct){
+                        temp = getChildForFindInitForVar(((const ForStmt*)*i)->getInit(), var, alsoinloop, alsoinforconstruct);
+                        if(temp.size()!=0){
+                            concatVector<const BinaryOperator*>(ret,temp);
+                            break;
+                        }
+                    }
                 }
-                
             }
         }
     }
@@ -155,97 +161,105 @@ std::vector<const BinaryOperator*> getChildForFindInitForVar(const Stmt *parent,
 
 
 
-std::vector<const BinaryOperator*> getChildForFindVarAssignment(const Stmt *parent, const VarDecl* var, bool alsoinloop = true){
+std::vector<const BinaryOperator*> getChildForFindVarAssignment(const Stmt *parent, const VarDecl* var, bool alsoinloop = true, bool alsoinforconstruct = true, bool pinited=false){
+    
     std::vector<const BinaryOperator*> ret;
+    if(var == NULL)
+        return ret;
     if(parent == NULL)
         return ret;
-    //parent->dumpColor();
-    //cout<<"huhu"<<endl;
-    for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());i!=e;++i){
-        if(*i == NULL){
-
-            //cout << "getChildForFindInitForVar >> Found NULL" << endl;
-        }else if(isa<BinaryOperator>(*i)){
-            //cout << "getChildForFindInitForVar >> Found BinaryOperator" << endl;
-            if(isAssignment((const BinaryOperator*)*i)){
-                //cout << "getChildForFindInitForVar >> Found BinaryOperator >> isValueDeclaration" << endl;
-                //i->dumpColor();
-                //cout << "test1"<<endl;
-                if(const DeclRefExpr* exp = getFirstChild<DeclRefExpr>(*i)){
-                    //exp->dumpColor();
-                    //var->dumpColor();
-                    //cout << var->getName().data()<<endl;
-
-                    //cout << "test2"<<endl;
-                    if(exp->getDecl() == var){
-
-                        //cout << "test3"<<endl;
-                        ret.push_back((const BinaryOperator*) *i);
-                        //break;
-                    }
+    bool inited = pinited || var->hasInit();
+    if(isa<BinaryOperator>(parent)){
+        if(isAssignment((const BinaryOperator*)parent)){
+            if(const DeclRefExpr* exp = getFirstChild<DeclRefExpr>(parent)){
+                if(exp->getDecl() == var){
+                    if(inited)
+                        ret.push_back((const BinaryOperator*) parent);
+                    else
+                        inited = true;
                 }
-
-                //cout << "test4"<<endl;
             }
-        }else if(isa<Stmt>(*i) && *i != NULL){
-            if(isa<IfStmt>(*i)){
+        }
+    } else {
+        for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());i!=e;++i){
+            if(*i == NULL){
 
-                //cout << "getChildForFindInitForVar >> Found IfStmt" << endl;
-                IfStmt *ifS = (IfStmt *)*i;
+            }else if(isa<BinaryOperator>(*i)){
+                if(isAssignment((const BinaryOperator*)*i)){
+                    if(const DeclRefExpr* exp = getFirstChild<DeclRefExpr>(*i)){
+                        if(exp->getDecl() == var){
 
-                std::vector<const BinaryOperator*> inThen = getChildForFindInitForVar(ifS->getThen(), var,alsoinloop);
-                if(inThen.size()!=0){
-                    concatVector<const BinaryOperator*>(ret,inThen);
-                }
-                if(const Stmt* elseS = ifS->getElse()){
-                    std::vector<const BinaryOperator*> inElse = getChildForFindInitForVar(elseS, var, alsoinloop);
-                    if(inElse.size()!=0){
-                        concatVector<const BinaryOperator*>(ret,inElse);
-                        //if(inThen.size()!=0)
-                            //break;//initialization in both
+                            if(inited)
+                                ret.push_back((const BinaryOperator*) *i);
+                            else
+                                inited = true;
+                        }
                     }
-                }
-            }else if(alsoinloop){
-                if(isa<ForStmt>(*i)){
 
-                    //cout <<"Search in for"<<endl;    
-                    std::vector<const BinaryOperator*> temp = getChildForFindInitForVar(((const ForStmt*)*i)->getBody(), var, alsoinloop);
-                    //cout <<temp.size()<<endl;
-                    if(temp.size()!=0){
-                        concatVector<const BinaryOperator*>(ret,temp);
-                        /*for(auto a : temp){
-                            a->dumpColor();
-                        }*/
-                        //break;
-                    }
-                }else if(isa<WhileStmt>(*i)){
-                    //cout <<"Search in while"<<endl;
-                    std::vector<const BinaryOperator*> temp = getChildForFindInitForVar(((const WhileStmt*)*i)->getBody(), var, alsoinloop);
-                    if(temp.size()!=0){
-                        concatVector<const BinaryOperator*>(ret,temp);
-                        //break;
-                    }
-                } else if(isa<DoStmt>(*i)){
-                    //cout <<"Search in do"<<endl;
-                    std::vector<const BinaryOperator*> temp = getChildForFindInitForVar(((const DoStmt*)*i)->getBody(), var, alsoinloop);
-                    if(temp.size()!=0){
-                        concatVector<const BinaryOperator*>(ret,temp);
-                        //break;
-                    }
-                } else {
-                    std::vector<const BinaryOperator*> temp = getChildForFindInitForVar(*i, var, alsoinloop);
-                    if(temp.size()!=0){
-                        concatVector<const BinaryOperator*>(ret,temp);
-                        //break;
-                    }
                 }
-                //cout << "getChildForFindInitForVar >> Found Other" << endl;
-                
-            }else if((!isa<ForStmt>(*i) && !isa<WhileStmt>(*i) && !isa<DoStmt>(*i))){
-                std::vector<const BinaryOperator*> temp = getChildForFindInitForVar(*i, var, alsoinloop);
-                if(temp.size()!=0){
-                    concatVector<const BinaryOperator*>(ret,temp);
-                    //break;
+            }else if(isa<Stmt>(*i) && *i != NULL){
+                if(isa<IfStmt>(*i)){
+
+                    IfStmt *ifS = (IfStmt *)*i;
+
+                    std::vector<const BinaryOperator*> inThen = getChildForFindVarAssignment(ifS->getThen(), var,alsoinloop, alsoinforconstruct, inited);
+                    if(inThen.size()!=0){
+                        concatVector<const BinaryOperator*>(ret,inThen);
+                        inited = true;
+                    }
+                    if(const Stmt* elseS = ifS->getElse()){
+                        std::vector<const BinaryOperator*> inElse = getChildForFindVarAssignment(elseS, var, alsoinloop, alsoinforconstruct, inited);
+                        if(inElse.size()!=0){
+                            concatVector<const BinaryOperator*>(ret,inElse);
+                            inited = true;
+                        }
+                    }
+                }else if(alsoinloop){
+                    if(isa<ForStmt>(*i)){
+                        std::vector<const BinaryOperator*> temp;
+                        if(alsoinforconstruct){
+                            temp = getChildForFindVarAssignment(((const ForStmt*)*i)->getInit(), var, alsoinloop, alsoinforconstruct, inited);
+                            if(temp.size()!=0){
+                                concatVector<const BinaryOperator*>(ret,temp);
+                                inited = true;
+                            }
+                            temp = getChildForFindVarAssignment(((const ForStmt*)*i)->getInc(), var, alsoinloop, alsoinforconstruct, inited);
+                            if(temp.size()!=0){
+                                concatVector<const BinaryOperator*>(ret,temp);
+                                inited = true;
+                            }
+                        }
+                        temp = getChildForFindVarAssignment(((const ForStmt*)*i)->getBody(), var, alsoinloop, alsoinforconstruct, true);
+                            
+                        if(temp.size()!=0){
+                            concatVector<const BinaryOperator*>(ret,temp);
+                            inited = true;
+                        }
+                    }else if(isa<WhileStmt>(*i)){
+                        std::vector<const BinaryOperator*> temp = getChildForFindVarAssignment(((const WhileStmt*)*i)->getBody(), var, alsoinloop, alsoinforconstruct, true);
+                        if(temp.size()!=0){
+                            concatVector<const BinaryOperator*>(ret,temp);
+                            inited = true;
+                        }
+                    } else if(isa<DoStmt>(*i)){
+                        std::vector<const BinaryOperator*> temp = getChildForFindVarAssignment(((const DoStmt*)*i)->getBody(), var, alsoinloop, alsoinforconstruct, true);
+                        if(temp.size()!=0){
+                            concatVector<const BinaryOperator*>(ret,temp);
+                            inited = true;
+                        }
+                    } else {
+                        std::vector<const BinaryOperator*> temp = getChildForFindVarAssignment(*i, var, alsoinloop, alsoinforconstruct,inited);
+                        if(temp.size()!=0){
+                            concatVector<const BinaryOperator*>(ret,temp);
+                            inited = true;
+                        }
+                    }
+                }else if((!isa<ForStmt>(*i) && !isa<WhileStmt>(*i) && !isa<DoStmt>(*i))){
+                    std::vector<const BinaryOperator*> temp = getChildForFindVarAssignment(*i, var, alsoinloop, alsoinforconstruct,inited);
+                    if(temp.size()!=0){
+                        concatVector<const BinaryOperator*>(ret,temp);
+                        inited = true;
+                    }
                 }
             }
         }
@@ -273,30 +287,20 @@ std::vector<const BinaryOperation*> findInitForVar(const Stmt* parent, const Var
 */
 
 template<class T>
-const T* getParentOfType(const Stmt* stmt, ASTContext &Context, int maxDepth = 1){//MaxDepth = -1 for to the root
-    T* ret;
-
-    //cout<<"+line1"<<endl;
+const T* getParentOfType(const Stmt* stmt, ASTContext &Context, int maxDepth = 3){//MaxDepth = -1 for to the root
+    T* ret = NULL;
     if(stmt==NULL)
         return NULL;
     if(maxDepth!=0){
-        //cout<<"+line2"<<endl;
         ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
-        //cout<<"+line3"<<endl;
         for(auto p : list){
-            //cout<<"+line4"<<endl;
             if(isa<T>(p.get<Stmt>())){
-                //cout<<"+line5.1.1"<<endl;
                 return p.get<T>();
-                //cout<<"+line5.1.2"<<endl;
             }else if(ret == NULL){
-                //cout<<"+line5.2.1"<<endl;
-                ret = (T*)(&(*getParentOfType<T>(p.get<T>(), Context, maxDepth-1)));
-                //cout<<"+line5.2.2"<<endl;
+                return getParentOfType<T>(p.get<T>(), Context, maxDepth-1);
             }
         }
     }
-    //cout<<"+line6"<<endl;
     if(ret == NULL)
         return NULL;
     else
@@ -307,7 +311,6 @@ template<class T>
 bool hasChildOfType(const Stmt* stmt){
     if(stmt==NULL)
         return false;
-    //if(maxDepth!=0){
         for(Stmt::child_iterator i = cast_away_const(stmt->child_begin()), e = cast_away_const(stmt->child_end());i!=e;++i){
             if(isa<T>(*i))
                 return true;
@@ -315,12 +318,6 @@ bool hasChildOfType(const Stmt* stmt){
                 return true;
         }
         return false;
-    //}
-    //cout<<"+line6"<<endl;
-    /*if(ret == NULL)
-        return NULL;
-    else
-        return const_cast<const T*>(ret);*/
 }
 /*
 template<class T>
@@ -354,42 +351,24 @@ std::vector<const T*> getInnerstChildOfType(const Stmt* stmt, ASTContext &Contex
         return const_cast<const T*>(ret);
 }
 */
-//getParentOfType<ForStmt>(decl,Context,3)
 template<class T>
-const T* getParentOfType(const Decl* decl, ASTContext &Context, int maxDepth = 1){//MaxDepth = -1 for to the root
+const T* getParentOfType(const Decl* decl, ASTContext &Context, int maxDepth = 3){//MaxDepth = -1 for to the root
     T* ret = NULL;
-    //cout<<"-line1"<<endl;
     if(maxDepth!=0){
-        //cout << 1<<endl;
         ASTContext::DynTypedNodeList list = Context.getParents(*decl);
-        //cout << 2<<endl;
-        //cout<<"-line2"<<endl;
         for(auto p : list){
-            //cout<<"-line3"<<endl;
             if(p.get<Stmt>() == NULL){
-                //if(p.get<Decl>())
-                //    cout << "DECL"<<endl;
-                //cout << "FEEEEHHHHLLLLEEERRR"<<endl;
             }else if(isa<T>(p.get<Stmt>())){
-
-            //cout<<"-line3.1.1"<<endl;
                 return p.get<T>();
-            //cout<<"-line3.1.2"<<endl;
             }else if(ret == NULL){
-                //cout<<"-line3.2.1"<<endl;
-                ret = (T*)(&(*getParentOfType<T>(p.get<T>(), Context, maxDepth-1)));
-                //cout<<"-line3.2.2"<<endl;
+                return getParentOfType<T>(p.get<Stmt>(), Context, maxDepth-1);
             }
-            //cout<<"-line4"<<endl;
         }
     }
-    //cout <<"-line5"<<endl;
     
     if(ret == NULL){
-        //cout <<"-line6.1"<<endl;
         return NULL;
     }else{
-        //cout <<"-line6.2"<<endl;
         return const_cast<const T*>(ret);
     }
 }
@@ -400,7 +379,7 @@ const T* getParentOfType(const Decl* decl, ASTContext &Context, int maxDepth = 1
 bool isParentOf(const Stmt* parent, const Stmt* stmt){
     if(parent == NULL)
         return false;
-        
+    
     for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());i!=e;++i){
         if(*i == stmt)
             return true;
@@ -416,13 +395,42 @@ bool isParentOf(const Stmt* parent, const Decl* decl, ASTContext &Context){
     const DeclStmt* stmt = getParentOfType<DeclStmt>(decl,Context,3);
     if(stmt==NULL)
         return false;
-    else
-        return isParentOf(parent,getParentOfType<DeclStmt>(decl,Context,3));
-    //bool ret = false;
-    /*
-    ASTContext::DynTypedNodeList list = Context.getParents(decl);
-    if(list.empty() || list[0].get<Stmt>() == NULL)
-        return false;
-    return isParentOf(parent,(const Stmt *)list[0].get<Stmt>());
-    */
+    return isParentOf(parent,stmt);
+}
+
+bool isInitializedBefore(const DeclRefExpr* ref, ASTContext &Context){
+    const VarDecl* decl =  (const VarDecl*) ref->getDecl();
+    if( decl->getInit() != NULL)//if declaration is initialization => every use after that is an assignment
+        return true;
+    else{
+        const CompoundStmt* parent = getParentCompoundStmt(decl, Context);
+        std::vector<const BinaryOperator*> inits = getChildForFindInitForVar(parent, decl, false);
+        for(const BinaryOperator* init : inits){//else check if ref is used in initialization
+            if(init->getLHS() == ref)
+                return false;
+        }
+        return true;
+    }
+
+}
+
+
+template<class T>
+std::vector<const T*> getChildrenOfType(const Stmt *parent, bool first = true){
+    std::vector<const BinaryOperator*> ret;
+    if(parent==NULL)
+        return ret;
+    if(isa<T>(parent)&&first){
+        ret.push_back((const T*)parent);
+    }
+    for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());i!=e;++i){
+        if(isa<T>(*i)){
+                ret.push_back((const T*)*i);
+        }
+        std::vector<const T*> children = getChildrenOfType<T>(*i, false);
+        if(children.size()!=0){
+            concatVector<const T*>(ret,children);
+        }
+    }
+    return ret;
 }
