@@ -5,9 +5,8 @@ MVIVInjector::MVIVInjector(){
             unless(anyOf(
                 callExpr(),cxxNewExpr(),binaryOperator(),unaryOperator()
                 //commented to also include initialisations inside of loops
-                ,hasAncestor(forStmt()),hasAncestor(doStmt()),hasAncestor(whileStmt())
+                //,hasAncestor(forStmt()),hasAncestor(doStmt()),hasAncestor(whileStmt())
             ))
-            //commeted to also include global initialisations
             ,hasAncestor(compoundStmt())
             )
         )).bind("variable"), createStmtHandler("variable"));
@@ -15,9 +14,7 @@ MVIVInjector::MVIVInjector(){
     Matcher.addMatcher(
             varDecl(
                     allOf(
-                    unless(anyOf(
-                        hasAncestor(forStmt()),hasAncestor(doStmt()),hasAncestor(whileStmt())
-                    )),
+                    //unless(anyOf(hasAncestor(forStmt()),hasAncestor(doStmt()),hasAncestor(whileStmt()))),
                     hasAncestor(compoundStmt()),
                     unless(varDecl(hasInitializer(expr())))
                     )
@@ -46,7 +43,7 @@ std::string MVIVInjector::inject(StmtBinding current, ASTContext &Context){
 }
 bool MVIVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
     if(binding.compare("notInitialized") == 0 && isa<VarDecl>(decl) ){
-        std::vector<const BinaryOperator*> list = getChildForFindInitForVar(getParentCompoundStmt(decl, Context), (const VarDecl*)decl, false);
+        std::vector<const BinaryOperator*> list = getChildForFindInitForVar(getParentCompoundStmt(decl, Context), (const VarDecl*)decl);
         for(const BinaryOperator* op:list){
             if(isValueAssignment(op) && C2(op, Context)){
                 nodeCallback(binding, op);
@@ -54,9 +51,15 @@ bool MVIVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &
         }
 
         return false;
-        //((const VarDecl*)decl)->getInit()->dump(Context.getSourceManager());
-    }else
-        return C2(decl, Context);
-    //also if statement is the only statement in the block
-    //return true;
+    }else{
+        if(C2(decl, Context)){
+            return true;
+        } else{
+            
+            const DeclStmt *declsstmt = getParentOfType<DeclStmt>(decl,Context,2);
+            const ForStmt *stmt = getParentOfType<ForStmt>(declsstmt,Context,5);
+
+            return stmt !=NULL && (isParentOf(stmt->getInit(),decl,Context)||stmt->getInit(),declsstmt);
+        }
+    }
 }
