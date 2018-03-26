@@ -11,6 +11,10 @@
 #include <fcntl.h>
 #include <csignal>
 
+#include <ctime>
+#include <chrono>
+#include <ratio>
+
 #include "clang/AST/AST.h"
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/RecursiveASTVisitor.h"
@@ -33,6 +37,9 @@ using json = nlohmann::json;
 using namespace clang;
 using namespace clang::driver;
 using namespace clang::tooling;
+
+using namespace std;
+using namespace std::chrono;
 
 std::string backupfile = "";
 std::string backedupfile = "";
@@ -230,6 +237,7 @@ void compile(json j){
                             int *tErrno = (int *)mmap(NULL,sizeof(int), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
                             ret->timeout = false;
                             ret->exitCode = 0;
+                            ret->duration = 0.0;
                             msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
                             int exitCode=0;
                             int child_pid = fork();
@@ -252,10 +260,12 @@ void compile(json j){
                                     _exitCode = exec_with_timeout(args.data(), timeout);
                                     ret->exitCode = _exitCode.exitCode;
                                     ret->timeout = _exitCode.timeout;
+                                    ret->duration = _exitCode.duration;
                                     msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
                                 }else{
                                     ret->exitCode = exitCode;
                                     ret->timeout = false;
+                                    ret->begin = high_resolution_clock::now();
                                     msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);
                                     execv(fileToExec.c_str(), args.data());
                                     exitCode = errno;
@@ -267,15 +277,22 @@ void compile(json j){
                                 exit(exitCode);//exit child process
                             } else {
                                 pid_t exited_pid = waitpid(child_pid,&exitCode,0);
+                                high_resolution_clock::time_point end = high_resolution_clock::now();
                                 bool timedout = false;
                                 if(timeout){
                                     exitCode = ret->exitCode;
                                     timedout = ret->timeout;
+                                } else {
+                                    //duration<double> timespan = end - ret->begin;
+                                    ret->duration = (std::chrono::duration_cast<std::chrono::microseconds>(end-ret->begin)).count()/1000.0;//changed
                                 }
 
                                 int errornum = *tErrno;
                                 if(errornum == 0 && ret->errnumber)
                                     errornum = ret->errnumber;
+                                double duration = ret->duration;
+
+                                //cerr<< ret->duration << endl;
                                 munmap(ret, sizeof(execTimeoutReturn));
                                 munmap(tErrno, sizeof(tErrno));
 
@@ -290,6 +307,8 @@ void compile(json j){
                                         err["exitCode"] = exitCode;
                                         err["status"] = status;
                                         err["timeout"] = timedout;
+                                        if(!timedout)
+                                            err["executionTime"] = duration;
                                     }
                                     
                                     err["run"] = k;
@@ -304,6 +323,7 @@ void compile(json j){
                                     succ["index"] = i;
                                     succ["exitCode"] = exitCode;
                                     succ["status"] = status;
+                                    succ["executionTime"] = duration;
                                     executionSummary["succRuns"].push_back(succ);
                                     if(verbose)cout<<">done."<<endl;
 

@@ -8,11 +8,17 @@
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
-
+#include <ctime>
+#include <chrono>
+#include <ratio>
+using namespace std;
+using namespace std::chrono;
 struct execTimeoutReturn{
     bool timeout;
     int exitCode;
     int errnumber;
+    high_resolution_clock::time_point begin;
+    double duration;
 };
 execTimeoutReturn exec_with_timeout(char * const *argv, int timeout, int kill_signal = SIGKILL)//changed
 {
@@ -20,10 +26,13 @@ execTimeoutReturn exec_with_timeout(char * const *argv, int timeout, int kill_si
     ret->exitCode = 0;
     ret->timeout = false;
     ret->errnumber = 0;
+    ret->duration = 0.0;
     pid_t intermediate_pid = fork();
     if(intermediate_pid == 0) {
         pid_t worker_pid = fork();
         if(worker_pid == 0) {
+            ret->begin = high_resolution_clock::now();//changed
+            msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);//changed
             int exitCode = execv(argv[0], argv);//changed
             ret->errnumber = errno;
             _exit(127);
@@ -42,6 +51,9 @@ execTimeoutReturn exec_with_timeout(char * const *argv, int timeout, int kill_si
         int status = 0;//changed
         pid_t exited_pid = waitpid(-1,&status,0);//changed
         if(exited_pid == worker_pid) {
+            high_resolution_clock::time_point end =  high_resolution_clock::now();
+            //duration<double> timespan = end - ret->begin;//changed
+            ret->duration = (std::chrono::duration_cast<std::chrono::microseconds>(end - ret->begin)).count()/1000.0;//changed
             ret->timeout = false;//chagned
             ret->exitCode = status;//changed
             msync(ret,sizeof(execTimeoutReturn), MS_SYNC|MS_INVALIDATE);//changed
@@ -60,6 +72,7 @@ execTimeoutReturn exec_with_timeout(char * const *argv, int timeout, int kill_si
     _ret.exitCode = ret->exitCode;
     _ret.timeout = ret->timeout;
     _ret.errnumber = ret->errnumber;
+    _ret.duration = ret->duration;
     munmap(ret, sizeof(execTimeoutReturn));
 
     return _ret;//changed
