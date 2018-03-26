@@ -10,6 +10,16 @@ MVIVInjector::MVIVInjector(){
             ,hasAncestor(compoundStmt())
             )
         )).bind("variable"), createStmtHandler("variable"));
+
+    Matcher.addMatcher(
+            varDecl(
+                    allOf(
+                    //unless(anyOf(hasAncestor(forStmt()),hasAncestor(doStmt()),hasAncestor(whileStmt()))),
+                    hasAncestor(compoundStmt()),
+                    unless(varDecl(hasInitializer(expr())))
+                    )
+            ).bind("notInitialized"), createStmtHandler("notInitialized")); // in this case get next assignement
+
 }
 
 std::string MVIVInjector::toString(){
@@ -32,6 +42,24 @@ std::string MVIVInjector::inject(StmtBinding current, ASTContext &Context){
     return getEditedString(R, Context);
 }
 bool MVIVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
-    return C2(decl, Context);
-    //C2 implementation implicitly excludes decl being part of an for construct.
+    if(binding.compare("notInitialized") == 0 && isa<VarDecl>(decl) ){
+        std::vector<const BinaryOperator*> list = getChildForFindInitForVar(getParentCompoundStmt(decl, Context), (const VarDecl*)decl);
+        for(const BinaryOperator* op:list){
+            if(isValueAssignment(op) && C2(op, Context)){
+                nodeCallback(binding, op);
+            }
+        }
+
+        return false;
+    }else{
+        if(C2(decl, Context)){
+            return true;
+        } else{
+            
+            const DeclStmt *declsstmt = getParentOfType<DeclStmt>(decl,Context,2);
+            const ForStmt *stmt = getParentOfType<ForStmt>(declsstmt,Context,5);
+
+            return stmt !=NULL && (isParentOf(stmt->getInit(),decl,Context)||stmt->getInit(),declsstmt);
+        }
+    }
 }

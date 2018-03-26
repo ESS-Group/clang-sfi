@@ -10,6 +10,30 @@ std::string WVAVInjector::toString(){
     return "WVAV";
 };
 
+
+bool WVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
+    std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl, 
+                                            true, //also search in loops
+                                            false, //do not search in for constructs
+                                            true); //do not check initialization => use every assignment
+    for(const BinaryOperator* op:list){
+        if(
+            isValueAssignment(op)
+            //&& isInitializedBefore((const DeclRefExpr*)((op)->getLHS()), Context)
+        ){
+            if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3/*5*/)){
+                if(!isParentOf(forstmt->getCond(), decl, Context) && !isParentOf(forstmt->getInc(), decl,Context)){ // not part of for construct!!!
+                    nodeCallback(binding, op);
+                }
+            } else {
+                nodeCallback(binding, op);
+            }
+        }
+    }
+
+    return false;
+}
+
 std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context){
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
@@ -31,27 +55,3 @@ std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context){
     return getEditedString(R, Context);
 }
 
-
-bool WVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
-    if(binding.compare("varDecl") == 0 && isa<VarDecl>(decl)){
-        std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl, true);
-        for(const BinaryOperator* op:list){
-            if(
-                isValueAssignment(op) && 
-                isInitializedBefore((const DeclRefExpr*)((op)->getLHS()), Context)
-            ){
-                if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3)){
-                    if(isParentOf(forstmt->getCond(), decl, Context) || isParentOf(forstmt->getInc(), decl,Context)){
-                    }else{
-                        nodeCallback(binding, op);
-                    }
-                } else {
-                    nodeCallback(binding, op);
-                }
-            }
-        }
-
-        return false;
-    }
-    return false;
-}
