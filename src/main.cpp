@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <csignal>
 
 #include "clang/AST/AST.h"
 #include "clang/AST/ASTConsumer.h"
@@ -33,6 +34,8 @@ using namespace clang;
 using namespace clang::driver;
 using namespace clang::tooling;
 
+std::string backupfile = "";
+std::string backedupfile = "";
 
 
 void replaceFileContent(std::string dest, std::string src){
@@ -45,6 +48,19 @@ void replaceFileContent(std::string dest, std::string src){
 }
 
 
+void signalHandler(int signum){
+    if(signum == SIGSEGV){
+        cout << endl << "Program ended with segmentation fault." << endl;
+    } else {
+        cout << endl << "Signal(" << signum << ") received. => Canceling Actions." << endl;
+        if(backupfile.compare("") != 0 && backedupfile.compare("") != 0){
+            cout << "Need to rollback backup." << endl;
+            replaceFileContent(backedupfile, backupfile);
+            cout << "Rolled back." << endl;
+        }
+    }
+    exit(signum);
+}
 
 void compile(json j){
         std::string dir = j["directory"];
@@ -126,6 +142,8 @@ void compile(json j){
             cout << "Making backup for '"<< fileforInjection <<"'"<<endl;
             if(!backedup){
                 backedup = true;
+                backupfile = (dir.compare("")?dir+"/":"")+"backup.cpp";
+                backedupfile = std::string(fileforInjection.c_str());
                 replaceFileContent((dir.compare("")?dir+"/":"")+"backup.cpp", fileforInjection);
             }
             
@@ -141,8 +159,10 @@ void compile(json j){
                         count = injection["count"];
                 }
 
-                cout << "Injecting Fault ("<</*injector->toString()*/type<<")";
+                cout << "Compiling and executing injected fault ("<</*injector->toString()*/type<<")";
                 if(verbose)cout<<" [0/"<<count<<"]"<<endl;
+                else
+                    cout <<endl;
                 //int count = j["injections"][type]["count"];//injector->locations.size();
                 std::string fault = type;//injector->toString();
                 for(int i=0; i < count ; i++){
@@ -345,6 +365,12 @@ std::unique_ptr<FrontendActionFactory> newSFIFrontendActionFactory(std::vector<F
 };
 
 int main(int argc, const char **argv){
+    signal(SIGINT, signalHandler);
+    signal(SIGABRT, signalHandler);
+    signal(SIGILL, signalHandler);
+    signal(SIGKILL, signalHandler);
+    signal(SIGSEGV, signalHandler);
+    signal(SIGTERM, signalHandler);
     CommonOptionsParser op(argc, argv, oCategory);
     
     std::string fileforInjection = "";
