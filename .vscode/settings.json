@@ -34,6 +34,9 @@
         "utility": "cpp",
         "valarray": "cpp",
         "ctime": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "chrono": "cpp",
+        "csignal": "cpp",
+        "ratio": "cpp"
     }
 }

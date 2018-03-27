@@ -33,7 +33,7 @@ class SFIASTConsumer: public ASTConsumer{
 };
 
 
-class SFIAction : public SyntaxOnlyAction{
+class SFIAction : public ASTFrontendAction{
     public:
         std::vector<FaultInjector*> injectors;
         SFIAction(std::vector<FaultInjector*> injs);
