@@ -307,6 +307,67 @@ const T* getParentOfType(const Stmt* stmt, ASTContext &Context, int maxDepth = 3
         return const_cast<const T*>(ret);
 }
 
+
+template<class T>
+const T* getParentOfType(const Decl* decl, ASTContext &Context, int maxDepth = 3){//MaxDepth = -1 for to the root
+    T* ret = NULL;
+    if(maxDepth!=0){
+        ASTContext::DynTypedNodeList list = Context.getParents(*decl);
+        for(auto p : list){
+            if(p.get<Stmt>() == NULL){
+            }else if(isa<T>(p.get<Stmt>())){
+                return p.get<T>();
+            }else if(ret == NULL){
+                return getParentOfType<T>(p.get<Stmt>(), Context, maxDepth-1);
+            }
+        }
+    }
+    
+    if(ret == NULL){
+        return NULL;
+    }else{
+        return const_cast<const T*>(ret);
+    }
+}
+
+
+template<class T>
+bool hasParentOfType(const Stmt* stmt, ASTContext &Context){
+    return getParentOfType<T>(stmt, Context, -1)!=NULL;
+}
+template<class T>
+bool hasParentOfType(const Decl* decl, ASTContext &Context){
+    return getParentOfType<T>(decl, Context, -1)!=NULL;
+}
+
+const FunctionDecl* getParentFunctionDecl(const Stmt* stmt, ASTContext &Context){
+    if(stmt == NULL)
+        return NULL;
+    const DeclStmt* ret = getParentOfType<DeclStmt>(stmt,Context, -1);
+    if(ret == NULL)
+        return NULL;
+    else if(ret->isSingleDecl()){
+        if(isa<FunctionDecl>(ret->getSingleDecl()))
+            return (const FunctionDecl*) ret->getSingleDecl();
+        else
+            return getParentFunctionDecl(ret, Context);
+    } else return NULL;
+}
+bool isPartOfFunction(const Stmt* stmt, ASTContext &Context){
+    if(stmt == NULL)
+        return false;
+    const FunctionDecl* decl = getParentFunctionDecl(stmt, Context);
+    return decl != NULL;
+    /*const DeclStmt* ret = getParentOfType<DeclStmt>(stmt,Context, -1);
+    if(ret == NULL)
+        return false;
+    else if(ret->isSingleDecl()){
+        if(isa<FunctionDecl>(ret->getSingleDecl()))
+            return true;
+        else
+            return isPartOfFunction(ret, Context);
+    } else return false;*/
+}
 template<class T>
 bool hasChildOfType(const Stmt* stmt){
     if(stmt==NULL)
@@ -351,29 +412,6 @@ std::vector<const T*> getInnerstChildOfType(const Stmt* stmt, ASTContext &Contex
         return const_cast<const T*>(ret);
 }
 */
-template<class T>
-const T* getParentOfType(const Decl* decl, ASTContext &Context, int maxDepth = 3){//MaxDepth = -1 for to the root
-    T* ret = NULL;
-    if(maxDepth!=0){
-        ASTContext::DynTypedNodeList list = Context.getParents(*decl);
-        for(auto p : list){
-            if(p.get<Stmt>() == NULL){
-            }else if(isa<T>(p.get<Stmt>())){
-                return p.get<T>();
-            }else if(ret == NULL){
-                return getParentOfType<T>(p.get<Stmt>(), Context, maxDepth-1);
-            }
-        }
-    }
-    
-    if(ret == NULL){
-        return NULL;
-    }else{
-        return const_cast<const T*>(ret);
-    }
-}
-
-
 
 
 bool isParentOf(const Stmt* parent, const Stmt* stmt){

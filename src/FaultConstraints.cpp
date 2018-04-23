@@ -71,7 +71,7 @@ bool C2(const Stmt * stmt, ASTContext &Context){
     //cout << list.size() << " Parents";
     if(!list.empty()){
         //cout<<"C2Stmt3"<<endl;
-        if(isa<CompoundStmt>(list[0].get<Stmt>())){
+        if(list[0].get<Stmt>()!=NULL && isa<CompoundStmt>(list[0].get<Stmt>())){
             //cout<<"C2Stmt4.1.1"<<endl;
             const CompoundStmt* container = list[0].get<CompoundStmt>();
             //cout<<"C2Stmt4.1.2"<<endl;
@@ -100,7 +100,10 @@ bool C2(const Decl *decl, ASTContext &Context){
         //}
     if(!list.empty()){
         //cout<<"C2Decl3"<<endl;
-        if(isa<CompoundStmt>(list[0].get<Stmt>())){
+        if(list[0].get<Stmt>() == NULL){
+            //decl->dumpColor();
+            return false;
+        }if(isa<CompoundStmt>(list[0].get<Stmt>())){
             //cout<<"C2Decl4.1.1"<<endl;
             const CompoundStmt* container = list[0].get<CompoundStmt>();
             //cout<<"C2Decl4.1.2"<<endl;
