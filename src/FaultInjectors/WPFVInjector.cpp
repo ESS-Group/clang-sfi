@@ -96,37 +96,51 @@ std::string WPFVInjector::inject(StmtBinding current, ASTContext &Context){
 }
 
 bool WPFVInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){
-
+    //cout<<"WPFV"<< 1 <<endl;
     for(auto i : getArgumentsOfType<DeclRefExpr>((const CallExpr*)stmt)){
-
+        //cout<<"WPFV"<< 1.1 <<endl;
         const VarDecl * arg = (VarDecl*)i->getDecl();
-        const DeclContext* declContext = arg->getDeclContext();
+        //const DeclContext* declContext = arg->getDeclContext();
         int varcount = 0;
+        //cout<<"WPFV"<< 1.2 <<endl;
+        const FunctionDecl* fkt = getParentFunctionDecl(getParentOfType<DeclStmt>(arg, Context), Context);
+        if(fkt != NULL){
+            //cout<<"WPFV"<< 1.21 <<endl;
+            //if(fkt == NULL){
+                //cout<<"NULL"<<endl;
+                //stmt->getLocStart().dump(Context.getSourceManager());
+            //}
 
-        const FunctionDecl* fkt = (const FunctionDecl*) declContext->getNonClosureAncestor();
-        int paramCount = fkt->getNumParams();
+            int paramCount = fkt->getNumParams();
+            //cout<<"WPFV"<< 1.3 <<endl;
+            
 
 
-
-        for(int i = 0 ; i < paramCount ; i++){
-            const VarDecl* param = fkt->getParamDecl(i);
-            if(param != arg && param->getType() == arg->getType()){
-                varcount++;
-                break;
-            }
-        }
-        
-        for(DeclContext::decl_iterator it = declContext->decls_begin(), e = declContext->decls_end() ; it!=e;++it){
-            const VarDecl* vardecl = (const VarDecl *)*it;
-            if(vardecl!=arg && vardecl->getType() == arg->getType()){
-                if(isVisible(vardecl, i, Context)){
+            for(int i = 0 ; i < paramCount ; i++){
+                const VarDecl* param = fkt->getParamDecl(i);
+                if(param != arg && param->getType() == arg->getType()){
                     varcount++;
                     break;
                 }
             }
+            //cout<<"WPFV"<< 1.4 <<endl;
+            
+            for(DeclContext::decl_iterator it = fkt->decls_begin(), e = fkt->decls_end() ; it!=e;++it){
+                const VarDecl* vardecl = (const VarDecl *)*it;
+                if(vardecl!=arg && vardecl->getType() == arg->getType()){
+                    if(isVisible(vardecl, i, Context)){
+                        varcount++;
+                        break;
+                    }
+                }
+            }
+            //cout<<"WPFV"<< 1.5 <<endl;
+            
+            if(varcount >= 1)
+                nodeCallback(binding, i);
+        } else { // variable is not local
+
         }
-        if(varcount >= 1)
-            nodeCallback(binding, i);
     }
     return false;
 }

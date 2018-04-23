@@ -13,8 +13,13 @@ compile_commands.json
 !src/*
 !src/FaultInjectors/*
 !src/libs/*
+src/a.out
 faluts
 faults
+faults2
 mcpp.sh
 test.ii
+test.cc
+test.jj
 stAGHLaZ
+.vscode
