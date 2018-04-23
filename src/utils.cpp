@@ -368,6 +368,17 @@ bool isPartOfFunction(const Stmt* stmt, ASTContext &Context){
             return isPartOfFunction(ret, Context);
     } else return false;*/
 }
+bool isLocal(const Stmt* stmt, ASTContext &Context){
+    if(stmt == NULL)
+        return false;
+    else
+        return isPartOfFunction(stmt, Context);
+}
+bool isLocal(const Decl* decl, ASTContext &Context){
+    if(decl == NULL)
+        return false;
+    return isLocal(getParentOfType<DeclStmt>(decl, Context), Context);    
+}
 template<class T>
 bool hasChildOfType(const Stmt* stmt){
     if(stmt==NULL)
