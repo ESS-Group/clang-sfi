@@ -132,7 +132,7 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block, A
                 index = 0;
 
             }
-            if(!isa<IfStmt>(*i) && !isa<ForStmt>(*i) && !isa<WhileStmt>(*i) && !isa<DoStmt>(*i)&&!isa<SwitchStmt>(*i) && !isa<ReturnStmt>(*i)&& !isa<BreakStmt>(*i)&& !isa<ContinueStmt>(*i)){
+            if(!isa<DeclStmt>(*i) && !isa<IfStmt>(*i) && !isa<ForStmt>(*i) && !isa<WhileStmt>(*i) && !isa<DoStmt>(*i)&&!isa<SwitchStmt>(*i) && !isa<ReturnStmt>(*i)&& !isa<BreakStmt>(*i)&& !isa<ContinueStmt>(*i)){
                 if(isa<CompoundStmt>(*i)){
                     if(ret[index].size()>0){
                         std::vector<const Stmt*> list;
