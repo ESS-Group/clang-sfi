@@ -45,7 +45,7 @@ std::string backupfile = "";
 std::string backedupfile = "";
 
 
-void replaceFileContent(std::string dest, std::string src){
+void replaceFileContent(std::string dest, std::string src){ //helper function to write to file and replace it given the path of a destination and a source file
             std::ifstream i(src.c_str());
             std::ofstream o(dest.c_str(), std::ofstream::trunc);
             o<<i.rdbuf();
@@ -55,7 +55,7 @@ void replaceFileContent(std::string dest, std::string src){
 }
 
 
-void signalHandler(int signum){
+void signalHandler(int signum){ // roll back backup if error occurs
     if(signum == SIGSEGV){
         cout << endl << "Program ended with segmentation fault." << endl;
     } else {
@@ -226,7 +226,7 @@ void compile(json j){
                         
 
 
-                    if(success){
+                    if(success){ // execution if compilation was successful
                         if(verbose)cout << "Executing '"<< fileName << "' ("<<fault<<" ["<<i+1<<"/"<<count<<"])"<<endl;
 
                         for(int k = 1 ; k<=multipleRuns ; k++){
@@ -362,7 +362,7 @@ void compile(json j){
         }
 }
 
-
+//define commandline options for commonoptionparser
 static llvm::cl::OptionCategory oCategory("clang-sfi");
 static llvm::cl::opt<bool> VerboseOption("verbose", llvm::cl::cat(oCategory));
 static llvm::cl::opt<std::string> DirectoryOption("dir", llvm::cl::cat(oCategory));
@@ -371,7 +371,7 @@ static llvm::cl::opt<bool> NoInjectOption("no-inject", llvm::cl::cat(oCategory))
 static llvm::cl::opt<bool> CompileOption("compile", llvm::cl::cat(oCategory));
 //static llvm::cl::opt<bool> ExecuteOption("execute", llvm::cl::cat(oCategory));
 
-std::unique_ptr<FrontendActionFactory> newSFIFrontendActionFactory(std::vector<FaultInjector*> injectors){
+std::unique_ptr<FrontendActionFactory> newSFIFrontendActionFactory(std::vector<FaultInjector*> injectors){//factory for creating SFIFrontendAction, needed to submit injectors to FrontendActions constructor
     class SFIFrontendActionFactory: public FrontendActionFactory{
         public:
             SFIFrontendActionFactory(std::vector<FaultInjector*> inj):FrontendActionFactory(),injectors(inj){}
@@ -496,7 +496,7 @@ int main(int argc, const char **argv){
         }
         
 
-        for(FaultInjector *inj : injectors){
+        for(FaultInjector *inj : injectors){//set verbose and directory options for injectors
             inj->setVerbose(verbose);
             inj->setDirectory(dir);
         }
@@ -506,10 +506,10 @@ int main(int argc, const char **argv){
         if(ret==2){
             cout << "Some Files were skipped, because there was no compileCommand for them in compile_commands.json!!!"<<endl;
         }
-        if(ret == 1){
+        if(ret == 1){ //error
             cout << "An Error occured while running this Tool..."<<endl;
             return 1;
-        } else {
+        } else { //create overview in summary.json
             json summary;
             int injectioncount = 0;
             cout<<endl<<endl<<endl;
@@ -574,7 +574,7 @@ int main(int argc, const char **argv){
         }else if(CompileOption.getValue()){//compile and test
             if(cfgFile.compare("")!=0)
                 cfgFile = (dir.compare("")?dir+"/":"")+"summary.json";
-            if(stat(cfgFile.c_str(), &buf) != -1){
+            if(stat(cfgFile.c_str(), &buf) != -1){//config needed!! (in this case an summary.json!!)
                 cout<<"Using config ("<<cfgFile<<")."<<endl;
                 std::ifstream i(cfgFile.c_str());
                 json j;
