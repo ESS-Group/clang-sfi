@@ -28,9 +28,6 @@ struct{
 		};
 }a;
 
-#include <iostream>
-using namespace std;
-
 int _main(int argc, const char **argv, bool oO){
 	55;
 	int i=0;
@@ -43,7 +40,6 @@ int _main(int argc, const char **argv, bool oO){
 	return 12;
 }
 
-//#include <stdio.h>
 bool testitest(){
 	return false;
 }
@@ -80,7 +76,6 @@ class Testitest{
 			c = testitest();
 			testitest();
 			testitest() && testitest();
-			//cout<<"public constructor"<<endl;
 			initialize("abc");
 			initialize(testitest()?"abc":"cde");
 
@@ -103,7 +98,6 @@ class Testitest{
 			
 			if(str[0]==123)
 				return;
-			//cout<<length(str)<<endl;
 		}
 		bool huhu(){
 			return testitest();
@@ -142,13 +136,12 @@ int main(int argc, const char **argv){
 			int i = 2;
 			i++;
 			i = i-1;
-			//for(int j=0;j<3;j++){
+			for(int j=0;j<3;j++){
 				2;
-			//}
+			}
 			3;
-			//cout << 2 << endl;
 		}else if(argv[1][0] == '3' && true)
-			11;//cout<<"test"<<endl;
+			11;
 	}
 
 	if(1){
@@ -165,4 +158,3 @@ int main(int argc, const char **argv){
 	}
 	return 2;
 }
-/**/
