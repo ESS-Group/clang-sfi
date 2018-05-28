@@ -7,23 +7,24 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten){
     Matcher.addMatcher(
             binaryOperator(
                     allOf(
-                        hasOperatorName("="),
-                        hasLHS(
+                        hasOperatorName("="), //assignmentOperator
+                        hasLHS(//left side of Assignment
                             allOf(
-                                unless(hasDescendant(callExpr())),
+                                unless(hasDescendant(callExpr())),//no functioncall on left side
                                 anyOf(
-                                    declRefExpr(to(varDecl(hasDeclContext(functionDecl())))),
-                                    memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))),
+                                    declRefExpr(to(varDecl(hasDeclContext(functionDecl())))),//assignment to local variable
+                                    memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))),//assignment to member of local object
                                     arraySubscriptExpr(hasBase(
-                                        implicitCastExpr(hasSourceExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))
+                                        implicitCastExpr(hasSourceExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))//assignment to array element of local array
                                     )),
                                     arraySubscriptExpr(hasBase(
                                         ignoringParenCasts(ignoringImplicit(
-                                            memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))
+                                            memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))//assignment to array element of member array of local object
                                         ))    
                                     )),
 
                                     
+                                    //assignment to one time dereferred local pointer
                                     ignoringParenCasts(ignoringImplicit(
                                             unaryOperator(allOf(
                                                 hasOperatorName("*"),
@@ -31,7 +32,7 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten){
                                         ))
                                     )),
 
-                                    
+                                    //assignment to one time dereferred pointer, which is member of a local object
                                     ignoringParenCasts(ignoringImplicit(
                                             unaryOperator(allOf(
                                                 hasOperatorName("*"),
@@ -42,7 +43,7 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten){
                             )
                         ),
                         hasRHS(
-                            anyOf(
+                            anyOf(//assure right side is an expressions
                                 ignoringParenCasts(ignoringImplicit(callExpr())),
                                 ignoringParenCasts(ignoringImplicit(cxxNewExpr())),
                                 ignoringParenCasts(ignoringImplicit(binaryOperator())),
@@ -60,7 +61,7 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten){
 
 //if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
         if(alsoOverwritten){
-            Matcher.addMatcher(
+            Matcher.addMatcher(//overwritten assignmentoperator call, rest like above
                 cxxOperatorCallExpr(allOf(
                     hasOverloadedOperatorName("="),
                     argumentCountIs(2),

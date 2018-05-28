@@ -1,10 +1,10 @@
 MVIVInjector::MVIVInjector(){
     Matcher.addMatcher(
-        varDecl(
+        varDecl(//variable declaration
             allOf(
-                hasInitializer(
+                hasInitializer(//variable declaration that has en initializer
                 unless(
-                    anyOf(
+                    anyOf(//assure that initializer is an value
                         callExpr(),
                         hasDescendant(callExpr()),
                         cxxNewExpr(),
@@ -29,7 +29,7 @@ MVIVInjector::MVIVInjector(){
                 ))
             )
 
-            ,hasDeclContext(functionDecl())
+            ,hasDeclContext(functionDecl())//declaration in function context (local)
         )
         
         ).bind("variable"), createStmtHandler("variable"));

@@ -1,116 +1,3 @@
-#include <algorithm>
-
-
-
-
-
-std::vector<const DeclRefExpr*> getAllRefs(const Stmt *parent, const VarDecl* var){
-    //
-    //parent->dumpColor();
-    //var->dumpColor();
-    std::vector<const DeclRefExpr*> ret;
-    for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());i!=e;++i){
-        if(*i == NULL){
-        }else if(isa<Stmt>(*i)){
-            //
-            if(isa<DeclRefExpr>(*i)){
-                //i->dumpColor();
-                if(((const DeclRefExpr *)*i)->getDecl()==var)
-                ret.push_back((const DeclRefExpr*) *i);
-            } else {
-                std::vector<const DeclRefExpr*> list = getAllRefs(*i, var);
-                if(list.size()!=0)
-                    concatVector<const DeclRefExpr*>(ret,list);
-            }
-        }
-    }
-    //
-    return ret;
-}
-
-const DeclRefExpr* getLatestRef(const Stmt *parent, const VarDecl* var){
-    std::vector<const DeclRefExpr*> refs = getAllRefs(parent, var);
-    //var->dumpColor();
-    //cout << ">>>"<<endl;
-    //parent->dumpColor();
-    //
-    std::vector<const DeclRefExpr*> ret;
-    for(const DeclRefExpr* ref : refs){
-        //ref->dumpColor();
-        if(ret.size()){
-            for(const DeclRefExpr* reference:ret){
-                if(reference->getLocEnd()<ref->getLocEnd()){
-                    ret.clear();
-                    ret.push_back(ref);
-                }
-            }
-        } else {
-            ret.push_back(ref);
-        }
-        /*
-        if(ret == NULL)
-            ret = ref;
-        else if(ret->getLocEnd()<ref->getLocEnd())
-            ret = ref;
-        */
-    }
-
-    //cout << "<<<"<<endl;
-
-    for(const DeclRefExpr* ref : ret){
-        //ref->dumpColor();
-        //cout << ":)"<<endl;
-        return ref;
-    }
-        //cout << ":("<<endl;
-    return NULL;
-}
-
-
-
-
-template<class T>
-bool hasStmtOfType(std::vector<const Stmt *> list){
-    for(const Stmt* stmt:list){
-        if(isa<T>(stmt)){
-            return true;
-        }
-    }
-    return false;
-}
-template<class T>
-std::vector<const T*> getStmtsOfType(std::vector<const Stmt *> &list){
-
-    std::vector<const T*> ret;
-    if(list.empty())
-        return ret;
-    for(const Stmt* stmt:list){
-        if(stmt!=NULL && isa<T>(stmt)){
-            ret.push_back((const T*)stmt);
-
-        }
-    }
-
-    return ret;
-}
-
-
-
-
-/*
-void FaultInjector::_sort(){
-    std::sort(
-        locations.begin(),
-        locations.end(),
-        comparefunc
-    );
-}
-
-*/
-template <class T>
-bool _comparefunc(const T* st1, const T* st2){
-    return st1->getLocStart()<st2->getLocStart();//l2<l1;
-}
 
 
 
@@ -421,27 +308,17 @@ bool MLPAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
             int size = it.size();
             if(size == compoundStmt->size())//because 1 statement must remain within the compoundStmt
                 size--;
-            /*if(verbose){
-                cout<<"--- new List ---"<<size<<endl;
-            }*/
-            if(size>MAXSTATEMENTNUMFORCONSTRAINT)
+                
+            if(size>MAXSTATEMENTNUMFORCONSTRAINT)//maximum size constraint
                 size=MAXSTATEMENTNUMFORCONSTRAINT;
             
             for(;size>=2;size--){
+                
 
-                //if(verbose)cout<<"size:"<<size<<endl;
-
-                std::vector<std::vector<const Stmt*>> injectionpoints = getMLPAListOfSize(it, size, compoundStmt);
-
-                //if(verbose)cout << "found"<<injectionpoints.size()<<endl;
+                std::vector<std::vector<const Stmt*>> injectionpoints = getMLPAListOfSize(it, size, compoundStmt); // create SubList of size
 
                 for(std::vector<const Stmt*> injectionpoint: injectionpoints){
-                    /*if(verbose){
-                        //cout<<"--sublist:"<<injectionpoint.size()<<endl;
-                        for(const Stmt * stmt:injectionpoint){
-                            stmt->dumpColor();
-                        }
-                    }*/
+                    
                     nodeCallback(binding, injectionpoint);
                 }
 

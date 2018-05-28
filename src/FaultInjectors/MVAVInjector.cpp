@@ -3,24 +3,24 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten){
     Matcher.addMatcher(
             binaryOperator(
                     allOf(
-                        hasOperatorName("="),
-                        hasLHS(
+                        hasOperatorName("="),//assignment operator
+                        hasLHS(//left side of assignment
                             allOf(
-                                unless(hasDescendant(callExpr())),
+                                unless(hasDescendant(callExpr())),//no functioncall on left side
                                 anyOf(
-                                    declRefExpr(to(varDecl(hasDeclContext(functionDecl())))),
-                                    memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))),
+                                    declRefExpr(to(varDecl(hasDeclContext(functionDecl())))),//assignment to local variable
+                                    memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))),//assignment to member of local object
                                     arraySubscriptExpr(hasBase(
-                                        implicitCastExpr(hasSourceExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))
+                                        implicitCastExpr(hasSourceExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))//assignment to array element of local array
                                     )),
                                     arraySubscriptExpr(hasBase(
                                         ignoringParenCasts(ignoringImplicit(
-                                            memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))
+                                            memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))//assignment to array element of member array of local object
                                         ))    
                                     )),
 
                                     
-                                    ignoringParenCasts(ignoringImplicit(
+                                    ignoringParenCasts(ignoringImplicit(//assignment to one time dereferred local pointer
                                             unaryOperator(allOf(
                                                 hasOperatorName("*"),
                                                 hasUnaryOperand(ignoringParenCasts(ignoringImplicit(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))))
@@ -28,7 +28,7 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten){
                                     )),
 
                                     
-                                    ignoringParenCasts(ignoringImplicit(
+                                    ignoringParenCasts(ignoringImplicit(//assignment to one time dereferred pointer, which is member of a local object
                                             unaryOperator(allOf(
                                                 hasOperatorName("*"),
                                                 hasUnaryOperand(ignoringParenCasts(ignoringImplicit(memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))))))
@@ -37,7 +37,7 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten){
                                 )
                             )
                         ),
-                        hasRHS(
+                        hasRHS(//assure right side not to be an expression
                             unless(anyOf(
                                 ignoringParenCasts(ignoringImplicit(callExpr())),
                                 ignoringParenCasts(ignoringImplicit(cxxNewExpr())),
@@ -56,7 +56,7 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten){
 
 //if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
             if(alsoOverwritten){
-            Matcher.addMatcher(
+            Matcher.addMatcher(//overwritten assignmentoperator call, rest like above
                 cxxOperatorCallExpr(allOf(
                     hasOverloadedOperatorName("="),
                     argumentCountIs(2),

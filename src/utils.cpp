@@ -1,3 +1,5 @@
+#include <algorithm>
+
 template <class T>
 void deleteFromList(std::vector<T>& src, std::vector<T>& toDelete){
     bool deleted = false;
@@ -550,4 +552,215 @@ std::vector<const T*> getChildrenOfType(const Stmt *parent, bool first = true){
         }
     }
     return ret;
+}
+
+
+
+
+
+
+std::vector<const DeclRefExpr*> getAllRefs(const Stmt *parent, const VarDecl* var){
+    std::vector<const DeclRefExpr*> ret;
+    for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());i!=e;++i){
+        if(*i == NULL){
+        }else if(isa<Stmt>(*i)){
+            if(isa<DeclRefExpr>(*i)){
+                
+                if(((const DeclRefExpr *)*i)->getDecl()==var)
+                ret.push_back((const DeclRefExpr*) *i);
+            } else {
+                std::vector<const DeclRefExpr*> list = getAllRefs(*i, var);
+                if(list.size()!=0)
+                    concatVector<const DeclRefExpr*>(ret,list);
+            }
+        }
+    }
+    
+    return ret;
+}
+
+const DeclRefExpr* getLatestRef(const Stmt *parent, const VarDecl* var){
+    std::vector<const DeclRefExpr*> refs = getAllRefs(parent, var);
+    
+    std::vector<const DeclRefExpr*> ret;
+    for(const DeclRefExpr* ref : refs){
+    
+        if(ret.size()){
+            for(const DeclRefExpr* reference:ret){
+                if(reference->getLocEnd()<ref->getLocEnd()){
+                    ret.clear();
+                    ret.push_back(ref);
+                }
+            }
+        } else {
+            ret.push_back(ref);
+        }
+        /*
+        if(ret == NULL)
+            ret = ref;
+        else if(ret->getLocEnd()<ref->getLocEnd())
+            ret = ref;
+        */
+    }
+
+    for(const DeclRefExpr* ref : ret){
+        return ref;
+    }
+    return NULL;
+}
+
+
+
+
+template<class T>
+bool hasStmtOfType(std::vector<const Stmt *> list){
+    for(const Stmt* stmt:list){
+        if(isa<T>(stmt)){
+            return true;
+        }
+    }
+    return false;
+}
+template<class T>
+std::vector<const T*> getStmtsOfType(std::vector<const Stmt *> &list){
+
+    std::vector<const T*> ret;
+    if(list.empty())
+        return ret;
+    for(const Stmt* stmt:list){
+        if(stmt!=NULL && isa<T>(stmt)){
+            ret.push_back((const T*)stmt);
+
+        }
+    }
+
+    return ret;
+}
+
+template <class T>
+bool _comparefunc(const T* st1, const T* st2){
+    return st1->getLocStart()<st2->getLocStart();//l2<l1;
+}
+
+
+
+bool isArithmetic(const BinaryOperator* op){
+    int code = op->getOpcode();
+    return code == BinaryOperatorKind::BO_Mul||
+        code == BinaryOperatorKind::BO_Div ||
+        code == BinaryOperatorKind::BO_Rem ||
+        code == BinaryOperatorKind::BO_Add ||
+        code == BinaryOperatorKind::BO_Sub ||
+        code == BinaryOperatorKind::BO_Shl ||
+        code == BinaryOperatorKind::BO_Shr ||
+        code == BinaryOperatorKind::BO_And ||
+        code == BinaryOperatorKind::BO_Or ||
+        code == BinaryOperatorKind::BO_Xor;
+}
+const BinaryOperator* getBinaryOperatorWithRightedtRHS(const BinaryOperator* op){
+    if(isa<BinaryOperator>(op->getRHS()) && isArithmetic(op)){
+        return getBinaryOperatorWithRightedtRHS((const BinaryOperator*)op->getRHS());
+    } else
+        return op;
+}
+template<class T>
+std::vector<const T*> getChildrenFlat(const Stmt *parent){
+    std::vector<const T*> ret;
+    for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());i!=e;++i){
+        if(*i != NULL){
+            //if(isa<T>(*i)){
+            if(isa<Expr>(*i)){
+                const Expr* expr = ((const T *) *i)->IgnoreImplicit()->IgnoreParenCasts();
+                if(isa<T>(expr))
+                    ret.push_back((const T*)expr);
+                //ret.push_back(((const T *) *i)->IgnoreImplicit()->IgnoreParenCasts());
+            } else if(isa<T>(*i)){
+                ret.push_back(((const T *) *i));
+            }
+           // }
+           /* else {
+                if(const T* ret = getFirstChild<T>(*i))
+                    return ret; 
+            }*/
+        }
+    }
+    return ret;
+}
+
+
+
+const DeclRefExpr* getDeclRefExprOfImplicitConstructExpr(const MaterializeTemporaryExpr* matexpr){
+    if(matexpr!=NULL && matexpr->getTemporary() != NULL && isa<CXXBindTemporaryExpr>(matexpr->getTemporary())){
+        const CXXBindTemporaryExpr* tempbind = (const CXXBindTemporaryExpr*) matexpr->getTemporary();
+        if(isa<CXXConstructExpr>(tempbind->getSubExpr())){
+            const CXXConstructExpr* constructexpr = (const CXXConstructExpr*)tempbind->getSubExpr();
+            if(constructexpr->getNumArgs() == 1 && constructexpr->getArg(0)->IgnoreImplicit() != NULL && isa<DeclRefExpr>(constructexpr->getArg(0)->IgnoreImplicit())){
+                const DeclRefExpr* ref = (const DeclRefExpr *)constructexpr->getArg(0)->IgnoreImplicit();
+                return ref;
+            }
+        }
+    }
+    return NULL;
+}
+template<class T>
+std::vector<const T*> getArgumentsOfType(const CallExpr* call){
+    std::vector<const T*> ret;
+    const Expr*const * args = call->getArgs();
+    for(int i = 0 ; i < call->getNumArgs() ; i++){
+        const Expr* arg = args[i];
+        //hier abfangen
+        if(isa<MaterializeTemporaryExpr>(arg)){
+            if(const DeclRefExpr* ref=getDeclRefExprOfImplicitConstructExpr((const MaterializeTemporaryExpr*) arg)){
+                if(isa<T>(ref)){
+                //cerr<<"implicitconstructorcall"<<endl;
+                    ret.push_back(ref);
+                }
+            }
+        }
+        /*
+        if(arg->IgnoreImplicit()->IgnoreImpCasts() != NULL && isa<CXXConstructExpr>(arg->IgnoreImplicit()->IgnoreImpCasts())){
+            const CXXConstructExpr* expr =(const CXXConstructExpr*) arg->IgnoreImplicit()->IgnoreImpCasts();
+            cerr<<(expr->isElidable()?"true":"false")<<endl;
+            switch(expr->getConstructionKind()){
+                case CXXConstructExpr::ConstructionKind::CK_Complete :
+                cerr<<"complete"<<endl;
+                break;
+                case CXXConstructExpr::ConstructionKind::CK_NonVirtualBase :
+                cerr<<"nonvirtual"<<endl;
+                break;
+                case CXXConstructExpr::ConstructionKind::CK_VirtualBase :
+                cerr<<"virtualbase"<<endl;
+                break;
+                case CXXConstructExpr::ConstructionKind::CK_Delegating :
+                cerr<<"delegating"<<endl;
+                break;
+            }
+        }
+        */
+        if(arg->IgnoreImpCasts() != NULL && arg->IgnoreImpCasts()->IgnoreParenCasts() != NULL&& isa<T>(arg->IgnoreImpCasts()->IgnoreParenCasts())){
+            ret.push_back((const T*)arg->IgnoreImpCasts()->IgnoreParenCasts());
+        }
+    }
+    return ret;
+}
+
+bool isVisible(const Decl* decl, const Stmt* position, ASTContext &Context){
+    if(position == NULL || decl == NULL)
+        return false;
+        
+    const DeclStmt * declstmt =  getParentOfType<DeclStmt>(decl, Context);
+    
+    if(declstmt == NULL)
+        return false;
+    ASTContext::DynTypedNodeList list = Context.getParents(*declstmt);
+    if(!list.empty()){
+        const Stmt* parent = list[0].get<Stmt>();
+        
+        if(parent == NULL)
+            return false;
+
+        if(isParentOf(parent, position) && decl->getLocEnd()<position->getLocStart())
+            return true;
+    }
+    return false;
 }
