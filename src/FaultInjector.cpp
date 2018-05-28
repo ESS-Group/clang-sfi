@@ -240,12 +240,15 @@ void FaultInjector::inject(std::vector<StmtBinding> target, ASTContext &Context)
         if(verbose)
             printStep(current, Context.getSourceManager(), Context.getLangOpts(),i++,target.size());
         else
-            printStep(current, Context.getSourceManager(),i++,target.size());
+            i++;
+        //else
+        //    printStep(current, Context.getSourceManager(),i++,target.size());
         std::string result = inject(current, Context);
         if(result.compare("")){
-            cout<<" -Success"<<endl;
+            if(verbose)
+                cout<<" -Success"<<endl;
             writeDown(result, i-1);
-        } else
+        } else if(verbose)
             cerr << "-Failed"<<endl;
     }
 }
