@@ -1,4 +1,4 @@
-void MLOCInjector::inject(std::vector<StmtBinding> target, ASTContext &Context){
+/*void MLOCInjector::inject(std::vector<StmtBinding> target, ASTContext &Context){
     int i = 0;
     for(StmtBinding current : target){
         std::string result = "";
@@ -24,9 +24,12 @@ void MLOCInjector::inject(std::vector<StmtBinding> target, ASTContext &Context){
         }
     }
 }
+*/
+/*
 std::string MLOCInjector::inject(StmtBinding current, ASTContext &Context){
     return "";
 }
+*/
 MLOCInjector::MLOCInjector(){
     //Matcher.addMatcher(binaryOperator(anyOf(hasAncestor(expr(anyOf(hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt())))),hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt()))).bind("FunctionCall"), createStmtHandler("FunctionCall"));
     Matcher.addMatcher(
@@ -59,17 +62,17 @@ MLOCInjector::MLOCInjector(){
 std::string MLOCInjector::toString(){
     return "MLOC";
 };
-std::string MLOCInjector::inject(StmtBinding current, ASTContext &Context, bool left){
-
+std::string MLOCInjector::inject(StmtBinding current, ASTContext &Context){
+    bool left = current.left;
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     SourceLocation start, end;
     if(left){
-        start = ((const BinaryOperator *)current.stmt)->getOperatorLoc();
-        end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocEnd();
-    }else {
         start = ((const BinaryOperator *)current.stmt)->getLHS()->getLocStart();
         end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocStart().getLocWithOffset(-1);
+    }else {
+        start = ((const BinaryOperator *)current.stmt)->getOperatorLoc();
+        end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocEnd();
     }
 
     SourceRange range(start, end);
@@ -97,8 +100,12 @@ bool MLOCInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
         return false;
     for(const BinaryOperator* op : binaryOperators){
         if(op->getOpcode()==BinaryOperatorKind::BO_LOr){
-            nodeCallback("MLOC",op);
-            nodeCallback("MLOC",op);
+            const Expr* left = op->getLHS()->IgnoreImplicit();
+            const Expr* right = op->getRHS()->IgnoreImplicit();
+            if(!isa<BinaryOperator>(left) || ((const BinaryOperator*)left)->getOpcode()!=BinaryOperatorKind::BO_LOr)
+                nodeCallback("MLOC",op, true);
+            if(!isa<BinaryOperator>(right) || ((const BinaryOperator*)right)->getOpcode()!=BinaryOperatorKind::BO_LOr)
+                nodeCallback("MLOC",op, false);
         }
     }
     return false;

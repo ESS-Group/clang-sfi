@@ -1,23 +1,38 @@
 MVIVInjector::MVIVInjector(){
     Matcher.addMatcher(
-        varDecl(hasInitializer(
+        varDecl(
             allOf(
-            unless(
-                anyOf(
-                    callExpr(),
-                    cxxNewExpr(),
-                    binaryOperator(),
-                    unaryOperator(),
-                    cxxConstructExpr(),
-                    declRefExpr(),
-                    memberExpr(), 
-                    castExpr(anyOf(
-                            hasDescendant(declRefExpr()),
-                            hasDescendant(memberExpr())))
-            ))
-            ,hasAncestor(compoundStmt())
+                hasInitializer(
+                unless(
+                    anyOf(
+                        callExpr(),
+                        hasDescendant(callExpr()),
+                        cxxNewExpr(),
+                        hasDescendant(cxxNewExpr()),
+                        binaryOperator(),
+                        hasDescendant(binaryOperator()),
+                        unaryOperator(),
+                        hasDescendant(unaryOperator()),
+                        cxxConstructExpr(),
+                        hasDescendant(cxxConstructExpr()),
+                        declRefExpr(),
+                        hasDescendant(declRefExpr()),
+                        memberExpr(), 
+                        hasDescendant(memberExpr()),
+                        hasDescendant(conditionalOperator()),
+                        hasDescendant(binaryConditionalOperator()),
+                        conditionalOperator(),
+                        binaryConditionalOperator()
+                        /*castExpr(anyOf(
+                                hasDescendant(declRefExpr()),
+                                hasDescendant(memberExpr())))*/
+                ))
             )
-        )).bind("variable"), createStmtHandler("variable"));
+
+            ,hasDeclContext(functionDecl())
+        )
+        
+        ).bind("variable"), createStmtHandler("variable"));
 }
 
 std::string MVIVInjector::toString(){
@@ -40,6 +55,9 @@ std::string MVIVInjector::inject(StmtBinding current, ASTContext &Context){
     return getEditedString(R, Context);
 }
 bool MVIVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
-    return C2(decl, Context);
+    const DeclStmt* declstmt = getParentOfType<DeclStmt>(decl,Context,3);
+    if(const ForStmt* forstmt = getParentOfType<ForStmt>(declstmt,Context,3))
+        return isParentOf(forstmt->getBody(), declstmt) && !((const VarDecl*)decl)->isStaticLocal() && C2(decl, Context);
+    else return !((const VarDecl*)decl)->isStaticLocal() && C2(decl, Context);
     //C2 implementation implicitly excludes decl being part of an for construct.
 }

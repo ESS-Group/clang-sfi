@@ -1,6 +1,6 @@
 
 MIFSInjector::MIFSInjector(){//Missing if construct plus statements
-    Matcher.addMatcher(ifStmt().bind("ifStmt"), createStmtHandler("ifStmt"));
+    Matcher.addMatcher(ifStmt(unless(hasElse(stmt()))).bind("ifStmt"), createStmtHandler("ifStmt"));
 }
 
 std::string MIFSInjector::toString(){
@@ -11,7 +11,7 @@ std::string MIFSInjector::inject(StmtBinding current, ASTContext &Context){
     const IfStmt* ifS = (IfStmt *)(current.stmt);
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
-    SourceRange range(ifS->getLocStart(), ifS->getThen()->getLocEnd());
+    SourceRange range(ifS->getLocStart(), ifS/*->getThen()*/->getLocEnd());
     R.RemoveText(range);
     return getEditedString(R, Context);
 }
@@ -19,8 +19,19 @@ bool MIFSInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
     //if(const IfStmt* ifS = (IfStmt *)(stmt)){
     const IfStmt* ifS = (IfStmt *)(stmt);
     //commented to also inject, when the then-block contains more than 5 statements
-    if(!C9(ifS->getThen()))
+    if(!C9(ifS->getThen(), &Context))
         return false;
-    return C8(ifS) && C2(stmt, Context); //also if the statement is the only statement in the block
+    return /*C8(ifS) && */C2(stmt, Context); //also if the statement is the only statement in the block
     //} else return false;
 }
+
+bool SMIFSInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){
+    const IfStmt* ifS = (IfStmt *)(stmt);
+    if(!C9(ifS->getThen(), &Context, false, 5, true))
+        return false;
+    return C2(stmt, Context);
+}
+
+std::string SMIFSInjector::toString(){
+    return "SMIFS";
+};

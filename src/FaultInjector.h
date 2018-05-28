@@ -1,5 +1,9 @@
 #ifndef FAULTINJECTOR
 #define FAULTINJECTOR 1
+#define MAXSTATEMENTNUMFORCONSTRAINT 5
+#define DONOTDELETEDECLSTMTINCONSTRAINT false
+#define RETURNISAJUMP true
+#define DONTCOUNTBREAKINSWITCHCASEFORBLOCKSIZE true
 
 #include <vector>
 #include <algorithm>
@@ -51,26 +55,31 @@ class FaultInjector{
                     private:
                         bool valid;
                 };
-                StmtBinding(std::string binding, const Decl* decl):binding(binding){
+                StmtBinding(std::string binding, const Decl* decl, bool left=false):binding(binding){
+                    this->left = left;
                     this->decl = decl;
                     decllist.push_back(decl);
                     isStmt = false;
                     isList = false;
                 }
-                StmtBinding(std::string binding, const Stmt* stmt):binding(binding){
+                StmtBinding(std::string binding, const Stmt* stmt, bool left=false):binding(binding){
+                    this->left = left;
                     this->stmt = stmt;
                     stmtlist.push_back(stmt);
                     isStmt = true;
                     isList = false;
                 }
-                StmtBinding(std::string binding, std::vector<const Decl*> list):binding(binding),decllist(list.begin(),list.end()){
+                StmtBinding(std::string binding, std::vector<const Decl*> list, bool left=false):binding(binding),decllist(list.begin(),list.end()){
+                    this->left = left;
                     isStmt = false;
                     isList = true;
                 }
-                StmtBinding(std::string binding, std::vector<const Stmt*> list):binding(binding),stmtlist(list.begin(),list.end()){
+                StmtBinding(std::string binding, std::vector<const Stmt*> list, bool left=false):binding(binding),stmtlist(list.begin(),list.end()){
+                    this->left = left;
                     isStmt = true;
                     isList = true;
                 }
+                
                 void calculateRange(ASTContext &Context){
                     SourceLocation begin,end;
                     if(isList){
@@ -140,6 +149,7 @@ class FaultInjector{
                 std::vector<const Stmt*> stmtlist;
                 std::vector<const Decl*> decllist;
                 Range location;
+                bool left;
         };
         StmtHandler* createStmtHandler(std::string binding);
         //std::vector<StmtHandler> test;
@@ -147,8 +157,8 @@ class FaultInjector{
         ~FaultInjector();
         FaultInjector(const FaultInjector& that) = delete;
 
-        void push(std::string binding, const Stmt *st);
-        void push(std::string binding, const Decl *st);
+        void push(std::string binding, const Stmt *st, bool left=false);
+        void push(std::string binding, const Decl *st, bool left=false);
         void push(std::string binding, std::vector<const Stmt *> list);
         void push(std::string binding, std::vector<const Decl *> list);
         virtual void inject(std::vector<StmtBinding> target, ASTContext &Context);
@@ -162,8 +172,8 @@ class FaultInjector{
         //void setSourceMgr(SourceManager &sourceManager);
         //SourceManager* getSourceMgr();
         //Rewriter Rewrite;
-        void nodeCallback(std::string binding, const Stmt* stmt);
-        void nodeCallback(std::string binding, const Decl* decl);
+        void nodeCallback(std::string binding, const Stmt* stmt, bool left=false);
+        void nodeCallback(std::string binding, const Decl* decl, bool left=false);
         void nodeCallback(std::string binding, std::vector<const Stmt*> list);
         void nodeCallback(std::string binding, std::vector<const Decl*> list);
         std::string getFileName();
@@ -201,6 +211,12 @@ class MIFSInjector: public FaultInjector{
         bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
 };
 
+class SMIFSInjector: public MIFSInjector{
+    public:
+        std::string toString() override;
+        bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
+};
+
 class MIAInjector: public FaultInjector{
     public:
         MIAInjector();
@@ -209,11 +225,23 @@ class MIAInjector: public FaultInjector{
         bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
 };
 
+class SMIAInjector: public MIAInjector{
+    public:
+        std::string toString() override;
+        bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
+};
+
 class MIEBInjector: public FaultInjector{
     public:
         MIEBInjector();
         std::string toString() override;
         std::string inject(StmtBinding current, ASTContext &Context) override;
+        bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
+};
+
+class SMIEBInjector: public MIEBInjector{
+    public:
+        std::string toString() override;
         bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
 };
 
@@ -246,9 +274,9 @@ class MLOCInjector: public FaultInjector{
     public:
         MLOCInjector();
         std::string toString() override;
-        void inject(std::vector<StmtBinding> target, ASTContext &Context) override;
+        //void inject(std::vector<StmtBinding> target, ASTContext &Context) override;
         std::string inject(StmtBinding current, ASTContext &Context) override;
-        std::string inject(StmtBinding current, ASTContext &Context, bool left);
+        //std::string inject(StmtBinding current, ASTContext &Context, bool left);
         bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
 };
 
@@ -256,9 +284,9 @@ class MLACInjector: public FaultInjector{
     public:
         MLACInjector();
         std::string toString() override;
-        void inject(std::vector<StmtBinding> target, ASTContext &Context) override;
+        //void inject(std::vector<StmtBinding> target, ASTContext &Context) override;
         std::string inject(StmtBinding current, ASTContext &Context) override;
-        std::string inject(StmtBinding current, ASTContext &Context, bool left);
+        //std::string inject(StmtBinding current, ASTContext &Context, bool left);
         bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
 };
 
@@ -273,32 +301,64 @@ class MVIVInjector: public FaultInjector{
 
 class MVAVInjector: public FaultInjector{
     public:
-        MVAVInjector();
+        MVAVInjector(bool alsoOverwritten = false);
         std::string toString() override;
         std::string inject(StmtBinding current, ASTContext &Context) override;
-        bool checkStmt(const Decl* decl, std::string binding, ASTContext &Context) override;
+        //bool checkStmt(const Decl* decl, std::string binding, ASTContext &Context) override;
+        bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
+    protected:
+        bool alsoOverwritten;
+};
+class OMVAVInjector: public MVAVInjector{
+    public:
+        OMVAVInjector();
+        std::string toString() override;
 };
 class WVAVInjector: public FaultInjector{
     public:
-        WVAVInjector();
+        WVAVInjector(bool alsoOverwritten = false);
         std::string toString() override;
         std::string inject(StmtBinding current, ASTContext &Context) override;
-        bool checkStmt(const Decl* decl, std::string binding, ASTContext &Context) override;
+        //bool checkStmt(const Decl* decl, std::string binding, ASTContext &Context) override;
+        bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
+    protected:
+        bool alsoOverwritten;
 };
 
+class OWVAVInjector: public WVAVInjector{
+    public:
+        OWVAVInjector();
+        std::string toString() override;
+};
 class MVAEInjector: public FaultInjector{
     public:
-        MVAEInjector();
+        MVAEInjector(bool alsoOverwritten = false);
         std::string toString() override;
         std::string inject(StmtBinding current, ASTContext &Context) override;
-        bool checkStmt(const Decl* decl, std::string binding, ASTContext &Context) override;
+        //bool checkStmt(const Decl* decl, std::string binding, ASTContext &Context) override;
+        bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
+    protected:
+        bool alsoOverwritten;
 };
 
+
+class OMVAEInjector: public MVAEInjector{
+    public:
+        OMVAEInjector();
+        std::string toString() override;
+};
 class MLPAInjector: public FaultInjector{
     public:
         MLPAInjector();
         std::string toString() override;
         std::string inject(StmtBinding current, ASTContext &Context) override;
+        bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
+};
+
+
+class SMLPAInjector: public MLPAInjector{
+    public:
+        std::string toString() override;
         bool checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context) override;
 };
 

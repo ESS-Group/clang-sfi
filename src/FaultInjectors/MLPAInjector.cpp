@@ -116,7 +116,7 @@ bool _comparefunc(const T* st1, const T* st2){
 
 
 
-std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block, ASTContext& Context){
+std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block, ASTContext& Context, bool returnIsAJump = RETURNISAJUMP, bool noDeclStmt = DONOTDELETEDECLSTMTINCONSTRAINT){
     std::vector<std::vector<const Stmt*>> ret;
     int index = -1;
     for(Stmt::child_iterator i = cast_away_const(block->child_begin()), e = cast_away_const(block->child_end());i!=e;++i){
@@ -125,6 +125,11 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block, A
             //
 
         }else if(isa<Stmt>(*i)){
+            /*if(Context.getFullLoc(i->getLocStart()).getLineNumber()==965){
+                i->getLocStart().dump(Context.getSourceManager());
+                cerr<<endl;
+                i->dumpColor();
+            }*/
             if(index==-1){
 
                 std::vector<const Stmt*> list;
@@ -132,7 +137,7 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block, A
                 index = 0;
 
             }
-            if(!isa<DeclStmt>(*i) && !isa<IfStmt>(*i) && !isa<ForStmt>(*i) && !isa<WhileStmt>(*i) && !isa<DoStmt>(*i)&&!isa<SwitchStmt>(*i) && !isa<ReturnStmt>(*i)&& !isa<BreakStmt>(*i)&& !isa<ContinueStmt>(*i)){
+            if((noDeclStmt || !isa<DeclStmt>(*i)) && !isa<IfStmt>(*i) && !isa<ForStmt>(*i) && !isa<WhileStmt>(*i) && !isa<DoStmt>(*i)&&!isa<SwitchStmt>(*i) && (!returnIsAJump || !isa<ReturnStmt>(*i))&& !isa<BreakStmt>(*i)&& !isa<ContinueStmt>(*i)){//SwitchCase
                 if(isa<CompoundStmt>(*i)){
                     if(ret[index].size()>0){
                         std::vector<const Stmt*> list;
@@ -164,14 +169,8 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block, A
     }
 
 
-
-
-    //for(auto list:ret){
     std::vector<std::vector<const Stmt*>>::reverse_iterator rit = ret.rbegin();
 
-
-    //std::vector<const Stmt*>::iterator toDeleteIt;
-    //std::vector<const Stmt*>::iterator* toDelete = NULL;
     bool deleteIt = false;
 
     for(;rit!=ret.rend();/*++rit*/){
@@ -229,78 +228,7 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block, A
                 notPossible.end(),
                 _comparefunc<DeclStmt>
             );
-            /*
-            bool deletedFirst = false;
-                cout<<"<<3";
-            for(const DeclStmt* stmt:notPossible){
-
-                ///////////////////////////////////////////////////////////////////////////////stmt->dumpColor();
-                //bool deletechanged = false;
-                cout<<"hohoho1"<<endl;
-                for(std::vector<std::vector<const Stmt*>>::iterator it=changed.begin();it!=changed.end();++it){
-                    //auto changedPosition = std::find(changed.begin(), changed.end(), *it);
-                    cout<<"hohoho1.5"<<endl;
-                    auto position = std::find(it->begin(), it->end(),stmt);//std::find((*it).rbegin(), (*it).rend(), stmt);
-                    cout<<"hohoho2"<<endl;
-                    int pos = std::distance(it->begin(), position);//(*it).size() - std::distance((*it).rbegin(), position);
-                    cout<<"hohoho3"<<endl;
-                    /*if(position!=it->end()){
-
-                        if(*position == NULL){
-
-                        }else{
-
-                        }
-
-                    }*//*
-                    if(position!=it->end()){
-                        cout<<"hohoho4"<<endl;
-                        std::vector<const Stmt*> first(it->begin(), it->begin()+pos),//((*it).begin(), (*it).begin()+pos),
-                                    second(it->begin()+pos+1, it->end());//((*it).begin()+pos+1, (*it).end());
-                        cout<<"hohoho5"<<endl;
-                        if(first.size()!=0){
-                            changed.push_back(first);
-
-                        }cout<<"hohoho6"<<endl;
-                        if(second.size()!=0){
-                            changed.push_back(second);
-
-                        }cout<<"hohoho7"<<endl;
-                        deleteIt = true;
-
-                        std::vector<std::vector<const Stmt*>>::iterator iter;
-                        int pos = std::distance(changed.begin(), it);
-                        
-                        cout << pos << endl;
-                        std::vector<std::vector<const Stmt*>> changedNew(changed.begin(), it);
-                        cout << "huhu"<<endl;
-                        if(it != changed.end())
-                            changedNew.insert(changedNew.end(), it+1, changed.end());
-                        changed = changedNew;
-                        cout << "huhu2"<<endl;
-                        //it->clear();
-                        //deletechanged = true;
-
-                        //toDeleteIt = position;
-                        //toDelete = &toDeleteIt;
-                        break;
-
-                        //UNBEDINGT IM NÄCHSTEN SCHRITT DER ÄUSSERSTEN SCHLEIFE EINTRAG LÖSCHEN
-                    }
-                    cout<<"huhu3"<<endl;
-                }
-                    cout<<"huhu4"<<endl;
-                /*if(changed.size()>0&&!deletedFirst){
-                    changed = std::vector<std::vector<const Stmt*>>(changed.begin()+1, changed.end());
-                    deletedFirst = true;
-                }*//*
-            }
-                    cout<<"huhu5"<<endl;
-                    */
-
-                //cout<<"<<4";
-
-
+           
 
 
             int ritpos = std::distance(ret.rbegin(), rit)+changed.size();
@@ -309,28 +237,15 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block, A
             rit = ret.rbegin();
             for(int i = 0 ; i<ritpos;i++,rit++);
             list = *rit;
-            
-            //cout<<"huhu6"<<endl;
-
-
 
 
         } 
-        //cout<<"huhu7"<<endl;
-
-                //cout<<"<<3";
-        //get
+        
         if(deleteIt){
-            /*auto it = ret.erase(--rit.base());
-            rit=std::vector<std::vector<const Stmt*>>::reverse_iterator(it);//ret.erase(rit.base());
-            deleteIt = false;*/
-
-
-
-            //cout<<"huhu71"<<endl;
+            
             rit->clear();
 
-            //cout<<"huhu72"<<endl;
+
             deleteIt = false; 
 
             ++rit;
@@ -339,7 +254,6 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block, A
 
             ++rit;
         }
-        //cout<<"huhu8"<<endl;
     }
 
 
@@ -510,8 +424,8 @@ bool MLPAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
             /*if(verbose){
                 cout<<"--- new List ---"<<size<<endl;
             }*/
-            if(size>5)
-                size=5;
+            if(size>MAXSTATEMENTNUMFORCONSTRAINT)
+                size=MAXSTATEMENTNUMFORCONSTRAINT;
             
             for(;size>=2;size--){
 
@@ -522,12 +436,56 @@ bool MLPAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
                 //if(verbose)cout << "found"<<injectionpoints.size()<<endl;
 
                 for(std::vector<const Stmt*> injectionpoint: injectionpoints){
-                    if(verbose){
+                    /*if(verbose){
                         //cout<<"--sublist:"<<injectionpoint.size()<<endl;
                         for(const Stmt * stmt:injectionpoint){
                             stmt->dumpColor();
                         }
-                    }
+                    }*/
+                    nodeCallback(binding, injectionpoint);
+                }
+
+            }
+
+        }
+
+    }
+
+    return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+std::string SMLPAInjector::toString(){
+    return "SMLPA";
+};
+
+bool SMLPAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){
+
+    const CompoundStmt * compoundStmt = (const CompoundStmt *)stmt;
+
+    std::vector<std::vector<const Stmt*>> stmtlists = getStmtLists(compoundStmt, Context);
+
+    for(std::vector<const Stmt*> it:stmtlists){
+
+        if(it.size()>=2){
+            int size = it.size();
+            if(size == compoundStmt->size())//because 1 statement must remain within the compoundStmt
+                size--;
+            if(size>5)
+                size=5;
+            
+            for(;size>=2;size--){
+                std::vector<std::vector<const Stmt*>> injectionpoints = getMLPAListOfSize(it, size, compoundStmt);
+                for(std::vector<const Stmt*> injectionpoint: injectionpoints){
                     nodeCallback(binding, injectionpoint);
                 }
 

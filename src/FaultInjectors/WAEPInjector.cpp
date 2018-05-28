@@ -22,8 +22,21 @@ WAEPInjector::WAEPInjector(){
 std::string WAEPInjector::toString(){
     return "WAEP";
 };
+bool isArithmetic(const BinaryOperator* op){
+    int code = op->getOpcode();
+    return code == BinaryOperatorKind::BO_Mul||
+        code == BinaryOperatorKind::BO_Div ||
+        code == BinaryOperatorKind::BO_Rem ||
+        code == BinaryOperatorKind::BO_Add ||
+        code == BinaryOperatorKind::BO_Sub ||
+        code == BinaryOperatorKind::BO_Shl ||
+        code == BinaryOperatorKind::BO_Shr ||
+        code == BinaryOperatorKind::BO_And ||
+        code == BinaryOperatorKind::BO_Or ||
+        code == BinaryOperatorKind::BO_Xor;
+}
 const BinaryOperator* getBinaryOperatorWithRightedtRHS(const BinaryOperator* op){
-    if(isa<BinaryOperator>(op->getRHS())){
+    if(isa<BinaryOperator>(op->getRHS()) && isArithmetic(op)){
         return getBinaryOperatorWithRightedtRHS((const BinaryOperator*)op->getRHS());
     } else
         return op;
@@ -33,9 +46,17 @@ std::vector<const T*> getChildrenFlat(const Stmt *parent){
     std::vector<const T*> ret;
     for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());i!=e;++i){
         if(*i != NULL){
-            if(isa<T>(*i)){
-               ret.push_back((const T *) *i);
-            }/* else {
+            //if(isa<T>(*i)){
+            if(isa<Expr>(*i)){
+                const Expr* expr = ((const T *) *i)->IgnoreImplicit()->IgnoreParenCasts();
+                if(isa<T>(expr))
+                    ret.push_back((const T*)expr);
+                //ret.push_back(((const T *) *i)->IgnoreImplicit()->IgnoreParenCasts());
+            } else if(isa<T>(*i)){
+                ret.push_back(((const T *) *i));
+            }
+           // }
+           /* else {
                 if(const T* ret = getFirstChild<T>(*i))
                     return ret; 
             }*/
@@ -62,22 +83,22 @@ bool WAEPInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &
     if(hasChildOfType<BinaryOperator>(stmt)){
         std::vector<const BinaryOperator*> arguments = getChildrenFlat<BinaryOperator>(stmt);
         for(const BinaryOperator* op : arguments){
-            int code = op->getOpcode();
-            if(code == BinaryOperatorKind::BO_Mul||
-            code == BinaryOperatorKind::BO_Div ||
-            code == BinaryOperatorKind::BO_Rem ||
-            code == BinaryOperatorKind::BO_Add ||
-            code == BinaryOperatorKind::BO_Sub ||
-            code == BinaryOperatorKind::BO_Shl ||
-            code == BinaryOperatorKind::BO_Shr ||
-            code == BinaryOperatorKind::BO_And ||
-            code == BinaryOperatorKind::BO_Or ||
-            code == BinaryOperatorKind::BO_Xor
-            ){
+            //int code = op->getOpcode();
+            if(isArithmetic(op)){
             const BinaryOperator* rightest = getBinaryOperatorWithRightedtRHS(op);
 
             //rightest->getRHS()->dumpColor();
-            nodeCallback(binding, rightest);
+
+            //const Expr* temp = rightest->IgnoreParenCasts();
+            //if(rightest->getType().getDesugaredType(Context).getNonReferenceType() == rightest->getLHS()->getType().getDesugaredType(Context).getNonReferenceType())
+                nodeCallback(binding, rightest);
+            /*else{
+                rightest->getLocStart().dump(Context.getSourceManager());
+                cerr<<endl;
+                rightest->dumpColor();
+                rightest->getType().dump();
+                rightest->getLHS()->getType().dump();
+            /*}*/
             }
         }
     }

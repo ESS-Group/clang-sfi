@@ -1,5 +1,5 @@
 MIAInjector::MIAInjector(){//Missing if construct around statements
-    Matcher.addMatcher(ifStmt().bind("ifStmt"), createStmtHandler("ifStmt"));
+    Matcher.addMatcher(ifStmt(unless(hasElse(stmt()))).bind("ifStmt"), createStmtHandler("ifStmt"));
 }
 
 std::string MIAInjector::toString(){
@@ -18,8 +18,18 @@ bool MIAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &C
     //if(const IfStmt* ifS = (IfStmt *)(stmt)){
     const IfStmt* ifS = (IfStmt *)(stmt);
     //commented to also inject, when the then-block contains more than 5 statements
-    if(!C9(ifS->getThen())) 
-        return false;
-    return C8(ifS);
+    return C9(ifS->getThen(), &Context);
+    
+    //return C8(ifS);
     //} else return false;
 }
+
+
+std::string SMIAInjector::toString(){
+    return "SMIA";
+};
+bool SMIAInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){
+    const IfStmt* ifS = (IfStmt *)(stmt);
+    return C9(ifS->getThen(), &Context, false, 5, true);// && C2(ifS,Context);
+}
+

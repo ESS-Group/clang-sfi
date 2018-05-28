@@ -409,6 +409,12 @@ int main(int argc, const char **argv){
     bool verbose = VerboseOption.getValue();
     
 
+
+    available.push_back(new SMIFSInjector);
+    available.push_back(new SMIAInjector);
+    available.push_back(new SMIEBInjector);
+    available.push_back(new SMLPAInjector);
+
     available.push_back(new MIFSInjector);
     available.push_back(new MIAInjector);
     available.push_back(new MIEBInjector);
@@ -420,6 +426,9 @@ int main(int argc, const char **argv){
     available.push_back(new MVAVInjector);
     available.push_back(new WVAVInjector);
     available.push_back(new MVAEInjector);
+    available.push_back(new OMVAEInjector);
+    available.push_back(new OMVAVInjector);
+    available.push_back(new OWVAVInjector);
     available.push_back(new WAEPInjector);
     available.push_back(new WPFVInjector);
     available.push_back(new MLPAInjector);
@@ -447,9 +456,12 @@ int main(int argc, const char **argv){
             if(dir.compare("")==0 && j.find("destDirectory")!=j.end()){
                 dir = j["destDirectory"].get<std::string>();
             }
+            /*if(dir.compare("")==0){
+                dir = "faults";
+            }*/
             if(j.find("injectors")!=j.end()){
                 for(json::iterator it=j.find("injectors")->begin();it!=j.find("injectors")->end();++it){
-                    for(FaultInjector * injector:available){
+                    for(FaultInjector* injector:available){
                         if(injector->toString().compare(it->get<std::string>())==0){
                             //cout<<injector->toString()<<endl;
                             injectors.push_back(injector);

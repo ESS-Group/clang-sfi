@@ -50,13 +50,13 @@ FaultInjector::FaultInjector(){
 FaultInjector::~FaultInjector(){
 }
 
-void FaultInjector::push(std::string binding, const Stmt *st){
-    StmtBinding sb(binding, st);
+void FaultInjector::push(std::string binding, const Stmt *st, bool left){
+    StmtBinding sb(binding, st, left);
     locations.push_back(sb);
     _sort();
 }
-void FaultInjector::push(std::string binding, const Decl *st){
-    StmtBinding sb(binding, st);
+void FaultInjector::push(std::string binding, const Decl *st, bool left){
+    StmtBinding sb(binding, st, left);
     locations.push_back(sb);
     _sort();
 }
@@ -84,12 +84,12 @@ std::string FaultInjector::getFileName(){
     return ret;
 }
 
-void FaultInjector::nodeCallback(std::string binding, const Stmt* stmt){
-    push(binding, stmt);
+void FaultInjector::nodeCallback(std::string binding, const Stmt* stmt, bool left){
+    push(binding, stmt, left);
 }
 
-void FaultInjector::nodeCallback(std::string binding, const Decl* decl){
-    push(binding, decl);
+void FaultInjector::nodeCallback(std::string binding, const Decl* decl, bool left){
+    push(binding, decl, left);
 }
 
 void FaultInjector::nodeCallback(std::string binding, std::vector<const Stmt*> list){
