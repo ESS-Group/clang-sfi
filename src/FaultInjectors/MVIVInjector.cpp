@@ -2,10 +2,18 @@ MVIVInjector::MVIVInjector(){
     Matcher.addMatcher(
         varDecl(hasInitializer(
             allOf(
-            unless(anyOf(
-                callExpr(),cxxNewExpr(),binaryOperator(),unaryOperator()
-                //commented to also include initialisations inside of loops
-                //,hasAncestor(forStmt()),hasAncestor(doStmt()),hasAncestor(whileStmt())
+            unless(
+                anyOf(
+                    callExpr(),
+                    cxxNewExpr(),
+                    binaryOperator(),
+                    unaryOperator(),
+                    cxxConstructExpr(),
+                    declRefExpr(),
+                    memberExpr(), 
+                    castExpr(anyOf(
+                            hasDescendant(declRefExpr()),
+                            hasDescendant(memberExpr())))
             ))
             ,hasAncestor(compoundStmt())
             )
