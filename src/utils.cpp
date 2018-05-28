@@ -43,14 +43,82 @@ template<class T>
 void concatVector(std::vector<T> &dst, std::vector<T> &src){
     dst.insert(dst.end(), src.begin(), src.end());
 }
-bool isAssignment(const BinaryOperator* op){
-    return /*isa<DeclRefExpr>(op->getLHS()) && */op->getOpcode()==BinaryOperatorKind::BO_Assign/*20*/;
+bool isIncDecUO(const UnaryOperator* op){
+    switch(op->getOpcode()){
+        case UO_PostInc:
+        case UO_PostDec:
+        case UO_PreInc:
+        case UO_PreDec:
+            return true;
+        default:
+            return false;
+    }
 }
-
+bool isAssignment(const BinaryOperator* op, bool anyAssign=true){
+    bool ret = op->getOpcode()==BinaryOperatorKind::BO_Assign;
+    if(!ret && anyAssign){
+        switch(op->getOpcode()){
+            case BO_MulAssign:
+            case BO_DivAssign:
+            case BO_RemAssign:
+            case BO_AddAssign:
+            case BO_SubAssign:
+            case BO_ShlAssign:
+            case BO_ShrAssign:
+            case BO_AndAssign:
+            case BO_XorAssign:
+            case BO_OrAssign:
+                return true;
+            default:
+                return false;
+        }
+    }
+    return /*isa<DeclRefExpr>(op->getLHS()) && */ret;
+}
+const Stmt* IgnoreCast(const Stmt* stmt, bool ignoreImplicit = true){
+    if(stmt == NULL)
+        return NULL;
+    if(ignoreImplicit){
+        const Stmt* temp = stmt->IgnoreImplicit();
+        if(temp == NULL)
+            return NULL;
+        else if(isa<CastExpr>(temp)){
+            if(const Stmt* _stmt = IgnoreCast(((const CastExpr*)temp)->getSubExpr()))
+                return _stmt->IgnoreImplicit();
+            else
+                return NULL;
+        } else
+            return stmt;
+    } else if(isa<CastExpr>(stmt)){
+        if(const Stmt* _stmt = IgnoreCast(((const CastExpr*)stmt)->getSubExpr()))
+            return _stmt;
+        else
+            return NULL;
+    } else
+        return stmt;
+        
+}
+bool isAssignmentOrFC(const Stmt* stmt){
+    if(stmt == NULL)
+        return false;
+    const Stmt* _stmt = IgnoreCast(stmt, true);
+    if(_stmt == NULL)
+        return false;
+    else if(isa<CallExpr>(_stmt) || isa<CXXMemberCallExpr>(_stmt))
+        return true;
+    else if(isa<BinaryOperator>(_stmt) && isAssignment((const BinaryOperator*)_stmt, true))
+        return true;
+    else if(isa<UnaryOperator>(_stmt) && isIncDecUO((const UnaryOperator*)_stmt))
+        return true;
+    return false;
+}
+bool isValue(const Stmt* stmt){
+    return stmt!=NULL && (isa<IntegerLiteral>(stmt) || isa<CXXBoolLiteralExpr>(stmt) || isa<CharacterLiteral>(stmt) || isa<FloatingLiteral>(stmt) || isa<clang::StringLiteral>(stmt) );
+}
 bool isValueAssignment(const BinaryOperator* op){
     if(isAssignment(op)){
         const Stmt *stmt = op->getRHS();
-        if(stmt!=NULL && (isa<IntegerLiteral>(stmt) || isa<CXXBoolLiteralExpr>(stmt) || isa<CharacterLiteral>(stmt) || isa<FloatingLiteral>(stmt) || isa<clang::StringLiteral>(stmt) ))
+        if(stmt!=NULL && isValue(stmt))
             return true;
         else
             return false;
@@ -171,7 +239,7 @@ std::vector<const BinaryOperator*> getChildForFindVarAssignment(const Stmt *pare
     bool inited = pinited || var->hasInit();
     if(isa<BinaryOperator>(parent)){
         if(isAssignment((const BinaryOperator*)parent)){
-            if(const DeclRefExpr* exp = getFirstChild<DeclRefExpr>(parent)){
+            if(const DeclRefExpr* exp = getFirstChild<DeclRefExpr>(((const BinaryOperator*)parent)->getLHS())){
                 if(exp->getDecl() == var){
                     if(inited)
                         ret.push_back((const BinaryOperator*) parent);
