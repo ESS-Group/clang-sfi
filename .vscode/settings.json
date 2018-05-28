@@ -37,6 +37,7 @@
         "iomanip": "cpp",
         "chrono": "cpp",
         "csignal": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "vector": "cpp"
     }
 }
