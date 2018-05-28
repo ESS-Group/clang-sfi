@@ -70,7 +70,7 @@ std::vector<std::vector<const Stmt*>> getStmtLists(const CompoundStmt * block, A
 
         std::vector<const DeclStmt*> notPossible;
 
-        for(const DeclStmt* declstmt:declstmts){
+        for(const DeclStmt* declstmt:declstmts){// calculate if declstatements in list cannot be removed, because its latest reference is outside this list
 
             std::vector<const DeclRefExpr*> ref;
             for(auto decl:declstmt->decls()){
@@ -165,7 +165,7 @@ bool isMLPAListPossible(std::vector<const Stmt*> stmtlist, const CompoundStmt* b
 
     std::vector<const DeclStmt*> notPossible;
 
-    for(const DeclStmt* declstmt:declstmts){
+    for(const DeclStmt* declstmt:declstmts){ // calculate if declstatements in list cannot be removed, because its latest reference is outside this list
         std::vector<const DeclRefExpr*> ref;
         for(auto decl:declstmt->decls()){
             const DeclRefExpr* latest = getLatestRef(block, (const VarDecl*)decl);

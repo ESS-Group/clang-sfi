@@ -409,7 +409,8 @@ int main(int argc, const char **argv){
     bool verbose = VerboseOption.getValue();
     
 
-
+//add an instance of every available FaultInjector to list
+//only this instaces can be added by the config
     available.push_back(new SMIFSInjector);
     available.push_back(new SMIAInjector);
     available.push_back(new SMIEBInjector);
@@ -442,12 +443,12 @@ int main(int argc, const char **argv){
     std::string cfgFile= ConfigOption.getValue();
 
     std::string dir=DirectoryOption.getValue();
-    if(!NoInjectOption.getValue()){
+    if(!NoInjectOption.getValue()){ //injection
         if(cfgFile.compare("")==0) 
             cfgFile = "config.json";
 
         json j;
-        if(stat(cfgFile.c_str(), &buf) != -1){
+        if(stat(cfgFile.c_str(), &buf) != -1){//config file existing
             cout<<"Using config ("<<cfgFile<<")."<<endl;
             std::ifstream i(cfgFile.c_str());
             i>>j;
@@ -474,7 +475,7 @@ int main(int argc, const char **argv){
                     injectors.push_back(injector);
                 }
             }
-        } else {
+        } else {//no config file => add all available injectors
             //cout<<"Config not find config: default action - inject all errors"<<endl;
 
             for(FaultInjector * injector:available){
@@ -570,7 +571,7 @@ int main(int argc, const char **argv){
             if(CompileOption.getValue())
                 compile(summary);
             } 
-        }else if(CompileOption.getValue()){
+        }else if(CompileOption.getValue()){//compile and test
             if(cfgFile.compare("")!=0)
                 cfgFile = (dir.compare("")?dir+"/":"")+"summary.json";
             if(stat(cfgFile.c_str(), &buf) != -1){
