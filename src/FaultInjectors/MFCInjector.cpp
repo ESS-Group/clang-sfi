@@ -28,20 +28,5 @@ std::string MFCInjector::inject(StmtBinding current, ASTContext &Context){
     return getEditedString(R, Context);
 }
 bool MFCInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){
-    /*if((C2(stmt, Context))){
-    cerr<<((C2(stmt, Context))?"true":"false")<<endl;
-    stmt->getLocStart().dump(Context.getSourceManager());
-    stmt->dumpColor();
-    }
-    
-    return false;*/
-    /*stmt->getLocStart().dump(Context.getSourceManager());
-        cerr<<endl;*/
-    /*if(Context.getFullLoc(stmt->getLocStart()).getLineNumber()==1849 || Context.getFullLoc(stmt->getLocStart()).getLineNumber()==817){
-        stmt->getLocStart().dump(Context.getSourceManager());
-        cerr<<endl;
-        stmt->dumpColor();
-    }*/
-    //return false;
     return C2(stmt, Context);
 }
