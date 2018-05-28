@@ -30,14 +30,14 @@ using namespace std;
 SFIAction::SFIAction(std::vector<FaultInjector*> injs):injectors(injs){}
 void SFIAction::EndSourceFileAction() {
 
-    cout<<"Parsed file "<<fileName/*<<" - done."*/<<endl;
+    cout<<"Parsed file  "<<fileName/*<<" - done."*/<<endl;
 }
 std::unique_ptr<ASTConsumer> SFIAction::CreateASTConsumer( CompilerInstance &CI,
                                                 StringRef file){
     fileName = file.data();
     cout << "Parsing file '" << fileName << "'" << endl;
     
-    CI.getDiagnostics().setClient(new IgnoringDiagConsumer());//keine warnings ausgeben
+    //CI.getDiagnostics().setClient(new IgnoringDiagConsumer());//keine warnings ausgeben
 
     //Rewrite.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
     return llvm::make_unique<SFIASTConsumer>(file, injectors);

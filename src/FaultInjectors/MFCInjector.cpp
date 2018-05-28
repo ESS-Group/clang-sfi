@@ -1,5 +1,19 @@
 MFCInjector::MFCInjector(){
-    Matcher.addMatcher(callExpr(unless(anyOf(hasParent(varDecl(isDefinition())), hasParent(returnStmt()), cxxOperatorCallExpr(), hasParent(callExpr()), hasParent(expr())))).bind("FunctionCall"), createStmtHandler("FunctionCall"));
+    Matcher.addMatcher(
+        callExpr(
+            ignoringImplicit(
+                unless(
+                    anyOf(
+                        hasAncestor(varDecl(isDefinition())),
+                        hasParent(returnStmt()),
+                        hasParent(callExpr()),
+                        hasParent(binaryOperator()),
+                        hasParent(unaryOperator()),
+                        cxxOperatorCallExpr()
+                    )
+                )
+            )
+        ).bind("FunctionCall"), createStmtHandler("FunctionCall"));
     //Matcher.addMatcher(callExpr().bind("FunctionCall"), createStmtHandler("FunctionCall"));
 }
 
@@ -13,6 +27,13 @@ std::string MFCInjector::inject(StmtBinding current, ASTContext &Context){
     R.RemoveText(range);
     return getEditedString(R, Context);
 }
-bool MFCInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){//no else
+bool MFCInjector::checkStmt(const Stmt* stmt, std::string binding, ASTContext &Context){
+    /*if((C2(stmt, Context))){
+    cerr<<((C2(stmt, Context))?"true":"false")<<endl;
+    stmt->getLocStart().dump(Context.getSourceManager());
+    stmt->dumpColor();
+    }
+    
+    return false;*/
     return C2(stmt, Context);
 }

@@ -44,7 +44,7 @@ void concatVector(std::vector<T> &dst, std::vector<T> &src){
     dst.insert(dst.end(), src.begin(), src.end());
 }
 bool isAssignment(const BinaryOperator* op){
-    return op->getOpcode()==BinaryOperatorKind::BO_Assign/*20*/;
+    return /*isa<DeclRefExpr>(op->getLHS()) && */op->getOpcode()==BinaryOperatorKind::BO_Assign/*20*/;
 }
 
 bool isValueAssignment(const BinaryOperator* op){

@@ -57,24 +57,60 @@ int childCount(const Stmt* stmt){
         //cout<<"childCount4"<<endl;
         //if(isa<ForStmt>(*it) || isa<WhileStmt>(*it) || isa<DoStmt>(*it))//schleife
         //    return false;
-        count++;
+        if(*it != NULL)
+            count++;
         it++;
     }
     //cout<<"childCount5"<<endl;
     return count;
 }
 
+bool isaImplicit(const Stmt* stmt){
+    return isa<ExprWithCleanups>(stmt) || isa<MaterializeTemporaryExpr>(stmt) || isa<CXXBindTemporaryExpr>(stmt) || isa<ImplicitCastExpr>(stmt);
+}
+//template<class T>
+ASTContext::DynTypedNodeList getParentsIgnoringImplicit(const Stmt* stmt, ASTContext &Context){
+    //cerr<<"getParentsIgnoringImplicit"<<endl;
+    ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
+    if(!list.empty()){
+        if(list[0].get<Stmt>()!=NULL){
+            
+            const Stmt* temp = list[0].get<Stmt>();
+            if(isaImplicit(temp)){
+                //cerr<<"isaImplicit"<<endl;
+                //temp->dumpColor();
+                return getParentsIgnoringImplicit(temp, Context);
+            }else
+                return list;
+        } else
+            return list;
+    } else
+        return list;
+}
+
 bool C2(const Stmt * stmt, ASTContext &Context){
     //cout<<"C2Stmt1"<<endl;
-    ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
+    ASTContext::DynTypedNodeList list = getParentsIgnoringImplicit(stmt, Context);
+    //stmt->IgnoreImplicit()->dumpColor();
     //cout<<"C2Stmt2"<<endl;
-    //cout << list.size() << " Parents";
+    //cerr <<endl << list.size() << " Parents"<<endl;
     if(!list.empty()){
         //cout<<"C2Stmt3"<<endl;
+        //if(list[0].get<Stmt>()!=NULL&& !isa<CompoundStmt>(list[0].get<Stmt>())){
+            //list[0].get<Stmt>()->IgnoreImplicit()->dumpColor();
+            //cerr<<"--"<<endl;
+        //}
         if(list[0].get<Stmt>()!=NULL && isa<CompoundStmt>(list[0].get<Stmt>())){
             //cout<<"C2Stmt4.1.1"<<endl;
-            const CompoundStmt* container = list[0].get<CompoundStmt>();
+            const CompoundStmt* container = (const CompoundStmt*) list[0].get<Stmt>();
+            //if(container != NULL)
+            //    container->dumpColor();
+            //else
+            //    cerr<<"NULL"<<endl;
             //cout<<"C2Stmt4.1.2"<<endl;
+            return container->size()>1;
+        } else if(list[0].get<Stmt>()!=NULL && isa<SwitchCase>(list[0].get<Stmt>())){
+            const SwitchCase* container = (const SwitchCase*) list[0].get<Stmt>();
             return childCount(container)>1;
         } else return false;
         /*cout<<"----------------------------"<<endl;

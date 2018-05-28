@@ -13,6 +13,9 @@ void StmtHandler::run(const MatchFinder::MatchResult &Result){
 
             std::string name(Result.Context->getSourceManager().getFilename(stmt->getLocStart()));
             if(faultInjector->getFileName().compare(name)==0){//nur Nodes aus dem zu parsenden File beachten!!
+
+                //stmt->getLocStart().dump(Result.Context->getSourceManager());
+                //cerr<<endl;
                 if(faultInjector->checkStmt(stmt, binding, *Result.Context))//nur Statemets die durch checkStmt erlaubt sind
                     faultInjector->nodeCallback(binding, stmt);
             }
