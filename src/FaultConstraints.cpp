@@ -1,23 +1,6 @@
-#include "StmtHandler.h"
-#include "clang/AST/AST.h"
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/Basic/SourceLocation.h"
-#include "clang/Basic/SourceManager.h"
-#include <algorithm>
-#include <vector>
+#include "FaultConstraints.h"
 
-#include <fstream>
-#include <iostream>
-
-#include "llvm/Support/raw_ostream.h"
-using namespace llvm;
-// MIFS
-#include "clang/ASTMatchers/ASTMatchers.h"
-
-using namespace clang;
-using namespace clang::ast_matchers;
-using namespace std;
-bool isaJumpStmt(const Stmt *stmt, bool returnIsAJump = true) {
+bool isaJumpStmt(const Stmt *stmt, bool returnIsAJump) {
     if (stmt == NULL)
         return false;
     else if (isa<ForStmt>(stmt) || isa<WhileStmt>(stmt) ||
@@ -36,9 +19,8 @@ bool isaJumpStmt(const Stmt *stmt, bool returnIsAJump = true) {
 
 bool C9(const clang::Stmt::const_child_iterator &begin,
         const clang::Stmt::const_child_iterator &end,
-        ASTContext *Context = NULL, bool returnIsAJump = RETURNISAJUMP,
-        int maxNum = MAXSTATEMENTNUMFORCONSTRAINT,
-        bool noDeclStmt = DONOTDELETEDECLSTMTINCONSTRAINT) {
+        ASTContext *Context, bool returnIsAJump,
+        int maxNum, bool noDeclStmt) {
     StmtIterator it = cast_away_const(begin);
     int num = 0;
     while (it != cast_away_const(end)) {
@@ -54,10 +36,8 @@ bool C9(const clang::Stmt::const_child_iterator &begin,
     else
         return false;
 }
-bool C9(const Stmt *stmt, ASTContext *Context = NULL,
-        bool returnIsAJump = RETURNISAJUMP,
-        int maxNum = MAXSTATEMENTNUMFORCONSTRAINT,
-        bool noDeclStmt = DONOTDELETEDECLSTMTINCONSTRAINT) {
+bool C9(const Stmt *stmt, ASTContext *Context,
+        bool returnIsAJump, int maxNum, bool noDeclStmt) {
 
     if (isa<CompoundStmt>(stmt))
         return C9(stmt->child_begin(), stmt->child_end(), Context,
@@ -109,10 +89,7 @@ const SwitchStmt *getParentSwitchStmt(const SwitchCase *sc,
         return getParentSwitchStmt((const SwitchCase *)parent, Context);
     }
 }
-struct CaseChilds {
-    std::vector<const Stmt *> stmts;
-    bool endWithBreak;
-};
+
 CaseChilds getCaseChilds(const SwitchCase *sc, ASTContext &Context) {
     CaseChilds ret;
     ret.endWithBreak = false;

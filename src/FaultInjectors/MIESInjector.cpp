@@ -1,3 +1,5 @@
+#include "_all.h"
+
 MIESInjector::MIESInjector() { // Missing if construct plus statements plus else
                                // plus satements
     Matcher.addMatcher(ifStmt().bind("ifStmt"), createStmtHandler("ifStmt"));

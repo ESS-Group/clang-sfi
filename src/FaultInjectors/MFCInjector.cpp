@@ -1,3 +1,5 @@
+#include "_all.h"
+
 MFCInjector::MFCInjector() {
     Matcher.addMatcher(
         callExpr(

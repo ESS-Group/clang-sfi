@@ -1,11 +1,13 @@
-MVAVInjector::MVAVInjector() {
+#include "_all.h"
+
+MVAVInjectorSAFE::MVAVInjectorSAFE(bool alsoOverwritten) {
     Matcher.addMatcher(varDecl(hasAncestor(compoundStmt())).bind("varDecl"),
                        createStmtHandler("varDecl"));
 }
 
-std::string MVAVInjector::toString() { return "MVAV"; };
+std::string MVAVInjectorSAFE::toString() { return "MVAVSAFE"; };
 
-std::string MVAVInjector::inject(StmtBinding current, ASTContext &Context) {
+std::string MVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
 
@@ -14,7 +16,7 @@ std::string MVAVInjector::inject(StmtBinding current, ASTContext &Context) {
 
     return getEditedString(R, Context);
 }
-bool MVAVInjector::checkStmt(const Decl *decl, std::string binding,
+bool MVAVInjectorSAFE::checkStmt(const Decl *decl, std::string binding,
                              ASTContext &Context) {
     if (binding.compare("varDecl") == 0 && isa<VarDecl>(decl)) {
         std::vector<const BinaryOperator *> list = getChildForFindVarAssignment(

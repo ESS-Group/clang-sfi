@@ -1,4 +1,6 @@
-MVIVInjector::MVIVInjector() {
+#include "_all.h"
+
+MVIVInjectorSAFE::MVIVInjectorSAFE() {
     Matcher.addMatcher(
         varDecl(
             hasInitializer(allOf(
@@ -22,8 +24,8 @@ MVIVInjector::MVIVInjector() {
             "notInitialized")); // in this case get next assignement
 }
 
-std::string MVIVInjector::toString() { return "MVIV"; };
-std::string MVIVInjector::inject(StmtBinding current, ASTContext &Context) {
+std::string MVIVInjectorSAFE::toString() { return "MVIVSAFE"; };
+std::string MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     if (current.isStmt) {
@@ -41,7 +43,7 @@ std::string MVIVInjector::inject(StmtBinding current, ASTContext &Context) {
     }
     return getEditedString(R, Context);
 }
-bool MVIVInjector::checkStmt(const Decl *decl, std::string binding,
+bool MVIVInjectorSAFE::checkStmt(const Decl *decl, std::string binding,
                              ASTContext &Context) {
     if (binding.compare("notInitialized") == 0 && isa<VarDecl>(decl)) {
         std::vector<const BinaryOperator *> list = getChildForFindInitForVar(

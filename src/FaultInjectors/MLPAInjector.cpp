@@ -1,3 +1,5 @@
+#include "_all.h"
+
 std::vector<std::vector<const Stmt *>>
 getStmtLists(const CompoundStmt *block, ASTContext &Context,
              bool returnIsAJump = RETURNISAJUMP,
@@ -269,6 +271,7 @@ bool MLPAInjector::checkStmt(const Stmt *stmt, std::string binding,
         for(std::vector<const Stmt*> it:stmtlists){
 
                         cerr<<"--sublist:"<<it.size()<<endl;
+                        */
                         /*
                         for(const Stmt * stmt:it){
                             stmt->dumpColor();

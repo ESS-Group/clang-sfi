@@ -1,3 +1,5 @@
+#include "_all.h"
+
 /*void MLOCInjector::inject(std::vector<StmtBinding> target, ASTContext
 &Context){
     int i = 0;

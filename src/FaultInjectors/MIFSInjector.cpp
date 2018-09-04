@@ -1,3 +1,5 @@
+#include "_all.h"
+
 MIFSInjector::MIFSInjector() { // Missing if construct plus statements
     Matcher.addMatcher(ifStmt(unless(hasElse(stmt()))).bind("ifStmt"),
                        createStmtHandler("ifStmt"));

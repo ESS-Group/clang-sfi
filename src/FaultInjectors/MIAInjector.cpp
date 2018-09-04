@@ -1,3 +1,5 @@
+#include "_all.h"
+
 MIAInjector::MIAInjector() { // Missing if construct around statements
     Matcher.addMatcher(ifStmt(unless(hasElse(stmt()))).bind("ifStmt"),
                        createStmtHandler("ifStmt"));

@@ -1,3 +1,5 @@
+#include "_all.h"
+
 MIEBInjector::MIEBInjector() { // Missing if construct plus statements + Else
                                // before statements
     Matcher.addMatcher(ifStmt(hasElse(stmt())).bind("ifStmt"),

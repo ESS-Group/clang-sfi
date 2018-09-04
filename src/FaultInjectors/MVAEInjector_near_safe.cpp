@@ -1,4 +1,6 @@
-MVAEInjector::MVAEInjector() {
+#include "_all.h"
+
+MVAEInjectorSAFE::MVAEInjectorSAFE(bool alsoOverwritten) {
     /*
         Matcher.addMatcher(
         varDecl(
@@ -18,9 +20,9 @@ MVAEInjector::MVAEInjector() {
                        createStmtHandler("varDecl"));
 }
 
-std::string MVAEInjector::toString() { return "MVAE"; };
+std::string MVAEInjectorSAFE::toString() { return "MVAESAFE"; };
 
-std::string MVAEInjector::inject(StmtBinding current, ASTContext &Context) {
+std::string MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
 
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
@@ -42,7 +44,7 @@ std::string MVAEInjector::inject(StmtBinding current, ASTContext &Context) {
     return getEditedString(R, Context);
 }
 
-bool MVAEInjector::checkStmt(const Decl *decl, std::string binding,
+bool MVAEInjectorSAFE::checkStmt(const Decl *decl, std::string binding,
                              ASTContext &Context) {
     if (binding.compare("varDecl") == 0 && isa<VarDecl>(decl)) {
         std::vector<const BinaryOperator *> list = getChildForFindVarAssignment(

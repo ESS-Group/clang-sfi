@@ -441,6 +441,7 @@ std::unique_ptr<FrontendActionFactory> newSFIFrontendActionFactory(
         new SFIFrontendActionFactory(injectors));
 };
 
+
 int main(int argc, const char **argv) {
     signal(SIGINT, signalHandler);
     signal(SIGABRT, signalHandler);

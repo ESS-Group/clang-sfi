@@ -14,9 +14,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "FaultConstraints.cpp"
 #include "StmtHandler.h"
-#include "utils.cpp"
 
 // IO
 #include "llvm/Support/raw_ostream.h"
@@ -286,31 +284,3 @@ void FaultInjector::writeDown(std::string data, int i) {
             ".patch\"")
                .c_str());
 }
-
-// Algorithm faults
-#include "FaultInjectors/MFCInjector.cpp"
-#include "FaultInjectors/MIEBInjector.cpp"
-#include "FaultInjectors/MIFSInjector.cpp"
-#include "FaultInjectors/MLPAInjector.cpp"
-
-// Checking faults
-#include "FaultInjectors/MIAInjector.cpp"
-#include "FaultInjectors/MLACInjector.cpp"
-#include "FaultInjectors/MLOCInjector.cpp"
-
-// Assignement faults
-#include "FaultInjectors/MVAEInjector.cpp"
-#include "FaultInjectors/MVAVInjector.cpp"
-#include "FaultInjectors/MVIVInjector.cpp"
-#include "FaultInjectors/WVAVInjector.cpp"
-
-// Interface faults
-#include "FaultInjectors/WAEPInjector.cpp"
-#include "FaultInjectors/WPFVInjector.cpp"
-
-// weitere
-
-// interace
-#include "FaultInjectors/MRSInjector.cpp"
-// algorithm
-#include "FaultInjectors/MIESInjector.cpp"

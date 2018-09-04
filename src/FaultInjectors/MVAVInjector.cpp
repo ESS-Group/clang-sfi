@@ -1,3 +1,5 @@
+#include "_all.h"
+
 MVAVInjector::MVAVInjector(bool alsoOverwritten) {
     this->alsoOverwritten = alsoOverwritten;
     Matcher.addMatcher(
@@ -186,7 +188,7 @@ bool MVAVInjector::checkStmt(const Stmt *stmt, std::string binding,
 }
 /*
 bool MVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
-    std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl, 
+    std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl,
                                             true, //also search in loops
                                             false, //do not search in for constructs
                                             true); //do not check initialization => use every assignment
@@ -195,7 +197,7 @@ bool MVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &
             isValueAssignment(op)
             //&& isInitializedBefore((const DeclRefExpr*)((op)->getLHS()), Context)
         ){
-            if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3/*5*/ /*)){
+            if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3*//*5*/ /*)){
 if(!isParentOf(forstmt->getCond(), decl, Context) &&
 !isParentOf(forstmt->getInc(), decl,Context)){ // not part of for construct!!!
 nodeCallback(binding, op);

@@ -29,8 +29,9 @@ include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 include_directories(src)
-set(SOURCE_FILES src/StmtHandler.cpp src/FaultInjector.cpp src/SFIASTConsumer.cpp src/SFIAction.cpp)
-add_library(${PROJECT_NAME}_lib ${SOURCE_FILES})
+set(SOURCE_FILES src/StmtHandler.cpp src/FaultInjector.cpp src/SFIASTConsumer.cpp src/SFIAction.cpp src/utils.cpp src/FaultConstraints.cpp)
+file(GLOB ALL_FAULTINJECTORS src/FaultInjectors/*.cpp)
+add_library(${PROJECT_NAME}_lib ${SOURCE_FILES} ${ALL_FAULTINJECTORS})
 #the following line creates the entry in compile-commands for test.cpp
 add_library(${PROJECT_NAME}_testfile src/test.cpp)
 add_executable(${PROJECT_NAME} src/main.cpp)

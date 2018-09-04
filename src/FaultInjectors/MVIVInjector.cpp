@@ -1,3 +1,5 @@
+#include "_all.h"
+
 MVIVInjector::MVIVInjector() {
     Matcher.addMatcher(
         varDecl( // variable declaration

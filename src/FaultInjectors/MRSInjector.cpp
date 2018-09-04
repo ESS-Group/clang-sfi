@@ -1,3 +1,5 @@
+#include "_all.h"
+
 MRSInjector::MRSInjector() { // Missing if construct plus statements plus else
                              // plus satements
     Matcher.addMatcher(returnStmt().bind("returnStmt"),

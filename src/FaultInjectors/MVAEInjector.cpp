@@ -1,3 +1,5 @@
+#include "_all.h"
+
 MVAEInjector::MVAEInjector(bool alsoOverwritten) {
     this->alsoOverwritten = alsoOverwritten;
     /*Matcher.addMatcher(

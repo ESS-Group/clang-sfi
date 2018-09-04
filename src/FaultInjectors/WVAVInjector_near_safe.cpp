@@ -1,11 +1,13 @@
-WVAVInjector::WVAVInjector() {
+#include "_all.h"
+
+WVAVInjectorSAFE::WVAVInjectorSAFE(bool alsoOverwritten) {
     Matcher.addMatcher(varDecl(hasAncestor(compoundStmt())).bind("varDecl"),
                        createStmtHandler("varDecl"));
 }
 
-std::string WVAVInjector::toString() { return "WVAV"; };
+std::string WVAVInjectorSAFE::toString() { return "WVAVSAFE"; };
 
-std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context) {
+std::string WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
 
@@ -26,7 +28,7 @@ std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context) {
     return getEditedString(R, Context);
 }
 
-bool WVAVInjector::checkStmt(const Decl *decl, std::string binding,
+bool WVAVInjectorSAFE::checkStmt(const Decl *decl, std::string binding,
                              ASTContext &Context) {
     if (binding.compare("varDecl") == 0 && isa<VarDecl>(decl)) {
         std::vector<const BinaryOperator *> list = getChildForFindVarAssignment(

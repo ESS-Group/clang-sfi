@@ -1,3 +1,5 @@
+#include "_all.h"
+
 WPFVInjector::WPFVInjector() {
     Matcher.addMatcher(
         callExpr(allOf(unless(anyOf(cudaKernelCallExpr(), cxxOperatorCallExpr(),

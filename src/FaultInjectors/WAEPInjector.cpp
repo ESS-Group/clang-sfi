@@ -1,3 +1,5 @@
+#include "_all.h"
+
 WAEPInjector::WAEPInjector() {
     Matcher.addMatcher(
         callExpr(
@@ -55,7 +57,7 @@ bool WAEPInjector::checkStmt(const Stmt *stmt, std::string binding,
                     rightest->dumpColor();
                     rightest->getType().dump();
                     rightest->getLHS()->getType().dump();
-                /*}*/
+                *//*}*/
             }
         }
     }
