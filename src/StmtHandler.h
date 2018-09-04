@@ -26,10 +26,8 @@ using namespace clang::ast_matchers;
 using namespace std;
 
 class StmtHandler : public MatchFinder::MatchCallback {
-
   public:
-    StmtHandler(FaultInjector *pFaultInjector, std::string name,
-                std::vector<std::string> bindings);
+    StmtHandler(FaultInjector *pFaultInjector, std::string name, std::vector<std::string> bindings);
     virtual void run(const MatchFinder::MatchResult &Result);
 
   private:

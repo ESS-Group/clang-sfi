@@ -25,23 +25,18 @@ constexpr bool DONTCOUNTBREAKINSWITCHCASEFORBLOCKSIZE = true;
 
 bool isaJumpStmt(const Stmt *stmt, bool returnIsAJump = true);
 
-bool C9(const clang::Stmt::const_child_iterator &begin,
-        const clang::Stmt::const_child_iterator &end,
-        ASTContext *Context = NULL, bool returnIsAJump = RETURNISAJUMP,
-        int maxNum = MAXSTATEMENTNUMFORCONSTRAINT,
+bool C9(const clang::Stmt::const_child_iterator &begin, const clang::Stmt::const_child_iterator &end,
+        ASTContext *Context = NULL, bool returnIsAJump = RETURNISAJUMP, int maxNum = MAXSTATEMENTNUMFORCONSTRAINT,
         bool noDeclStmt = DONOTDELETEDECLSTMTINCONSTRAINT);
-bool C9(const Stmt *stmt, ASTContext *Context = NULL,
-        bool returnIsAJump = RETURNISAJUMP,
-        int maxNum = MAXSTATEMENTNUMFORCONSTRAINT,
-        bool noDeclStmt = DONOTDELETEDECLSTMTINCONSTRAINT);
+bool C9(const Stmt *stmt, ASTContext *Context = NULL, bool returnIsAJump = RETURNISAJUMP,
+        int maxNum = MAXSTATEMENTNUMFORCONSTRAINT, bool noDeclStmt = DONOTDELETEDECLSTMTINCONSTRAINT);
 bool C8(const IfStmt *ifS);
 
 bool isaImplicit(const Stmt *stmt);
 
 const Stmt *getParentIgnoringImplicit(const Stmt *stmt, ASTContext &Context);
 
-const SwitchStmt *getParentSwitchStmt(const SwitchCase *sc,
-                                      ASTContext &Context);
+const SwitchStmt *getParentSwitchStmt(const SwitchCase *sc, ASTContext &Context);
 struct CaseChilds {
     std::vector<const Stmt *> stmts;
     bool endWithBreak;

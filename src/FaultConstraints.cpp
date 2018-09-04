@@ -1,85 +1,80 @@
 #include "FaultConstraints.h"
 
 bool isaJumpStmt(const Stmt *stmt, bool returnIsAJump) {
-    if (stmt == NULL)
+    if (stmt == NULL) {
         return false;
-    else if (isa<ForStmt>(stmt) || isa<WhileStmt>(stmt) ||
-             isa<DoStmt>(stmt)) // loops
+    } else if (isa<ForStmt>(stmt) || isa<WhileStmt>(stmt) || isa<DoStmt>(stmt)) { // loops
         return true;
-    else if (isa<IfStmt>(stmt) || isa<SwitchStmt>(stmt)) // conditional
+    } else if (isa<IfStmt>(stmt) || isa<SwitchStmt>(stmt)) { // conditional
         return true;
-    else if (isa<ContinueStmt>(stmt) || isa<BreakStmt>(stmt) ||
-             isa<CXXThrowExpr>(stmt) || isa<CXXTryStmt>(stmt) ||
-             isa<GotoStmt>(stmt))
+    } else if (isa<ContinueStmt>(stmt) || isa<BreakStmt>(stmt) || isa<CXXThrowExpr>(stmt) || isa<CXXTryStmt>(stmt) ||
+               isa<GotoStmt>(stmt)) {
         return true;
-    else if (returnIsAJump && isa<ReturnStmt>(stmt))
+    } else if (returnIsAJump && isa<ReturnStmt>(stmt)) {
         return true;
+    }
     return false;
 }
 
-bool C9(const clang::Stmt::const_child_iterator &begin,
-        const clang::Stmt::const_child_iterator &end,
-        ASTContext *Context, bool returnIsAJump,
-        int maxNum, bool noDeclStmt) {
+bool C9(const clang::Stmt::const_child_iterator &begin, const clang::Stmt::const_child_iterator &end,
+        ASTContext *Context, bool returnIsAJump, int maxNum, bool noDeclStmt) {
     StmtIterator it = cast_away_const(begin);
     int num = 0;
     while (it != cast_away_const(end)) {
-        if (isaJumpStmt(*it, returnIsAJump) ||
-            (noDeclStmt && *it != NULL && isa<DeclStmt>(*it))) { // other jumps
+        if (isaJumpStmt(*it, returnIsAJump) || (noDeclStmt && *it != NULL && isa<DeclStmt>(*it))) { // other jumps
             return false;
         }
         num++;
         it++;
     }
-    if (num <= /*5*/ maxNum)
+    if (num <= /*5*/ maxNum) {
         return true;
-    else
+    } else {
         return false;
+    }
 }
-bool C9(const Stmt *stmt, ASTContext *Context,
-        bool returnIsAJump, int maxNum, bool noDeclStmt) {
-
+bool C9(const Stmt *stmt, ASTContext *Context, bool returnIsAJump, int maxNum, bool noDeclStmt) {
     if (isa<CompoundStmt>(stmt))
-        return C9(stmt->child_begin(), stmt->child_end(), Context,
-                  returnIsAJump, maxNum, noDeclStmt);
+        return C9(stmt->child_begin(), stmt->child_end(), Context, returnIsAJump, maxNum, noDeclStmt);
     else {
-        return stmt == NULL || (!isaJumpStmt(stmt, returnIsAJump) &&
-                                !(noDeclStmt && isa<DeclStmt>(stmt)));
+        return stmt == NULL || (!isaJumpStmt(stmt, returnIsAJump) && !(noDeclStmt && isa<DeclStmt>(stmt)));
     }
 }
 bool C8(const IfStmt *ifS) {
-    if (const Stmt *Else = ifS->getElse())
+    if (const Stmt *Else = ifS->getElse()) {
         return false;
-    else
+    } else {
         return true;
+    }
 }
 
 bool isaImplicit(const Stmt *stmt) {
-    return isa<ExprWithCleanups>(stmt) || isa<MaterializeTemporaryExpr>(stmt) ||
-           isa<CXXBindTemporaryExpr>(stmt) || isa<ImplicitCastExpr>(stmt);
+    return isa<ExprWithCleanups>(stmt) || isa<MaterializeTemporaryExpr>(stmt) || isa<CXXBindTemporaryExpr>(stmt) ||
+           isa<ImplicitCastExpr>(stmt);
 }
 
 const Stmt *getParentIgnoringImplicit(const Stmt *stmt, ASTContext &Context) {
     ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
     if (!list.empty()) {
         if (list[0].get<Stmt>() != NULL) {
-
             const Stmt *temp = list[0].get<Stmt>();
             if (isaImplicit(temp)) {
                 return getParentIgnoringImplicit(temp, Context);
             } else {
                 return temp;
             }
-        } else
+        } else {
             return NULL;
-    } else
+        }
+    } else {
         return NULL;
+    }
 }
 
-const SwitchStmt *getParentSwitchStmt(const SwitchCase *sc,
-                                      ASTContext &Context) {
-    if (sc == NULL)
+const SwitchStmt *getParentSwitchStmt(const SwitchCase *sc, ASTContext &Context) {
+    if (sc == NULL) {
         return NULL;
+    }
     const Stmt *parent = getParentIgnoringImplicit(sc, Context);
     if (parent == NULL) {
         return NULL;
@@ -98,12 +93,11 @@ CaseChilds getCaseChilds(const SwitchCase *sc, ASTContext &Context) {
     const SwitchStmt *switchStmt = getParentSwitchStmt(sc, Context);
     if (switchStmt != NULL) {
         const Stmt *body = switchStmt->getBody();
-        if (body == NULL)
+        if (body == NULL) {
             return ret;
-        else if (isa<CompoundStmt>(body)) {
+        } else if (isa<CompoundStmt>(body)) {
             bool started = false;
-            for (Stmt::child_iterator i = cast_away_const(body->child_begin()),
-                                      e = cast_away_const(body->child_end());
+            for (Stmt::child_iterator i = cast_away_const(body->child_begin()), e = cast_away_const(body->child_end());
                  i != e; ++i) {
                 if (*i == NULL) {
                     break;
@@ -117,7 +111,6 @@ CaseChilds getCaseChilds(const SwitchCase *sc, ASTContext &Context) {
                         ret.endWithBreak = true;
                         break;
                     } else if (isa<SwitchCase>(stmt)) {
-
                         break;
                     } else {
                         ret.stmts.push_back(stmt);
@@ -126,14 +119,12 @@ CaseChilds getCaseChilds(const SwitchCase *sc, ASTContext &Context) {
                     break;
                 } else if (isa<SwitchCase>(*i)) {
                     SwitchCase *tcase = (SwitchCase *)&(*(*i));
-                    while (tcase != NULL && tcase != begin &&
-                           tcase->getSubStmt() != NULL &&
+                    while (tcase != NULL && tcase != begin && tcase->getSubStmt() != NULL &&
                            isa<SwitchCase>(tcase->getSubStmt()))
                         tcase = (SwitchCase *)tcase->getSubStmt();
                     if (tcase == begin) {
                         started = true;
-                        const Stmt *stmt =
-                            ((const SwitchCase *)&(*tcase))->getSubStmt();
+                        const Stmt *stmt = ((const SwitchCase *)&(*tcase))->getSubStmt();
                         if (stmt == NULL) {
                             break;
                         } else if (isa<BreakStmt>(stmt)) {
@@ -141,14 +132,11 @@ CaseChilds getCaseChilds(const SwitchCase *sc, ASTContext &Context) {
                             ret.endWithBreak = true;
                             break;
                         } else if (isa<SwitchCase>(stmt)) {
-
                             break;
                         } else {
-
                             ret.stmts.push_back(stmt);
                         }
                     }
-
                 } else if (started) {
                     ret.stmts.push_back(*i);
                     if (isa<BreakStmt>(*i)) {
@@ -160,29 +148,31 @@ CaseChilds getCaseChilds(const SwitchCase *sc, ASTContext &Context) {
             return ret;
         } else if (isa<SwitchCase>(body)) {
             const Stmt *stmt = ((const SwitchCase *)body)->getSubStmt();
-            if (stmt != NULL && !isa<SwitchCase>(stmt)) // otherwise case 1:case
-                                                        // 2:break; would end in
-                                                        // "case 2" being seen
-                                                        // as child
+            if (stmt != NULL && !isa<SwitchCase>(stmt)) { // otherwise case 1:case
+                                                          // 2:break; would end in
+                                                          // "case 2" being seen
+                                                          // as child
                 ret.stmts.push_back(stmt);
+            }
         }
     }
     return ret;
 }
 int childCount(const Stmt *stmt);
 int childCount(const Stmt *stmt, ASTContext &Context) {
-
     int count = 0;
     if (isa<SwitchCase>(stmt)) {
         CaseChilds childs = getCaseChilds((const SwitchCase *)stmt, Context);
         int count = childs.stmts.size();
 #if DONTCOUNTBREAKINSWITCHCASEFORBLOCKSIZE
-        if (childs.endWithBreak)
+        if (childs.endWithBreak) {
             count--;
+        }
 #endif
         return count;
-    } else
+    } else {
         return childCount(stmt);
+    }
     return count;
 }
 int childCount(const Stmt *stmt) {
@@ -191,8 +181,9 @@ int childCount(const Stmt *stmt) {
     const clang::Stmt::const_child_iterator &end = stmt->child_end();
     StmtIterator it = cast_away_const(begin);
     while (it != cast_away_const(end)) {
-        if (*it != NULL)
+        if (*it != NULL) {
             count++;
+        }
         it++;
     }
     return count;
@@ -207,17 +198,18 @@ bool C2(const Stmt *stmt, ASTContext &Context) {
         } else if (isa<SwitchCase>(parent)) {
             const SwitchCase *container = (const SwitchCase *)parent;
             return childCount(container, Context) > 1;
-        } else
+        } else {
             return false;
+        }
     }
     return false;
 }
 
 bool C2(const Decl *decl, ASTContext &Context) {
     ASTContext::DynTypedNodeList list = Context.getParents(*decl);
-    while (!list.empty() && list[0].get<Stmt>() != NULL &&
-           isaImplicit(list[0].get<Stmt>()))
+    while (!list.empty() && list[0].get<Stmt>() != NULL && isaImplicit(list[0].get<Stmt>())) {
         list = Context.getParents(*list[0].get<Stmt>());
+    }
     if (!list.empty()) {
         if (list[0].get<Stmt>() == NULL) {
             return false;

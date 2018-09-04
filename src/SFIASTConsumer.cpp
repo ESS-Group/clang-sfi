@@ -25,8 +25,7 @@ using namespace clang;
 using namespace clang::ast_matchers;
 using namespace std;
 
-SFIASTConsumer::SFIASTConsumer(std::string name,
-                               std::vector<FaultInjector *> injectors)
+SFIASTConsumer::SFIASTConsumer(std::string name, std::vector<FaultInjector *> injectors)
     : faultInjectors(injectors), fileName(name) {
     for (FaultInjector *injector : faultInjectors) {
         injector->setFileName(name);
@@ -35,15 +34,13 @@ SFIASTConsumer::SFIASTConsumer(std::string name,
 
 void SFIASTConsumer::HandleTranslationUnit(ASTContext &Context) {
     for (FaultInjector *injector : faultInjectors) {
-
         injector->matchAST(Context); // Match AST and find injection locations
 
-        cout << "Found " << injector->locations.size() << " "
-             << injector->toString() << " injection locations" << endl;
+        cout << "Found " << injector->locations.size() << " " << injector->toString() << " injection locations" << endl;
 
-        injector->inject(injector->locations, Context); // inject Faults
-        for (FaultInjector::StmtBinding &binding :
-             injector->locations) // only for verbose
+        injector->inject(injector->locations, Context);                   // inject Faults
+        for (FaultInjector::StmtBinding &binding : injector->locations) { // only for verbose
             binding.calculateRange(Context);
+        }
     }
 }

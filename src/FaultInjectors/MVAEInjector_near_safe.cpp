@@ -1,6 +1,11 @@
 #include "_all.h"
 
-MVAEInjectorSAFE::MVAEInjectorSAFE(bool alsoOverwritten) {
+std::string MVAEInjectorSAFE::toString() {
+    return "MVAESAFE";
+};
+
+// clang-format off
+MVAEInjectorSAFE::MVAEInjectorSAFE(){
     /*
         Matcher.addMatcher(
         varDecl(
@@ -13,22 +18,19 @@ MVAEInjectorSAFE::MVAEInjectorSAFE(bool alsoOverwritten) {
             ).bind("variable"), createStmtHandler("variable"));
     */
 
-    Matcher.addMatcher(varDecl(
-                           // commented to include global assignements
-                           hasAncestor(compoundStmt()))
-                           .bind("varDecl"),
-                       createStmtHandler("varDecl"));
+    Matcher.addMatcher(
+            varDecl(
+                //commented to include global assignements
+                    hasAncestor(compoundStmt())
+            ).bind("varDecl"), createStmtHandler("varDecl"));
 }
-
-std::string MVAEInjectorSAFE::toString() { return "MVAESAFE"; };
+// clang-format on
 
 std::string MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
-
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     if (current.isStmt) {
-        SourceRange range(current.stmt->getLocStart(),
-                          current.stmt->getLocEnd());
+        SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
         R.RemoveText(range);
     } else {
         VarDecl temp(*((const VarDecl *)current.decl));
@@ -36,28 +38,21 @@ std::string MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
         const VarDecl *tempP = &temp;
         std::string withoutInit = stmtToString(tempP, Context.getLangOpts());
 
-        SourceRange range(current.decl->getLocStart(),
-                          current.decl->getLocEnd());
+        SourceRange range(current.decl->getLocStart(), current.decl->getLocEnd());
         R.ReplaceText(range, withoutInit);
     }
 
     return getEditedString(R, Context);
 }
 
-bool MVAEInjectorSAFE::checkStmt(const Decl *decl, std::string binding,
-                             ASTContext &Context) {
+bool MVAEInjectorSAFE::checkStmt(const Decl *decl, std::string binding, ASTContext &Context) {
     if (binding.compare("varDecl") == 0 && isa<VarDecl>(decl)) {
-        std::vector<const BinaryOperator *> list = getChildForFindVarAssignment(
-            getParentCompoundStmt(decl, Context), (const VarDecl *)decl, true);
+        std::vector<const BinaryOperator *> list =
+            getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl *)decl, true);
         for (const BinaryOperator *op : list) {
-
-            if (isExprAssignment(op) &&
-                (isInitializedBefore((const DeclRefExpr *)((op)->getLHS()),
-                                     Context))) {
-                if (const ForStmt *forstmt =
-                        getParentOfType<ForStmt>(decl, Context, 3)) {
-                    if (isParentOf(forstmt->getCond(), decl, Context) ||
-                        isParentOf(forstmt->getInc(), decl, Context)) {
+            if (isExprAssignment(op) && (isInitializedBefore((const DeclRefExpr *)((op)->getLHS()), Context))) {
+                if (const ForStmt *forstmt = getParentOfType<ForStmt>(decl, Context, 3)) {
+                    if (isParentOf(forstmt->getCond(), decl, Context) || isParentOf(forstmt->getInc(), decl, Context)) {
                     } else if (C2(op, Context)) {
                         nodeCallback(binding, op);
                     }

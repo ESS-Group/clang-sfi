@@ -1,5 +1,9 @@
 #include "_all.h"
 
+std::string MLACInjector::toString() {
+    return "MLAC";
+};
+
 /*
 void MLACInjector::inject(std::vector<StmtBinding> target, ASTContext &Context){
     int i = 0;
@@ -35,37 +39,38 @@ std::string MLACInjector::inject(StmtBinding current, ASTContext &Context){
     return "";
 }
 */
-MLACInjector::MLACInjector() {
-    // Matcher.addMatcher(binaryOperator(anyOf(hasAncestor(expr(anyOf(hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt())))),hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt()))).bind("FunctionCall"),
-    // createStmtHandler("FunctionCall"));
-    Matcher.addMatcher(
-        stmt(switchStmt(hasCondition(
-                 anyOf(binaryOperator(), hasDescendant(binaryOperator())))))
-            .bind("switch"),
-        createStmtHandler("switch"));
-    Matcher.addMatcher(
-        stmt(doStmt(hasCondition(
-                 anyOf(binaryOperator(), hasDescendant(binaryOperator())))))
-            .bind("do"),
-        createStmtHandler("do"));
-    Matcher.addMatcher(
-        stmt(whileStmt(hasCondition(
-                 anyOf(binaryOperator(), hasDescendant(binaryOperator())))))
-            .bind("while"),
-        createStmtHandler("while"));
-    Matcher.addMatcher(
-        stmt(forStmt(hasCondition(
-                 anyOf(binaryOperator(), hasDescendant(binaryOperator())))))
-            .bind("for"),
-        createStmtHandler("for"));
-    Matcher.addMatcher(
-        stmt(ifStmt(hasCondition(
-                 anyOf(binaryOperator(), hasDescendant(binaryOperator())))))
-            .bind("if"),
-        createStmtHandler("if"));
-}
 
-std::string MLACInjector::toString() { return "MLAC"; };
+// clang-format off
+MLACInjector::MLACInjector(){
+    //Matcher.addMatcher(binaryOperator(anyOf(hasAncestor(expr(anyOf(hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt())))),hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt()))).bind("FunctionCall"), createStmtHandler("FunctionCall"));
+    Matcher.addMatcher(
+        stmt(
+            switchStmt(hasCondition(anyOf(binaryOperator(), hasDescendant(binaryOperator()))))
+        ).bind("switch"), createStmtHandler("switch")
+    );
+    Matcher.addMatcher(
+        stmt(
+            doStmt(hasCondition(anyOf(binaryOperator(), hasDescendant(binaryOperator()))))
+        ).bind("do"), createStmtHandler("do")
+    );
+    Matcher.addMatcher(
+        stmt(
+            whileStmt(hasCondition(anyOf(binaryOperator(), hasDescendant(binaryOperator()))))
+        ).bind("while"), createStmtHandler("while")
+    );
+    Matcher.addMatcher(
+        stmt(
+            forStmt(hasCondition(anyOf(binaryOperator(), hasDescendant(binaryOperator()))))
+        ).bind("for"), createStmtHandler("for")
+    );
+    Matcher.addMatcher(
+        stmt(
+            ifStmt(hasCondition(anyOf(binaryOperator(), hasDescendant(binaryOperator()))))
+        ).bind("if"), createStmtHandler("if")
+    );
+}
+// clang-format on
+
 std::string MLACInjector::inject(StmtBinding current, ASTContext &Context) {
     bool left = current.left;
     Rewriter R;
@@ -73,10 +78,7 @@ std::string MLACInjector::inject(StmtBinding current, ASTContext &Context) {
     SourceLocation start, end;
     if (left) {
         start = ((const BinaryOperator *)current.stmt)->getLHS()->getLocStart();
-        end = ((const BinaryOperator *)current.stmt)
-                  ->getRHS()
-                  ->getLocStart()
-                  .getLocWithOffset(-1);
+        end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocStart().getLocWithOffset(-1);
     } else {
         start = ((const BinaryOperator *)current.stmt)->getOperatorLoc();
         end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocEnd();
@@ -86,8 +88,7 @@ std::string MLACInjector::inject(StmtBinding current, ASTContext &Context) {
     R.RemoveText(range);
     return getEditedString(R, Context);
 }
-bool MLACInjector::checkStmt(const Stmt *stmt, std::string binding,
-                             ASTContext &Context) { // no else
+bool MLACInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
     std::vector<const BinaryOperator *> binaryOperators;
     if (binding.compare("if") == 0) {
         const Expr *condition = ((const IfStmt *)stmt)->getCond();
@@ -111,13 +112,13 @@ bool MLACInjector::checkStmt(const Stmt *stmt, std::string binding,
             const Expr *left = op->getLHS()->IgnoreImplicit();
             const Expr *right = op->getRHS()->IgnoreImplicit();
             if (!isa<BinaryOperator>(left) ||
-                ((const BinaryOperator *)left)->getOpcode() !=
-                    BinaryOperatorKind::BO_LAnd)
+                ((const BinaryOperator *)left)->getOpcode() != BinaryOperatorKind::BO_LAnd) {
                 nodeCallback("MLOC", op, true);
+            }
             if (!isa<BinaryOperator>(right) ||
-                ((const BinaryOperator *)right)->getOpcode() !=
-                    BinaryOperatorKind::BO_LAnd)
+                ((const BinaryOperator *)right)->getOpcode() != BinaryOperatorKind::BO_LAnd) {
                 nodeCallback("MLOC", op, false);
+            }
         }
     }
     return false;

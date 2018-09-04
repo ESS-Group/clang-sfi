@@ -38,8 +38,7 @@ class SFIAction : public ASTFrontendAction {
     std::vector<FaultInjector *> injectors;
     SFIAction(std::vector<FaultInjector *> injs);
     void EndSourceFileAction() override;
-    std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
-                                                   StringRef file) override;
+    std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI, StringRef file) override;
 
   private:
     std::string fileName;

@@ -1,18 +1,16 @@
-#include <algorithm>
 #include "clang/AST/AST.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Basic/SourceLocation.h"
 #include "clang/Basic/SourceManager.h"
+#include <algorithm>
 
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace std;
 
-template <class T>
-void deleteFromList(std::vector<T> &src, std::vector<T> &toDelete) {
+template <class T> void deleteFromList(std::vector<T> &src, std::vector<T> &toDelete) {
     bool deleted = false;
-    for (std::vector<const BinaryOperator *>::iterator i = src.begin();
-         i != src.end(); deleted ? i : i++) {
+    for (std::vector<const BinaryOperator *>::iterator i = src.begin(); i != src.end(); deleted ? i : i++) {
         deleted = false;
         for (T c : toDelete) {
             if (*i == c) {
@@ -23,10 +21,8 @@ void deleteFromList(std::vector<T> &src, std::vector<T> &toDelete) {
         }
     }
 }
-const CompoundStmt *getParentCompoundStmt(const Stmt *stmt,
-                                          ASTContext &Context);
-const CompoundStmt *getParentCompoundStmt(const Decl *decl,
-                                          ASTContext &Context);
+const CompoundStmt *getParentCompoundStmt(const Stmt *stmt, ASTContext &Context);
+const CompoundStmt *getParentCompoundStmt(const Decl *decl, ASTContext &Context);
 
 template <class T> void concatVector(std::vector<T> &dst, std::vector<T> &src) {
     dst.insert(dst.end(), src.begin(), src.end());
@@ -41,36 +37,34 @@ bool isValueAssignment(const BinaryOperator *op);
 bool isExprAssignment(const BinaryOperator *op);
 
 template <class T> const T *getFirstChild(const Stmt *parent) {
-    for (Stmt::child_iterator i = cast_away_const(parent->child_begin()),
-                              e = cast_away_const(parent->child_end());
+    for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
          i != e; ++i) {
         if (*i != NULL) {
             if (isa<T>(*i)) {
                 return (const T *)*i;
             } else {
-                if (const T *ret = getFirstChild<T>(*i))
+                if (const T *ret = getFirstChild<T>(*i)) {
                     return ret;
+                }
             }
         }
     }
     return NULL;
 }
 
-std::vector<const BinaryOperator *>
-getChildForFindInitForVar(const Stmt *parent, const VarDecl *var,
-                          bool alsoinloop = false,
-                          bool alsoinforconstruct = true);
+std::vector<const BinaryOperator *> getChildForFindInitForVar(const Stmt *parent, const VarDecl *var,
+                                                              bool alsoinloop = false, bool alsoinforconstruct = true);
 
-std::vector<const BinaryOperator *> getChildForFindVarAssignment(
-    const Stmt *parent, const VarDecl *var, bool alsoinloop = true,
-    bool alsoinforconstruct = true, bool pinited = false);
+std::vector<const BinaryOperator *> getChildForFindVarAssignment(const Stmt *parent, const VarDecl *var,
+                                                                 bool alsoinloop = true, bool alsoinforconstruct = true,
+                                                                 bool pinited = false);
 
 template <class T>
-const T *getParentOfType(const Stmt *stmt, ASTContext &Context,
-                         int maxDepth = 3) { // MaxDepth = -1 for to the root
+const T *getParentOfType(const Stmt *stmt, ASTContext &Context, int maxDepth = 3) { // MaxDepth = -1 for to the root
     T *ret = NULL;
-    if (stmt == NULL)
+    if (stmt == NULL) {
         return NULL;
+    }
     if (maxDepth != 0) {
         ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
         for (auto p : list) {
@@ -81,15 +75,15 @@ const T *getParentOfType(const Stmt *stmt, ASTContext &Context,
             }
         }
     }
-    if (ret == NULL)
+    if (ret == NULL) {
         return NULL;
-    else
+    } else {
         return const_cast<const T *>(ret);
+    }
 }
 
 template <class T>
-const T *getParentOfType(const Decl *decl, ASTContext &Context,
-                         int maxDepth = 3) { // MaxDepth = -1 for to the root
+const T *getParentOfType(const Decl *decl, ASTContext &Context, int maxDepth = 3) { // MaxDepth = -1 for to the root
     T *ret = NULL;
     if (maxDepth != 0) {
         ASTContext::DynTypedNodeList list = Context.getParents(*decl);
@@ -117,21 +111,21 @@ template <class T> bool hasParentOfType(const Decl *decl, ASTContext &Context) {
     return getParentOfType<T>(decl, Context, -1) != NULL;
 }
 
-const FunctionDecl *getParentFunctionDecl(const Stmt *stmt,
-                                          ASTContext &Context);
+const FunctionDecl *getParentFunctionDecl(const Stmt *stmt, ASTContext &Context);
 bool isPartOfFunction(const Stmt *stmt, ASTContext &Context);
 bool isLocal(const Stmt *stmt, ASTContext &Context);
 bool isLocal(const Decl *decl, ASTContext &Context);
 template <class T> bool hasChildOfType(const Stmt *stmt) {
-    if (stmt == NULL)
+    if (stmt == NULL) {
         return false;
-    for (Stmt::child_iterator i = cast_away_const(stmt->child_begin()),
-                              e = cast_away_const(stmt->child_end());
-         i != e; ++i) {
-        if (isa<T>(*i))
+    }
+    for (Stmt::child_iterator i = cast_away_const(stmt->child_begin()), e = cast_away_const(stmt->child_end()); i != e;
+         ++i) {
+        if (isa<T>(*i)) {
             return true;
-        else if (hasChildOfType<T>(*i))
+        } else if (hasChildOfType<T>(*i)) {
             return true;
+        }
     }
     return false;
 }
@@ -175,17 +169,15 @@ bool isParentOf(const Stmt *parent, const Decl *decl, ASTContext &Context);
 
 bool isInitializedBefore(const DeclRefExpr *ref, ASTContext &Context);
 
-template <class T>
-std::vector<const T *> getChildrenOfType(const Stmt *parent,
-                                         bool first = true) {
+template <class T> std::vector<const T *> getChildrenOfType(const Stmt *parent, bool first = true) {
     std::vector<const BinaryOperator *> ret;
-    if (parent == NULL)
+    if (parent == NULL) {
         return ret;
+    }
     if (isa<T>(parent) && first) {
         ret.push_back((const T *)parent);
     }
-    for (Stmt::child_iterator i = cast_away_const(parent->child_begin()),
-                              e = cast_away_const(parent->child_end());
+    for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
          i != e; ++i) {
         if (isa<T>(*i)) {
             ret.push_back((const T *)*i);
@@ -198,8 +190,7 @@ std::vector<const T *> getChildrenOfType(const Stmt *parent,
     return ret;
 }
 
-std::vector<const DeclRefExpr *> getAllRefs(const Stmt *parent,
-                                            const VarDecl *var);
+std::vector<const DeclRefExpr *> getAllRefs(const Stmt *parent, const VarDecl *var);
 
 const DeclRefExpr *getLatestRef(const Stmt *parent, const VarDecl *var);
 
@@ -211,12 +202,11 @@ template <class T> bool hasStmtOfType(std::vector<const Stmt *> list) {
     }
     return false;
 }
-template <class T>
-std::vector<const T *> getStmtsOfType(std::vector<const Stmt *> &list) {
-
+template <class T> std::vector<const T *> getStmtsOfType(std::vector<const Stmt *> &list) {
     std::vector<const T *> ret;
-    if (list.empty())
+    if (list.empty()) {
         return ret;
+    }
     for (const Stmt *stmt : list) {
         if (stmt != NULL && isa<T>(stmt)) {
             ret.push_back((const T *)stmt);
@@ -231,20 +221,18 @@ template <class T> bool _comparefunc(const T *st1, const T *st2) {
 }
 
 bool isArithmetic(const BinaryOperator *op);
-const BinaryOperator *
-getBinaryOperatorWithRightedtRHS(const BinaryOperator *op);
+const BinaryOperator *getBinaryOperatorWithRightedtRHS(const BinaryOperator *op);
 template <class T> std::vector<const T *> getChildrenFlat(const Stmt *parent) {
     std::vector<const T *> ret;
-    for (Stmt::child_iterator i = cast_away_const(parent->child_begin()),
-                              e = cast_away_const(parent->child_end());
+    for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
          i != e; ++i) {
         if (*i != NULL) {
             // if(isa<T>(*i)){
             if (isa<Expr>(*i)) {
-                const Expr *expr =
-                    ((const T *)*i)->IgnoreImplicit()->IgnoreParenCasts();
-                if (isa<T>(expr))
+                const Expr *expr = ((const T *)*i)->IgnoreImplicit()->IgnoreParenCasts();
+                if (isa<T>(expr)) {
                     ret.push_back((const T *)expr);
+                }
                 // ret.push_back(((const T *)
                 // *i)->IgnoreImplicit()->IgnoreParenCasts());
             } else if (isa<T>(*i)) {
@@ -260,18 +248,15 @@ template <class T> std::vector<const T *> getChildrenFlat(const Stmt *parent) {
     return ret;
 }
 
-const DeclRefExpr *
-getDeclRefExprOfImplicitConstructExpr(const MaterializeTemporaryExpr *matexpr);
-template <class T>
-std::vector<const T *> getArgumentsOfType(const CallExpr *call) {
+const DeclRefExpr *getDeclRefExprOfImplicitConstructExpr(const MaterializeTemporaryExpr *matexpr);
+template <class T> std::vector<const T *> getArgumentsOfType(const CallExpr *call) {
     std::vector<const T *> ret;
     const Expr *const *args = call->getArgs();
     for (int i = 0; i < call->getNumArgs(); i++) {
         const Expr *arg = args[i];
         // hier abfangen
         if (isa<MaterializeTemporaryExpr>(arg)) {
-            if (const DeclRefExpr *ref = getDeclRefExprOfImplicitConstructExpr(
-                    (const MaterializeTemporaryExpr *)arg)) {
+            if (const DeclRefExpr *ref = getDeclRefExprOfImplicitConstructExpr((const MaterializeTemporaryExpr *)arg)) {
                 if (isa<T>(ref)) {
                     // cerr<<"implicitconstructorcall"<<endl;
                     ret.push_back(ref);
@@ -300,8 +285,7 @@ std::vector<const T *> getArgumentsOfType(const CallExpr *call) {
             }
         }
         */
-        if (arg->IgnoreImpCasts() != NULL &&
-            arg->IgnoreImpCasts()->IgnoreParenCasts() != NULL &&
+        if (arg->IgnoreImpCasts() != NULL && arg->IgnoreImpCasts()->IgnoreParenCasts() != NULL &&
             isa<T>(arg->IgnoreImpCasts()->IgnoreParenCasts())) {
             ret.push_back((const T *)arg->IgnoreImpCasts()->IgnoreParenCasts());
         }

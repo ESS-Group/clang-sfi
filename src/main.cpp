@@ -33,10 +33,9 @@ using namespace std::chrono;
 std::string backupfile = "";
 std::string backedupfile = "";
 
-void replaceFileContent(std::string dest,
-                        std::string src) { // helper function to write to file
-                                           // and replace it given the path of a
-                                           // destination and a source file
+void replaceFileContent(std::string dest, std::string src) { // helper function to write to file
+                                                             // and replace it given the path of a
+                                                             // destination and a source file
     std::ifstream i(src.c_str());
     std::ofstream o(dest.c_str(), std::ofstream::trunc);
     o << i.rdbuf();
@@ -48,32 +47,29 @@ void replaceFileContent(std::string dest,
 // define commandline options for commonoptionparser
 static llvm::cl::OptionCategory oCategory("clang-sfi");
 static llvm::cl::opt<bool> VerboseOption("verbose", llvm::cl::cat(oCategory), llvm::cl::desc("verbose execution"));
-static llvm::cl::opt<std::string> DirectoryOption("dir",
-                                                  llvm::cl::cat(oCategory),
-                                                  llvm::cl::init("injections"),
+static llvm::cl::opt<std::string> DirectoryOption("dir", llvm::cl::cat(oCategory), llvm::cl::init("injections"),
                                                   llvm::cl::desc("Directory where to store the patch files"));
-static llvm::cl::opt<std::string> ConfigOption("config",
-                                               llvm::cl::cat(oCategory),
+static llvm::cl::opt<std::string> ConfigOption("config", llvm::cl::cat(oCategory),
                                                llvm::cl::desc("Specify an optional configuration file"));
 
-std::unique_ptr<FrontendActionFactory> newSFIFrontendActionFactory(
-    std::vector<FaultInjector *> injectors) { // factory for creating
-                                              // SFIFrontendAction, needed to
-                                              // submit injectors to
-                                              // FrontendActions constructor
+std::unique_ptr<FrontendActionFactory>
+newSFIFrontendActionFactory(std::vector<FaultInjector *> injectors) { // factory for creating
+                                                                      // SFIFrontendAction, needed to
+                                                                      // submit injectors to
+                                                                      // FrontendActions constructor
     class SFIFrontendActionFactory : public FrontendActionFactory {
       public:
-        SFIFrontendActionFactory(std::vector<FaultInjector *> inj)
-            : FrontendActionFactory(), injectors(inj) {}
-        FrontendAction *create() override { return new SFIAction(injectors); }
+        SFIFrontendActionFactory(std::vector<FaultInjector *> inj) : FrontendActionFactory(), injectors(inj) {
+        }
+        FrontendAction *create() override {
+            return new SFIAction(injectors);
+        }
 
       private:
         std::vector<FaultInjector *> injectors;
     };
-    return std::unique_ptr<FrontendActionFactory>(
-        new SFIFrontendActionFactory(injectors));
+    return std::unique_ptr<FrontendActionFactory>(new SFIFrontendActionFactory(injectors));
 };
-
 
 int main(int argc, const char **argv) {
     CommonOptionsParser op(argc, argv, oCategory);
@@ -124,7 +120,7 @@ int main(int argc, const char **argv) {
     std::string cfgFile = ConfigOption.getValue();
     std::string dir = DirectoryOption.getValue();
     if (cfgFile.compare("") == 0) {
-      cfgFile = "config.json";
+        cfgFile = "config.json";
     }
 
     json j;
@@ -139,11 +135,9 @@ int main(int argc, const char **argv) {
             dir = j["destDirectory"].get<std::string>();
         }
         if (j.find("injectors") != j.end()) {
-            for (json::iterator it = j.find("injectors")->begin();
-                 it != j.find("injectors")->end(); ++it) {
+            for (json::iterator it = j.find("injectors")->begin(); it != j.find("injectors")->end(); ++it) {
                 for (FaultInjector *injector : available) {
-                    if (injector->toString().compare(
-                            it->get<std::string>()) == 0) {
+                    if (injector->toString().compare(it->get<std::string>()) == 0) {
                         // cout<<injector->toString()<<endl;
                         injectors.push_back(injector);
                         break;
@@ -166,8 +160,7 @@ int main(int argc, const char **argv) {
     }
     cout << "Injecting: ";
     for (FaultInjector *injector : injectors) {
-        cout << (injector == injectors[0] ? "" : ", ")
-             << injector->toString();
+        cout << (injector == injectors[0] ? "" : ", ") << injector->toString();
     }
     cout << endl;
     if (dir.compare("") != 0) {
@@ -213,8 +206,7 @@ int main(int argc, const char **argv) {
             injection["count"] = size;
 
             int i = 0;
-            for (FaultInjector::StmtBinding &binding :
-                 injector->locations) {
+            for (FaultInjector::StmtBinding &binding : injector->locations) {
                 json loc;
                 loc["begin"] = binding.location.begin.toString();
                 loc["end"] = binding.location.end.toString();
@@ -227,8 +219,7 @@ int main(int argc, const char **argv) {
             float part = ((float)size) / injectioncount * 100.0;
 
             cout << "Injected " << size << " " << type << " faults." << endl
-                 << "> " << size << "/" << injectioncount << " ("
-                 << roundf(part * 100) / 100 << "\%)" << endl;
+                 << "> " << size << "/" << injectioncount << " (" << roundf(part * 100) / 100 << "\%)" << endl;
         }
         cout << ">>> Total Injected faults: " << injectioncount << endl;
         summary["injectionCount"] = injectioncount;
@@ -253,18 +244,13 @@ int main(int argc, const char **argv) {
         }
         summary["directory"] = dir;
         summary["verbose"] = verbose;
-        std::ofstream o((dir.compare("") ? dir + "/" : "") +
-                        "summary.json");
+
+        std::ofstream o((dir.compare("") ? dir + "/" : "") + "summary.json");
         o << summary;
         o.flush();
         o.close();
-        cout << "saved summary at \""
-             << (dir.compare("") ? dir + "/" : "") + "summary.json"
+        cout << "saved summary at \"" << (dir.compare("") ? dir + "/" : "") + "summary.json"
              << "\"" << endl;
-
-        if (verbose) {
-            summary["verbose"] = true;
-        }
     }
 
     cout << "Operation succeeded." << endl;

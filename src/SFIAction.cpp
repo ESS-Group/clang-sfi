@@ -26,13 +26,12 @@ using namespace clang;
 using namespace clang::ast_matchers;
 using namespace std;
 
-SFIAction::SFIAction(std::vector<FaultInjector *> injs) : injectors(injs) {}
+SFIAction::SFIAction(std::vector<FaultInjector *> injs) : injectors(injs) {
+}
 void SFIAction::EndSourceFileAction() {
-
     cout << "Parsed file  " << fileName /*<<" - done."*/ << endl;
 }
-std::unique_ptr<ASTConsumer> SFIAction::CreateASTConsumer(CompilerInstance &CI,
-                                                          StringRef file) {
+std::unique_ptr<ASTConsumer> SFIAction::CreateASTConsumer(CompilerInstance &CI, StringRef file) {
     fileName = file.data();
     cout << "Parsing file '" << fileName << "'" << endl;
 
