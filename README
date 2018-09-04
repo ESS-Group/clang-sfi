@@ -1,5 +1,0 @@
-Zum builden muss in CMakeLists.txt LLVM_DIR angepasst werden
-
-Nach ../includes die alte std-lib fuer SAFE kopieren
-
-Um summary.json lesbarer zu machen, einfach configreader/index.html im browser oeffnen und summary.json ins Fenster ziehen.
