@@ -83,8 +83,9 @@ int main(int argc, const char **argv) {
     if (op.getSourcePathList().size() != 1) {
         std::cout << "Please select exactly one file" << std::endl;
         return 1;
-    } else
+    } else {
         fileforInjection = op.getSourcePathList()[0];
+    }
 
     std::vector<FaultInjector *> available;
     std::vector<FaultInjector *> injectors;
@@ -131,8 +132,9 @@ int main(int argc, const char **argv) {
         cout << "Using config (" << cfgFile << ")." << endl;
         std::ifstream i(cfgFile.c_str());
         i >> j;
-        if (j.find("verbose") != j.end() && !verbose)
+        if (j.find("verbose") != j.end() && !verbose) {
             verbose = j["verbose"].get<bool>();
+        }
         if (dir.compare("") == 0 && j.find("destDirectory") != j.end()) {
             dir = j["destDirectory"].get<std::string>();
         }
@@ -153,7 +155,8 @@ int main(int argc, const char **argv) {
                 injectors.push_back(injector);
             }
         }
-    } else { // no config file => add all available injectors
+    } else {
+        // no config file => add all available injectors
         // cout<<"Config not find config: default action - inject all
         // errors"<<endl;
 
@@ -230,18 +233,24 @@ int main(int argc, const char **argv) {
         cout << ">>> Total Injected faults: " << injectioncount << endl;
         summary["injectionCount"] = injectioncount;
         summary["fileName"] = fileforInjection;
-        if (j.find("multipleRuns") != j.end())
+        if (j.find("multipleRuns") != j.end()) {
             summary["multipleRuns"] = j["multipleRuns"];
-        if (j.find("timeout") != j.end())
+        }
+        if (j.find("timeout") != j.end()) {
             summary["timeout"] = j["timeout"];
-        if (j.find("compileCommand") != j.end())
+        }
+        if (j.find("compileCommand") != j.end()) {
             summary["compileCommand"] = j["compileCommand"];
-        if (j.find("compileCommandArgs") != j.end())
+        }
+        if (j.find("compileCommandArgs") != j.end()) {
             summary["compileCommandArgs"] = j["compileCommandArgs"];
-        if (j.find("fileToExec") != j.end())
+        }
+        if (j.find("fileToExec") != j.end()) {
             summary["fileToExec"] = j["fileToExec"];
-        if (j.find("fileToExecArgs") != j.end())
+        }
+        if (j.find("fileToExecArgs") != j.end()) {
             summary["fileToExecArgs"] = j["fileToExecArgs"];
+        }
         summary["directory"] = dir;
         summary["verbose"] = verbose;
         std::ofstream o((dir.compare("") ? dir + "/" : "") +
@@ -253,8 +262,9 @@ int main(int argc, const char **argv) {
              << (dir.compare("") ? dir + "/" : "") + "summary.json"
              << "\"" << endl;
 
-        if (verbose)
+        if (verbose) {
             summary["verbose"] = true;
+        }
     }
 
     cout << "Operation succeeded." << endl;
