@@ -280,7 +280,7 @@ void FaultInjector::writeDown(std::string data, int i) {
     file << data;
     file.flush();
     file.close();
-    system(("diff -u0 \"" + fileName + "\" \"" + name + ".cpp\" > \"" + name +
+    system(("diff -U 0 \"" + fileName + "\" \"" + name + ".cpp\" > \"" + name +
             ".patch\"")
                .c_str());
 }
