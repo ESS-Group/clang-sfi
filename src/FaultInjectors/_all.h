@@ -172,7 +172,7 @@ class MVAEInjector : public FaultInjector {
 };
 class MVAEInjectorSAFE : public FaultInjector {
   public:
-    MVAEInjectorSAFE(bool alsoOverwritten = false);
+    MVAEInjectorSAFE();
     std::string toString() override;
     std::string inject(StmtBinding current, ASTContext &Context) override;
     bool checkStmt(const Decl *decl, std::string binding, ASTContext &Context) override;
