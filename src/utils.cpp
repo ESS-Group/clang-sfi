@@ -1,5 +1,10 @@
 #include "utils.h"
 
+#include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/Basic/SourceLocation.h"
+
+using namespace clang::ast_matchers;
+
 const CompoundStmt *getParentCompoundStmt(const Stmt *stmt, ASTContext &Context) {
     ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
     if (!list.empty()) {

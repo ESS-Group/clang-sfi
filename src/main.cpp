@@ -1,34 +1,18 @@
 #include <fstream>
-#include <iostream>
-#include <math.h>
-#include <sstream>
-#include <string>
 #include <sys/stat.h>
 
-#include "clang/AST/AST.h"
-#include "clang/AST/ASTConsumer.h"
-#include "clang/AST/RecursiveASTVisitor.h"
-#include "clang/Frontend/ASTConsumers.h"
-#include "clang/Frontend/CompilerInstance.h"
-#include "clang/Frontend/FrontendActions.h"
-#include "clang/Rewrite/Core/Rewriter.h"
-#include "clang/Tooling/CommonOptionsParser.h"
-#include "clang/Tooling/Tooling.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "ASTConsumer.h"
-#include "FaultInjector.h"
-#include "StmtHandler.h"
+#include "clang/Tooling/CommonOptionsParser.h"
+#include "clang/Tooling/Tooling.h"
+
+#include "SFIASTConsumer.h"
 
 #include "libs/json.hpp"
 using json = nlohmann::json;
 
 using namespace clang;
-using namespace clang::driver;
 using namespace clang::tooling;
-
-using namespace std;
-using namespace std::chrono;
 
 std::string backupfile = "";
 std::string backedupfile = "";
@@ -125,7 +109,7 @@ int main(int argc, const char **argv) {
 
     json j;
     if (stat(cfgFile.c_str(), &buf) != -1) { // config file exists
-        cout << "Using config (" << cfgFile << ")." << endl;
+        std::cout << "Using config (" << cfgFile << ")." << std::endl;
         std::ifstream i(cfgFile.c_str());
         i >> j;
         if (j.find("verbose") != j.end() && !verbose) {
@@ -138,7 +122,7 @@ int main(int argc, const char **argv) {
             for (json::iterator it = j.find("injectors")->begin(); it != j.find("injectors")->end(); ++it) {
                 for (FaultInjector *injector : available) {
                     if (injector->toString().compare(it->get<std::string>()) == 0) {
-                        // cout<<injector->toString()<<endl;
+                        // std::cout<<injector->toString()<<endl;
                         injectors.push_back(injector);
                         break;
                     }
@@ -151,22 +135,22 @@ int main(int argc, const char **argv) {
         }
     } else {
         // no config file => add all available injectors
-        // cout<<"Config not find config: default action - inject all
+        // std::cout<<"Config not find config: default action - inject all
         // errors"<<endl;
 
         for (FaultInjector *injector : available) {
             injectors.push_back(injector);
         }
     }
-    cout << "Injecting: ";
+    std::cout << "Injecting: ";
     for (FaultInjector *injector : injectors) {
-        cout << (injector == injectors[0] ? "" : ", ") << injector->toString();
+        std::cout << (injector == injectors[0] ? "" : ", ") << injector->toString();
     }
-    cout << endl;
+    std::cout << std::endl;
     if (dir.compare("") != 0) {
-        cout << "Changing destination directory to '" << dir << "'" << endl;
+        std::cout << "Changing destination directory to '" << dir << "'" << std::endl;
         if (mkdir(dir.c_str(), ACCESSPERMS) != 0 && errno != EEXIST) {
-            cerr << "-Failed" << endl;
+            std::cerr << "-Failed" << std::endl;
             return 1;
         }
     }
@@ -179,20 +163,20 @@ int main(int argc, const char **argv) {
 
     int ret = Tool.run(newSFIFrontendActionFactory(injectors).get());
     if (ret == 2) {
-        cout << "Some files were skipped, because there was no "
+        std::cout << "Some files were skipped, because there was no "
                 "compileCommand "
                 "for them in compile_commands.json!!!"
-             << endl;
+             << std::endl;
     }
     if (ret == 1) {
-        cout << "An error occured while running the tool..." << endl;
+        std::cout << "An error occured while running the tool..." << std::endl;
         return 1;
     } else {
         // create overview in summary.json
         json summary;
         int injectioncount = 0;
-        cout << endl << endl << endl;
-        cout << ">>>>> SUMMARY <<<<<" << endl;
+        std::cout << std::endl << std::endl << std::endl;
+        std::cout << ">>>>> SUMMARY <<<<<" << std::endl;
         for (FaultInjector *injector : injectors) {
             int size = injector->locations.size();
             injectioncount += size;
@@ -218,10 +202,10 @@ int main(int argc, const char **argv) {
             summary["injections"].push_back(injection);
             float part = ((float)size) / injectioncount * 100.0;
 
-            cout << "Injected " << size << " " << type << " faults." << endl
-                 << "> " << size << "/" << injectioncount << " (" << roundf(part * 100) / 100 << "\%)" << endl;
+            std::cout << "Injected " << size << " " << type << " faults." << std::endl
+                 << "> " << size << "/" << injectioncount << " (" << roundf(part * 100) / 100 << "\%)" << std::endl;
         }
-        cout << ">>> Total Injected faults: " << injectioncount << endl;
+        std::cout << ">>> Total Injected faults: " << injectioncount << std::endl;
         summary["injectionCount"] = injectioncount;
         summary["fileName"] = fileforInjection;
         if (j.find("multipleRuns") != j.end()) {
@@ -249,10 +233,10 @@ int main(int argc, const char **argv) {
         o << summary;
         o.flush();
         o.close();
-        cout << "saved summary at \"" << (dir.compare("") ? dir + "/" : "") + "summary.json"
-             << "\"" << endl;
+        std::cout << "saved summary at \"" << (dir.compare("") ? dir + "/" : "") + "summary.json"
+             << "\"" << std::endl;
     }
 
-    cout << "Operation succeeded." << endl;
+    std::cout << "Operation succeeded." << std::endl;
     return 0;
 };

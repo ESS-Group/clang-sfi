@@ -1,12 +1,6 @@
 #include "clang/AST/AST.h"
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/Basic/SourceLocation.h"
-#include "clang/Basic/SourceManager.h"
-#include <algorithm>
 
 using namespace clang;
-using namespace clang::ast_matchers;
-using namespace std;
 
 template <class T> void deleteFromList(std::vector<T> &src, std::vector<T> &toDelete) {
     bool deleted = false;

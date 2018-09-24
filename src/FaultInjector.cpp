@@ -3,28 +3,14 @@
         //Rewriter rw;
         //rw.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
 */
-
 #include "FaultInjector.h"
 
-#include "clang/AST/AST.h"
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/ASTMatchers/ASTMatchers.h"
-#include "clang/Basic/SourceLocation.h"
-#include "clang/Basic/SourceManager.h"
-#include <algorithm>
-#include <vector>
+#include <fstream>
 
 #include "StmtHandler.h"
 
-// IO
-#include "llvm/Support/raw_ostream.h"
-#include <fstream>
-#include <iostream>
-
-using namespace llvm;
 using namespace clang;
 using namespace clang::ast_matchers;
-using namespace std;
 
 StmtHandler *FaultInjector::createStmtHandler(std::string binding) {
     std::vector<std::string> bindings;
@@ -156,7 +142,7 @@ void FaultInjector::dumpStmt(const Stmt *stmt, ASTContext &Context) {
 
 std::string FaultInjector::stmtToString(const Stmt *stmt, const LangOptions &langOpts) {
     std::string statement;
-    raw_string_ostream stream(statement);
+    llvm::raw_string_ostream stream(statement);
     stmt->printPretty(stream, NULL, PrintingPolicy(langOpts));
     stream.flush();
     return statement;
@@ -168,7 +154,7 @@ void FaultInjector::dumpStmt(const Decl *decl) {
 
 std::string FaultInjector::stmtToString(const Decl *decl, const LangOptions &langOpts) {
     std::string statement;
-    raw_string_ostream stream(statement);
+    llvm::raw_string_ostream stream(statement);
     decl->print(stream, PrintingPolicy(langOpts));
     stream.flush();
     return statement;
@@ -180,7 +166,7 @@ std::string FaultInjector::getEditedString(Rewriter &rewrite, ASTContext &Contex
 
 std::string FaultInjector::rewriteBufferToString(RewriteBuffer &buffer) {
     std::string str;
-    raw_string_ostream stream(str);
+    llvm::raw_string_ostream stream(str);
     buffer.write(stream);
     stream.flush();
     return str;
@@ -205,35 +191,35 @@ std::string FaultInjector::sourceRangeToString(const Decl *decl, const SourceMan
 
 void FaultInjector::printStep(StmtBinding current, const SourceManager &sourceManager, const LangOptions &langOpts,
                               int i, int size) {
-    cout << "injecting '" << toString() << "' [" << i + 1 << "/" << size << "]" << endl;
+    std::cout << "injecting '" << toString() << "' [" << i + 1 << "/" << size << "]" << std::endl;
     if (current.isStmt) {
         if (current.isList) {
-            // cout << sourceRangeToString(current.stmt,sourceManager)<<endl;
-            cout << "List with " << current.stmtlist.size() << " Statements" << endl;
+            // std::cout << sourceRangeToString(current.stmt,sourceManager)<<endl;
+            std::cout << "List with " << current.stmtlist.size() << " Statements" << std::endl;
         } else {
-            cout << sourceRangeToString(current.stmt, sourceManager) << endl;
-            cout << stmtToString(current.stmt, langOpts) << endl;
+            std::cout << sourceRangeToString(current.stmt, sourceManager) << std::endl;
+            std::cout << stmtToString(current.stmt, langOpts) << std::endl;
         }
     } else {
         if (current.isList) {
-            cout << "List with " << current.decllist.size() << " Decl" << endl;
+            std::cout << "List with " << current.decllist.size() << " Decl" << std::endl;
         } else {
-            cout << sourceRangeToString(current.decl, sourceManager) << endl;
-            cout << stmtToString(current.decl, langOpts) << endl;
+            std::cout << sourceRangeToString(current.decl, sourceManager) << std::endl;
+            std::cout << stmtToString(current.decl, langOpts) << std::endl;
         }
     }
 } // with printing statements
 
 void FaultInjector::printStep(StmtBinding current, const SourceManager &sourceManager, int i, int size) {
-    cout << "injecting '" << toString() << "' [" << i + 1 << "/" << size << "]" << endl;
+    std::cout << "injecting '" << toString() << "' [" << i + 1 << "/" << size << "]" << std::endl;
     /*if(current.isStmt){
-        cout <<
+        std::cout <<
     sourceRangeToString(current.stmt,sourceManager)<<endl;//current.stmt ->
     getLocStart().printToString(Context.getSourceManager())<< " -
     "<<current.stmt ->
     getLocEnd().printToString(Context.getSourceManager())<<endl;
     } else {
-        cout <<
+        std::cout <<
     sourceRangeToString(current.decl,sourceManager)<<endl;//current.stmt ->
     getLocStart().printToString(Context.getSourceManager())<< " -
     "<<current.stmt ->
@@ -262,11 +248,11 @@ void FaultInjector::inject(std::vector<StmtBinding> target, ASTContext &Context)
         std::string result = inject(current, Context);
         if (result.compare("")) {
             if (verbose) {
-                cout << " -Success" << endl;
+                std::cout << " -Success" << std::endl;
             }
             writeDown(result, i - 1);
         } else if (verbose) {
-            cerr << "-Failed" << endl;
+            std::cerr << "-Failed" << std::endl;
         }
     }
 }

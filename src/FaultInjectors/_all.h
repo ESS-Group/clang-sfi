@@ -1,9 +1,14 @@
 #ifndef _ALL_H
 #define _ALL_H
 
+#include "clang/ASTMatchers/ASTMatchers.h"
+
 #include "FaultConstraints.h"
 #include "FaultInjector.h"
 #include "utils.h"
+#include "StmtHandler.h"
+
+using namespace clang::ast_matchers;
 
 class MIFSInjector : public FaultInjector {
   public:

@@ -1,5 +1,11 @@
 #include "FaultConstraints.h"
 
+#include "llvm/Support/raw_ostream.h"
+
+#include "clang/ASTMatchers/ASTMatchers.h"
+
+#include "StmtHandler.h"
+
 bool isaJumpStmt(const Stmt *stmt, bool returnIsAJump) {
     if (stmt == NULL) {
         return false;

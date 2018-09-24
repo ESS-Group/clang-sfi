@@ -1,22 +1,9 @@
-#include "StmtHandler.h"
+#ifndef FAULTCONSTRAINTS_H
+#define FAULTCONSTRAINTS_H
+
 #include "clang/AST/AST.h"
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/Basic/SourceLocation.h"
-#include "clang/Basic/SourceManager.h"
-#include <algorithm>
-#include <vector>
-
-#include <fstream>
-#include <iostream>
-
-#include "llvm/Support/raw_ostream.h"
-using namespace llvm;
-// MIFS
-#include "clang/ASTMatchers/ASTMatchers.h"
 
 using namespace clang;
-using namespace clang::ast_matchers;
-using namespace std;
 
 constexpr int MAXSTATEMENTNUMFORCONSTRAINT = 5;
 constexpr bool DONOTDELETEDECLSTMTINCONSTRAINT = false;
@@ -49,3 +36,5 @@ int childCount(const Stmt *stmt);
 bool C2(const Stmt *stmt, ASTContext &Context);
 
 bool C2(const Decl *decl, ASTContext &Context);
+
+#endif

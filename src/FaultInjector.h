@@ -1,20 +1,17 @@
 #ifndef FAULTINJECTOR_H
 #define FAULTINJECTOR_H
 
+#include <sstream>
+
 #include "clang/AST/AST.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/Basic/SourceManager.h"
 #include "clang/Rewrite/Core/Rewriter.h"
-#include <algorithm>
-#include <sstream>
-#include <vector>
 
 class StmtHandler;
 // include "StmtHandler.h"
 
 using namespace clang;
 using namespace clang::ast_matchers;
-using namespace std;
 
 class FaultInjector {
   public:
@@ -44,7 +41,7 @@ class FaultInjector {
             std::string toString() {
                 if (isValid()) {
                     std::stringstream ss;
-                    ss << begin.toString() << " - " << end.toString() << endl;
+                    ss << begin.toString() << " - " << end.toString() << std::endl;
                     return ss.str();
                 } else {
                     return "INVALID";

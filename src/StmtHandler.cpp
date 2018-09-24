@@ -1,8 +1,7 @@
 #include "StmtHandler.h"
+
 #include "FaultInjector.h"
 
-#include <iostream>
-using namespace std;
 StmtHandler::StmtHandler(FaultInjector *pFaultInjector, std::string name,
                          std::vector<std::string> bindings /*,void (*nodeCallback)(std::string, const Stmt*)*/)
     : /*nodeCallback(nodeCallback),*/ bindings(bindings), fileName(name) {
