@@ -165,7 +165,7 @@ int main(int argc, const char **argv) {
     cout << endl;
     if (dir.compare("") != 0) {
         cout << "Changing destination directory to '" << dir << "'" << endl;
-        if (!mkdir(dir.c_str(), ACCESSPERMS) && errno != EEXIST) {
+        if (mkdir(dir.c_str(), ACCESSPERMS) != 0 && errno != EEXIST) {
             cerr << "-Failed" << endl;
             return 1;
         }
