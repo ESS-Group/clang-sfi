@@ -105,8 +105,9 @@ bool MLOCInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
     } else if (binding.compare("for") == 0) {
         const Stmt *condition = ((const ForStmt *)stmt)->getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(condition);
-    } else
+    } else {
         return false;
+    }
     for (const BinaryOperator *op : binaryOperators) {
         if (op->getOpcode() == BinaryOperatorKind::BO_LOr) {
             const Expr *left = op->getLHS()->IgnoreImplicit();

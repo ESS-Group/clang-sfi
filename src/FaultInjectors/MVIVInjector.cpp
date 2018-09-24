@@ -9,7 +9,7 @@ MVIVInjector::MVIVInjector(){
     Matcher.addMatcher(
         varDecl(//variable declaration
             allOf(
-                hasInitializer(//variable declaration that has en initializer
+                hasInitializer(//variable declaration that has an initializer
                 unless(
                     anyOf(//assure that initializer is an value
                         callExpr(),

@@ -14,8 +14,8 @@ std::unique_ptr<ASTConsumer> SFIAction::CreateASTConsumer(CompilerInstance &CI, 
     fileName = file.data();
     std::cout << "Parsing file '" << fileName << "'" << std::endl;
 
-    // CI.getDiagnostics().setClient(new IgnoringDiagConsumer());//keine
-    // warnings ausgeben
+    // Do not print warnings:
+    // CI.getDiagnostics().setClient(new IgnoringDiagConsumer());
 
     // Rewrite.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
     return llvm::make_unique<SFIASTConsumer>(file, injectors);

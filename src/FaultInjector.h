@@ -200,7 +200,7 @@ class FaultInjector {
     std::string fileName;
     // SourceManager *sourceMgr;
     std::vector<std::string> bindings;
-    MatchFinder Matcher; // child Classes have to add Matchers!!
+    MatchFinder Matcher; // child classes have to add Matchers
     void _sort();
     static bool comparefunc(StmtBinding st1, StmtBinding st2);
     bool verbose;

@@ -39,7 +39,7 @@ std::string WAEPInjector::inject(StmtBinding current, ASTContext &Context) {
     R.RemoveText(range);
     return getEditedString(R, Context);
 }
-bool WAEPInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
+bool WAEPInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     if (hasChildOfType<BinaryOperator>(stmt)) {
         std::vector<const BinaryOperator *> arguments = getChildrenFlat<BinaryOperator>(stmt);
         for (const BinaryOperator *op : arguments) {

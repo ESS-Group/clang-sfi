@@ -10,7 +10,7 @@ MFCInjector::MFCInjector(){
         callExpr(
             ignoringImplicit(
                 unless(
-                    anyOf(//not used in variable declaration, return statement, function call, operator call
+                    anyOf( //not used in variable declaration, return statement, function call, operator call
                         hasAncestor(varDecl(isDefinition())),
                         hasParent(returnStmt()),
                         hasParent(callExpr()),

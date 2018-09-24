@@ -86,7 +86,7 @@ const SwitchStmt *getParentSwitchStmt(const SwitchCase *sc, ASTContext &Context)
         return NULL;
     } else if (isa<SwitchStmt>(parent)) {
         return (const SwitchStmt *)parent;
-    } else { // if(isa<SwitchCase>(parent)){
+    } else { // if(isa<SwitchCase>(parent)) {
         return getParentSwitchStmt((const SwitchCase *)parent, Context);
     }
 }

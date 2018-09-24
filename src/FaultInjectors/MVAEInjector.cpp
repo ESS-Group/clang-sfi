@@ -18,7 +18,7 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten){
             binaryOperator(
                     allOf(
                         hasOperatorName("="), //assignmentOperator
-                        hasLHS(//left side of Assignment
+                        hasLHS(//left side of assignment
                             allOf(
                                 unless(hasDescendant(callExpr())),//no functioncall on left side
                                 anyOf(

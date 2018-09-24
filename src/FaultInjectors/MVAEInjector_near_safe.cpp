@@ -20,7 +20,7 @@ MVAEInjectorSAFE::MVAEInjectorSAFE(){
 
     Matcher.addMatcher(
             varDecl(
-                //commented to include global assignements
+                //commented to include global assignments
                     hasAncestor(compoundStmt())
             ).bind("varDecl"), createStmtHandler("varDecl"));
 }

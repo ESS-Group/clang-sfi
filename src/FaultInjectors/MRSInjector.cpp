@@ -5,7 +5,7 @@ std::string MRSInjector::toString() {
 };
 
 MRSInjector::MRSInjector() { // Missing if construct plus statements plus else
-                             // plus satements
+                             // plus statements
     Matcher.addMatcher(returnStmt().bind("returnStmt"), createStmtHandler("returnStmt"));
 }
 
@@ -17,6 +17,6 @@ std::string MRSInjector::inject(StmtBinding current, ASTContext &Context) {
     R.RemoveText(range);
     return getEditedString(R, Context);
 }
-bool MRSInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
+bool MRSInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     return true;
 }

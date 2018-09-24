@@ -5,7 +5,7 @@ std::string MIESInjector::toString() {
 };
 
 MIESInjector::MIESInjector() { // Missing if construct plus statements plus else
-                               // plus satements
+                               // plus statements
     Matcher.addMatcher(ifStmt().bind("ifStmt"), createStmtHandler("ifStmt"));
 }
 

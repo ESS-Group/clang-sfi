@@ -248,7 +248,7 @@ template <class T> std::vector<const T *> getArgumentsOfType(const CallExpr *cal
     const Expr *const *args = call->getArgs();
     for (int i = 0; i < call->getNumArgs(); i++) {
         const Expr *arg = args[i];
-        // hier abfangen
+        // catch here
         if (isa<MaterializeTemporaryExpr>(arg)) {
             if (const DeclRefExpr *ref = getDeclRefExprOfImplicitConstructExpr((const MaterializeTemporaryExpr *)arg)) {
                 if (isa<T>(ref)) {

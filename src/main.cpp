@@ -165,11 +165,11 @@ int main(int argc, const char **argv) {
     if (ret == 2) {
         std::cout << "Some files were skipped, because there was no "
                 "compileCommand "
-                "for them in compile_commands.json!!!"
+                "for them in compile_commands.json!"
              << std::endl;
     }
     if (ret == 1) {
-        std::cout << "An error occured while running the tool..." << std::endl;
+        std::cout << "An error occurred while running the tool..." << std::endl;
         return 1;
     } else {
         // create overview in summary.json
@@ -205,7 +205,7 @@ int main(int argc, const char **argv) {
             std::cout << "Injected " << size << " " << type << " faults." << std::endl
                  << "> " << size << "/" << injectioncount << " (" << roundf(part * 100) / 100 << "\%)" << std::endl;
         }
-        std::cout << ">>> Total Injected faults: " << injectioncount << std::endl;
+        std::cout << ">>> Total injected faults: " << injectioncount << std::endl;
         summary["injectionCount"] = injectioncount;
         summary["fileName"] = fileforInjection;
         if (j.find("multipleRuns") != j.end()) {
@@ -233,7 +233,7 @@ int main(int argc, const char **argv) {
         o << summary;
         o.flush();
         o.close();
-        std::cout << "saved summary at \"" << (dir.compare("") ? dir + "/" : "") + "summary.json"
+        std::cout << "Saved summary at \"" << (dir.compare("") ? dir + "/" : "") + "summary.json"
              << "\"" << std::endl;
     }
 

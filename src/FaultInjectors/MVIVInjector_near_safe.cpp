@@ -25,7 +25,7 @@ MVIVInjectorSAFE::MVIVInjectorSAFE() {
                     hasAncestor(compoundStmt()),
                     unless(varDecl(hasInitializer(expr())))
                     )
-            ).bind("notInitialized"), createStmtHandler("notInitialized")); // in this case get next assignement
+            ).bind("notInitialized"), createStmtHandler("notInitialized")); // in this case get next assignment
 
 }
 // clang-format on

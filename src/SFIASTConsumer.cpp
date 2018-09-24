@@ -17,7 +17,7 @@ void SFIASTConsumer::HandleTranslationUnit(ASTContext &Context) {
 
         std::cout << "Found " << injector->locations.size() << " " << injector->toString() << " injection locations" << std::endl;
 
-        injector->inject(injector->locations, Context);                   // inject Faults
+        injector->inject(injector->locations, Context);                   // inject faults
         for (FaultInjector::StmtBinding &binding : injector->locations) { // only for verbose
             binding.calculateRange(Context);
         }
