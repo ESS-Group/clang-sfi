@@ -17,3 +17,6 @@ Run `cd build && make && make check`.
 To add additional integration tests, use `MFC_1` as template.
 
 ## Use
+```
+./clang-sfi <my_source_file.cpp>
+```
