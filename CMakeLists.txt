@@ -55,7 +55,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${ZLIB_LIBRARIES} curses)
 ###
 # Setup testing
 #enable_testing()
-#include(CTest)
+include(CTest)
 #add_subdirectory(googletest)
 #add_subdirectory(unittests)
-#add_subdirectory(integrationtests)
+add_subdirectory(integrationtests)

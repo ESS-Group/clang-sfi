@@ -14,4 +14,6 @@ Make sure to use a linker (e.g. `ld.gold` or `lld` from clang), which does not c
 ## Run tests
 Run `cd build && make && make check`.
 
+To add additional integration tests, use `MFC_1` as template.
+
 ## Use
