@@ -5,7 +5,7 @@ std::string MVAEInjectorSAFE::toString() {
 };
 
 // clang-format off
-MVAEInjectorSAFE::MVAEInjectorSAFE(){
+MVAEInjectorSAFE::MVAEInjectorSAFE() {
     /*
         Matcher.addMatcher(
         varDecl(

@@ -5,7 +5,7 @@ std::string WPFVInjector::toString() {
 };
 
 // clang-format off
-WPFVInjector::WPFVInjector(){
+WPFVInjector::WPFVInjector() {
     Matcher.addMatcher(
         callExpr(
             allOf(
@@ -26,7 +26,6 @@ WPFVInjector::WPFVInjector(){
                     )
                 )
                     //implicit constructorcall + implicit cast
-                    
                 )
             ).bind("functionCall"),
         createStmtHandler("functionCall")

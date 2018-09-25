@@ -8,7 +8,7 @@ std::string OMVAEInjector::toString() {
 };
 
 // clang-format off
-MVAEInjector::MVAEInjector(bool alsoOverwritten){
+MVAEInjector::MVAEInjector(bool alsoOverwritten) {
     this->alsoOverwritten = alsoOverwritten;
     /*Matcher.addMatcher(
             varDecl(
@@ -32,7 +32,6 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten){
                                             memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))//assignment to array element of member array of local object
                                         ))    
                                     )),
-
                                     
                                     //assignment to one time dereferred local pointer
                                     ignoringParenCasts(ignoringImplicit(
@@ -70,7 +69,7 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten){
             ).bind("assignment"), createStmtHandler("assignment"));
 
 //if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
-        if(alsoOverwritten){
+        if(alsoOverwritten) {
             Matcher.addMatcher(//overwritten assignmentoperator call, rest like above
                 cxxOperatorCallExpr(allOf(
                     hasOverloadedOperatorName("="),
@@ -89,7 +88,6 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten){
                                             memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))
                                         ))    
                                     )),
-
                                     
                                     ignoringParenCasts(ignoringImplicit(
                                             unaryOperator(allOf(
@@ -97,7 +95,6 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten){
                                                 hasUnaryOperand(ignoringParenCasts(ignoringImplicit(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))))
                                         ))
                                     )),
-
                                     
                                     ignoringParenCasts(ignoringImplicit(
                                             unaryOperator(allOf(
@@ -199,6 +196,6 @@ getParentOfType<ForStmt>(decl,Context,3)){
 */
 
 OMVAEInjector::OMVAEInjector()
-    : MVAEInjector(true){
+    : MVAEInjector(true) {
 
       };

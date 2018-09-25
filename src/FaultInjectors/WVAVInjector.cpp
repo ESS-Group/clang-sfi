@@ -8,7 +8,7 @@ std::string WVAVInjector::toString() {
 };
 
 // clang-format off
-WVAVInjector::WVAVInjector(bool alsoOverwritten){
+WVAVInjector::WVAVInjector(bool alsoOverwritten) {
     this->alsoOverwritten = alsoOverwritten;
     Matcher.addMatcher(
             binaryOperator(
@@ -28,7 +28,6 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten){
                                             memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))//assignment to array element of member array of local object
                                         ))    
                                     )),
-
                                     
                                     ignoringParenCasts(ignoringImplicit(//assignment to one time dereferred local pointer
                                             unaryOperator(allOf(
@@ -36,7 +35,6 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten){
                                                 hasUnaryOperand(ignoringParenCasts(ignoringImplicit(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))))
                                         ))
                                     )),
-
                                     
                                     ignoringParenCasts(ignoringImplicit(//assignment to one time dereferred pointer, which is member of a local object
                                             unaryOperator(allOf(
@@ -65,7 +63,7 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten){
             ).bind("assignment"), createStmtHandler("assignment"));
 
 //if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
-        if(alsoOverwritten){//overwritten assignmentoperator call, rest like above
+        if(alsoOverwritten) {//overwritten assignmentoperator call, rest like above
             Matcher.addMatcher(
                 cxxOperatorCallExpr(allOf(
                     hasOverloadedOperatorName("="),
@@ -84,7 +82,6 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten){
                                             memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))
                                         ))    
                                     )),
-
                                     
                                     ignoringParenCasts(ignoringImplicit(
                                             unaryOperator(allOf(
@@ -93,7 +90,6 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten){
                                         ))
                                     )),
 
-                                    
                                     ignoringParenCasts(ignoringImplicit(
                                             unaryOperator(allOf(
                                                 hasOperatorName("*"),
@@ -217,6 +213,6 @@ std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context) {
 }
 
 OWVAVInjector::OWVAVInjector()
-    : WVAVInjector(true){
+    : WVAVInjector(true) {
 
       };

@@ -5,7 +5,7 @@ std::string MFCInjector::toString() {
 };
 
 // clang-format off
-MFCInjector::MFCInjector(){
+MFCInjector::MFCInjector() {
     Matcher.addMatcher(
         callExpr(
             ignoringImplicit(

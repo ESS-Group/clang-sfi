@@ -2,9 +2,9 @@
 
 #include "FaultInjector.h"
 
-StmtHandler::StmtHandler(FaultInjector *pFaultInjector, std::string name,
+StmtHandler::StmtHandler(FaultInjector *pFaultInjector, std::string fileName,
                          std::vector<std::string> bindings /*,void (*nodeCallback)(std::string, const Stmt*)*/)
-    : /*nodeCallback(nodeCallback),*/ bindings(bindings), fileName(name) {
+    : /*nodeCallback(nodeCallback),*/ bindings(bindings), fileName(fileName) {
     faultInjector = pFaultInjector;
 }
 void StmtHandler::run(const MatchFinder::MatchResult &Result) {

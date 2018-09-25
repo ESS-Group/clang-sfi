@@ -8,7 +8,7 @@ std::string OMVAVInjector::toString() {
 };
 
 // clang-format off
-MVAVInjector::MVAVInjector(bool alsoOverwritten){
+MVAVInjector::MVAVInjector(bool alsoOverwritten) {
     this->alsoOverwritten = alsoOverwritten;
     Matcher.addMatcher(
             binaryOperator(
@@ -28,7 +28,6 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten){
                                             memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))//assignment to array element of member array of local object
                                         ))    
                                     )),
-
                                     
                                     ignoringParenCasts(ignoringImplicit(//assignment to one time dereferred local pointer
                                             unaryOperator(allOf(
@@ -36,7 +35,6 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten){
                                                 hasUnaryOperand(ignoringParenCasts(ignoringImplicit(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))))
                                         ))
                                     )),
-
                                     
                                     ignoringParenCasts(ignoringImplicit(//assignment to one time dereferred pointer, which is member of a local object
                                             unaryOperator(allOf(
@@ -65,7 +63,7 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten){
             ).bind("assignment"), createStmtHandler("assignment"));
 
 //if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
-            if(alsoOverwritten){
+            if(alsoOverwritten) {
             Matcher.addMatcher(//overwritten assignmentoperator call, rest like above
                 cxxOperatorCallExpr(allOf(
                     hasOverloadedOperatorName("="),
@@ -84,7 +82,6 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten){
                                             memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl()))))))
                                         ))    
                                     )),
-
                                     
                                     ignoringParenCasts(ignoringImplicit(
                                             unaryOperator(allOf(
@@ -92,7 +89,6 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten){
                                                 hasUnaryOperand(ignoringParenCasts(ignoringImplicit(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))))
                                         ))
                                     )),
-
                                     
                                     ignoringParenCasts(ignoringImplicit(
                                             unaryOperator(allOf(
@@ -192,6 +188,6 @@ return false;
 }*/
 
 OMVAVInjector::OMVAVInjector()
-    : MVAVInjector(true){
+    : MVAVInjector(true) {
 
       };

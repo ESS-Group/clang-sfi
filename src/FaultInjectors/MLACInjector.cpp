@@ -41,7 +41,7 @@ std::string MLACInjector::inject(StmtBinding current, ASTContext &Context){
 */
 
 // clang-format off
-MLACInjector::MLACInjector(){
+MLACInjector::MLACInjector() {
     //Matcher.addMatcher(binaryOperator(anyOf(hasAncestor(expr(anyOf(hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt())))),hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt()))).bind("FunctionCall"), createStmtHandler("FunctionCall"));
     Matcher.addMatcher(
         stmt(
@@ -105,8 +105,9 @@ bool MLACInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
     } else if (binding.compare("for") == 0) {
         const Stmt *condition = ((const ForStmt *)stmt)->getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(condition);
-    } else
+    } else {
         return false;
+    }
     for (const BinaryOperator *op : binaryOperators) {
         if (op->getOpcode() == BinaryOperatorKind::BO_LAnd) {
             const Expr *left = op->getLHS()->IgnoreImplicit();

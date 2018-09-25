@@ -5,7 +5,7 @@ std::string WAEPInjector::toString() {
 };
 
 // clang-format off
-WAEPInjector::WAEPInjector(){
+WAEPInjector::WAEPInjector() {
     Matcher.addMatcher(
         callExpr(
             allOf(

@@ -177,7 +177,7 @@ std::vector<std::vector<const Stmt *>> getMLPAListOfSize(std::vector<const Stmt 
 }
 
 // clang-format off
-MLPAInjector::MLPAInjector(){
+MLPAInjector::MLPAInjector() {
     Matcher.addMatcher(
                 compoundStmt(
                     allOf(
