@@ -47,8 +47,17 @@ if (NOT ALL_MY_LLVM_LIBS)
 	message(FATAL_ERROR "Did not find any library files in \"${LLVM_DIR}/../../*.a\"")
 endif(NOT ALL_MY_LLVM_LIBS)
 # message(STATUS "Using following libs: ${ALL_MY_LLVM_LIBS}")
-target_link_libraries(${PROJECT_NAME} PRIVATE ${ALL_MY_LLVM_LIBS})
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	# GCC will likely use a linker which cares for link order, so we wrap the LLVM libs in a group.
+	target_link_libraries(${PROJECT_NAME} PRIVATE -Wl,--start-group ${ALL_MY_LLVM_LIBS} -Wl,--end-group)
+else()
+	target_link_libraries(${PROJECT_NAME} PRIVATE ${ALL_MY_LLVM_LIBS})
+endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE ${ZLIB_LIBRARIES} curses)
+if(UNIX AND NOT APPLE)
+	# Additional library for Linux systems.
+	target_link_libraries(${PROJECT_NAME} PRIVATE pthread)
+endif()
 #target_link_libraries(${PROJECT_NAME} PRIVATE clangBasic clangFrontend clangTooling clangToolingASTDiff clangToolingRefactor clangCrossTU clangIndex clangAST clangLex clangSerialization clangSema clangAnalysis clangARCMigrate clangEdit clangDriver clangParse)
 
 
