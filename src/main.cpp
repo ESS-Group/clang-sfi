@@ -1,5 +1,10 @@
 #include <fstream>
+
+#ifdef _WIN32
+#include <direct.h>
+#else
 #include <sys/stat.h>
+#endif
 
 #include "llvm/Support/raw_ostream.h"
 
@@ -149,7 +154,12 @@ int main(int argc, const char **argv) {
     std::cout << std::endl;
     if (dir.compare("") != 0) {
         std::cout << "Changing destination directory to '" << dir << "'" << std::endl;
-        if (mkdir(dir.c_str(), ACCESSPERMS) != 0 && errno != EEXIST) {
+#ifdef _WIN32
+	  if (_mkdir(dir.c_str()) != 0 && errno != EEXIST) {
+#else
+	  if (mkdir(dir.c_str(), ACCESSPERMS) != 0 && errno != EEXIST) {
+#endif	
+      
             std::cerr << "-Failed" << std::endl;
             return 1;
         }
