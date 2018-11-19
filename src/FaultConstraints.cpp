@@ -62,6 +62,23 @@ bool isaImplicit(const Stmt *stmt) {
            isa<ImplicitCastExpr>(stmt);
 }
 
+const Stmt *getParentIgnoringParenCasts(const Stmt *stmt, ASTContext &Context) {
+    ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
+    if (!list.empty()) {
+        if (list[0].get<Stmt>() != NULL) {
+            const Stmt *temp = list[0].get<Stmt>();
+            if (isaImplicit(temp) || isa<ParenExpr>(temp) || isa<CastExpr>(temp)) {
+                return getParentIgnoringImplicit(temp, Context);
+            } else {
+                return temp;
+            }
+        } else {
+            return NULL;
+        }
+    } else {
+        return NULL;
+    }
+}
 const Stmt *getParentIgnoringImplicit(const Stmt *stmt, ASTContext &Context) {
     ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
     if (!list.empty()) {

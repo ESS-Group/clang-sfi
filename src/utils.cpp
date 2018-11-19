@@ -5,6 +5,22 @@
 
 using namespace clang::ast_matchers;
 
+template<class T>
+const T *getParentOfType(const Stmt *stmt, ASTContext &Context) {
+    ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
+    if (!list.empty()) {
+        if (list[0].get<Stmt>() != NULL) {
+            if (isa<T>(list[0].get<Stmt>())) {
+                const T *ret = list[0].get<T>();
+                return ret;
+            } else {
+                return NULL;
+            }
+        }
+    }
+    return NULL;
+}
+
 const CompoundStmt *getParentCompoundStmt(const Stmt *stmt, ASTContext &Context) {
     ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
     if (!list.empty()) {
