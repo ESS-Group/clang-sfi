@@ -21,16 +21,108 @@ MFCInjector::MFCInjector() { // Missing function call
                 )
             )
         ).bind("FunctionCall"), createStmtHandler("FunctionCall"));
+	Matcher.addMatcher(
+		binaryOperator(
+			allOf(
+				hasOperatorName(","),
+				hasParent(
+					parenExpr(
+						unless(
+							hasParent(
+								binaryOperator(
+									hasOperatorName(",")
+								)
+							)
+						)
+					)
+				),
+				hasDescendant(
+					callExpr()
+				)
+			)
+		).bind("CommaOperator"), createStmtHandler("CommaOperator"));
 }
 // clang-format on
 
 std::string MFCInjector::inject(StmtBinding current, ASTContext &Context) {
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+
+	if (current.binding.compare("FunctionCall") == 0) {
     SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
     R.RemoveText(range);
+    } else if (current.binding.compare("CommaOperator") == 0) {//totest
+        SourceLocation start, end;
+        if (current.left) {
+            start = ((const BinaryOperator *)current.stmt)->getLHS()->getLocStart();
+            end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocStart().getLocWithOffset(-1);
+        } else {
+            start = ((const BinaryOperator *)current.stmt)->getOperatorLoc();
+            end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocEnd();
+        }
+        SourceRange range(start, end);
+        R.RemoveText(range);
+    }
+    
+	
     return getEditedString(R, Context);
 }
+std::vector<const Stmt*> getFunctionCallExprListInCommaOp(const BinaryOperator* bo, bool checkRight = false, bool neverCheckRight=false){
+    if (neverCheckRight)
+        checkRight = false;
+        const Expr *lhs = ((const BinaryOperator *)bo)
+                              ->getLHS()
+                              ->IgnoreParenCasts()
+                              ->IgnoreImplicit()
+                              ->IgnoreParenCasts()
+                              ->IgnoreImplicit();
+        const Expr *rhs = ((const BinaryOperator *)bo)
+                              ->getRHS()
+                              ->IgnoreParenCasts()
+                              ->IgnoreImplicit()
+                              ->IgnoreParenCasts()
+                              ->IgnoreImplicit();
+		std::vector<const Stmt*> ret;
+		if(isa<CallExpr>(lhs) && !isa<CXXOperatorCallExpr>(lhs)){
+			ret.push_back(lhs);
+		} else if(isa<BinaryOperator>(lhs) && ((const BinaryOperator *)lhs)->getOpcode() == BO_Comma){
+			std::vector<const Stmt*> temp = getFunctionCallExprListInCommaOp((const BinaryOperator *)lhs);
+			if(temp.size()!=0){
+				for(const Stmt* tmp:temp){
+					ret.push_back(tmp);
+				}
+			}
+		}
+        if (isa<BinaryOperator>(rhs) && ((const BinaryOperator *)rhs)->getOpcode() == BO_Comma) {
+			std::vector<const Stmt*> temp = getFunctionCallExprListInCommaOp((const BinaryOperator *)rhs, true);
+			if(temp.size()!=0){
+				for(const Stmt* tmp:temp){
+					ret.push_back(tmp);
+				}
+			}
+        } else if (!checkRight && isa<CallExpr>(rhs)) { // otherwise return of callExpr could be used
+			ret.push_back(rhs);
+		}
+
+		return ret;
+}
 bool MFCInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    return C2(stmt, Context);
+    if (binding.compare("FunctionCall") == 0) {
+		return C2(stmt, Context);
+    } else if (binding.compare("CommaOperator") == 0) {
+
+        const Stmt *parent = getParentIgnoringParenCasts(stmt, Context);
+
+        std::vector<const Stmt *> stmts = getFunctionCallExprListInCommaOp((const BinaryOperator *)stmt, true,
+                                                                           parent != NULL && !isa<CallExpr>(parent));
+		if(stmts.size()!=0){
+            for (const Stmt *stmt : stmts){
+                const BinaryOperator *op = getParentOfType<BinaryOperator>(stmt, Context);
+                bool left = op->getLHS() == stmt || isParentOf(op->getLHS(), stmt);
+                if (left || op->getRHS() == stmt || isParentOf(op->getRHS(), stmt))
+					nodeCallback("CommaOperator", op, left);
+			}
+		}
+    }
+    return false;
 }

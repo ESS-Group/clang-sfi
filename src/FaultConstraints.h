@@ -19,6 +19,7 @@ bool C8(const IfStmt *ifS);
 bool isaImplicit(const Stmt *stmt);
 
 const Stmt *getParentIgnoringImplicit(const Stmt *stmt, ASTContext &Context);
+const Stmt *getParentIgnoringParenCasts(const Stmt *stmt, ASTContext &Context);
 
 const SwitchStmt *getParentSwitchStmt(const SwitchCase *sc, ASTContext &Context);
 struct CaseChilds {
