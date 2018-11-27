@@ -155,11 +155,12 @@ int main(int argc, const char **argv) {
     if (dir.compare("") != 0) {
         std::cout << "Changing destination directory to '" << dir << "'" << std::endl;
 #ifdef _WIN32
-	  if (_mkdir(dir.c_str()) != 0 && errno != EEXIST) {
+    int mkdirSuccess = _mkdir(dir.c_str());
 #else
-	  if (mkdir(dir.c_str(), ACCESSPERMS) != 0 && errno != EEXIST) {
+    int mkdirSuccess = mkdir(dir.c_str(), ACCESSPERMS);
 #endif	
       
+        if (mkdirSuccess != 0 && errno != EEXIST) {
             std::cerr << "-Failed" << std::endl;
             return 1;
         }
