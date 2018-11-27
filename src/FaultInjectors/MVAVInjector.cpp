@@ -190,6 +190,6 @@ return false;
 }*/
 
 OMVAVInjector::OMVAVInjector()
-    : MVAVInjector(true) {
+    : MVAVInjector(true){
 
       };

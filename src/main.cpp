@@ -155,11 +155,11 @@ int main(int argc, const char **argv) {
     if (dir.compare("") != 0) {
         std::cout << "Changing destination directory to '" << dir << "'" << std::endl;
 #ifdef _WIN32
-    int mkdirSuccess = _mkdir(dir.c_str());
+        int mkdirSuccess = _mkdir(dir.c_str());
 #else
-    int mkdirSuccess = mkdir(dir.c_str(), ACCESSPERMS);
-#endif	
-      
+        int mkdirSuccess = mkdir(dir.c_str(), ACCESSPERMS);
+#endif
+
         if (mkdirSuccess != 0 && errno != EEXIST) {
             std::cerr << "-Failed" << std::endl;
             return 1;
@@ -175,9 +175,9 @@ int main(int argc, const char **argv) {
     int ret = Tool.run(newSFIFrontendActionFactory(injectors).get());
     if (ret == 2) {
         std::cout << "Some files were skipped, because there was no "
-                "compileCommand "
-                "for them in compile_commands.json!"
-             << std::endl;
+                     "compileCommand "
+                     "for them in compile_commands.json!"
+                  << std::endl;
     }
     if (ret == 1) {
         std::cout << "An error occurred while running the tool..." << std::endl;
@@ -214,7 +214,8 @@ int main(int argc, const char **argv) {
             float part = ((float)size) / injectioncount * 100.0;
 
             std::cout << "Injected " << size << " " << type << " faults." << std::endl
-                 << "> " << size << "/" << injectioncount << " (" << roundf(part * 100) / 100 << "\%)" << std::endl;
+                      << "> " << size << "/" << injectioncount << " (" << roundf(part * 100) / 100 << "\%)"
+                      << std::endl;
         }
         std::cout << ">>> Total injected faults: " << injectioncount << std::endl;
         summary["injectionCount"] = injectioncount;
@@ -245,7 +246,7 @@ int main(int argc, const char **argv) {
         o.flush();
         o.close();
         std::cout << "Saved summary at \"" << (dir.compare("") ? dir + "/" : "") + "summary.json"
-             << "\"" << std::endl;
+                  << "\"" << std::endl;
     }
 
     std::cout << "Operation succeeded." << std::endl;

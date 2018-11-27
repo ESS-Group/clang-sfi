@@ -5,8 +5,7 @@
 
 using namespace clang::ast_matchers;
 
-template<class T>
-const T *getParentOfType(const Stmt *stmt, ASTContext &Context) {
+template <class T> const T *getParentOfType(const Stmt *stmt, ASTContext &Context) {
     ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
     if (!list.empty()) {
         if (list[0].get<Stmt>() != NULL) {
@@ -201,8 +200,7 @@ std::vector<const BinaryOperator *> getChildForFindInitForVar(const Stmt *parent
                         std::vector<const BinaryOperator *> temp;
                         if (alsoinforconstruct) {
                             auto init = cast<ForStmt>(*i)->getInit();
-                            temp = getChildForFindInitForVar(init, var, alsoinloop,
-                                                             alsoinforconstruct);
+                            temp = getChildForFindInitForVar(init, var, alsoinloop, alsoinforconstruct);
                             if (temp.size() != 0) {
                                 concatVector<const BinaryOperator *>(ret, temp);
                                 break;
@@ -220,8 +218,7 @@ std::vector<const BinaryOperator *> getChildForFindInitForVar(const Stmt *parent
                     std::vector<const BinaryOperator *> temp;
                     if (alsoinforconstruct) {
                         auto init = cast<ForStmt>(*i)->getInit();
-                        temp = getChildForFindInitForVar(init, var, alsoinloop,
-                                                         alsoinforconstruct);
+                        temp = getChildForFindInitForVar(init, var, alsoinloop, alsoinforconstruct);
                         if (temp.size() != 0) {
                             concatVector<const BinaryOperator *>(ret, temp);
                             break;

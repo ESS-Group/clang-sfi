@@ -51,28 +51,36 @@ class FaultInjector {
           private:
             bool valid;
         };
-        StmtBinding(std::string binding, const Decl *decl, bool left = false) : binding(binding) {
+        StmtBinding(std::string binding, const Decl *decl, bool left = false, bool isMacroExpansion = false)
+            : binding(binding) {
+            this->isMacroExpansion = isMacroExpansion;
             this->left = left;
             this->decl = decl;
             decllist.push_back(decl);
             isStmt = false;
             isList = false;
         }
-        StmtBinding(std::string binding, const Stmt *stmt, bool left = false) : binding(binding) {
+        StmtBinding(std::string binding, const Stmt *stmt, bool left = false, bool isMacroExpansion = false)
+            : binding(binding) {
+            this->isMacroExpansion = isMacroExpansion;
             this->left = left;
             this->stmt = stmt;
             stmtlist.push_back(stmt);
             isStmt = true;
             isList = false;
         }
-        StmtBinding(std::string binding, std::vector<const Decl *> list, bool left = false)
+        StmtBinding(std::string binding, std::vector<const Decl *> list, bool left = false,
+                    bool isMacroExpansion = false)
             : binding(binding), decllist(list.begin(), list.end()) {
+            this->isMacroExpansion = isMacroExpansion;
             this->left = left;
             isStmt = false;
             isList = true;
         }
-        StmtBinding(std::string binding, std::vector<const Stmt *> list, bool left = false)
+        StmtBinding(std::string binding, std::vector<const Stmt *> list, bool left = false,
+                    bool isMacroExpansion = false)
             : binding(binding), stmtlist(list.begin(), list.end()) {
+            this->isMacroExpansion = isMacroExpansion;
             this->left = left;
             isStmt = true;
             isList = true;
@@ -151,6 +159,7 @@ class FaultInjector {
         std::vector<const Decl *> decllist;
         Range location;
         bool left;
+        bool isMacroExpansion;
     };
     StmtHandler *createStmtHandler(std::string binding);
     // std::vector<StmtHandler> test;
@@ -158,21 +167,45 @@ class FaultInjector {
     ~FaultInjector();
     FaultInjector(const FaultInjector &that) = delete;
 
-    void push(std::string binding, const Stmt *st, bool left = false);
-    void push(std::string binding, const Decl *st, bool left = false);
+    static std::string getFileName(const Stmt *stmt, SourceManager &SM);
+    static std::string getFileName(const Decl *decl, SourceManager &SM);
+
+    void pushMakroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left = false);
+    void pushMakroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left = false);
+    void push(std::string binding, const Stmt *st, bool left = false, bool isMacroExpansion = false);
+    void push(std::string binding, const Decl *st, bool left = false, bool isMacroExpansion = false);
     void push(std::string binding, std::vector<const Stmt *> list);
     void push(std::string binding, std::vector<const Decl *> list);
-    virtual void inject(std::vector<StmtBinding> target, ASTContext &Context);
+    virtual void inject(std::vector<StmtBinding> target, ASTContext &Context, bool isMacroDefinition = false);
+    virtual std::string _inject(StmtBinding current, ASTContext &Context, bool isMacroDefinition = false);
     virtual std::string inject(StmtBinding current, ASTContext &Context) = 0;
+    // default false
     virtual bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context);
     virtual bool checkStmt(const Decl *stmt, std::string binding, ASTContext &Context);
+    // default behavior of checkMacroExpansion => checkStmt
+    virtual bool checkMacroExpansion(const Stmt *stmt, std::string binding, ASTContext &Context);
+    virtual bool checkMacroExpansion(const Decl *stmt, std::string binding, ASTContext &Context);
+    // default false
+    virtual bool checkMacroDefinition(const Stmt *stmt, std::string binding, ASTContext &Context);
+    virtual bool checkMacroDefinition(const Decl *stmt, std::string binding, ASTContext &Context);
+    bool isMacroDefinitionAdded(SourceLocation locStart, SourceManager &SM);
     void matchAST(ASTContext &Context);
     virtual std::string toString() = 0;
 
     std::vector<StmtBinding> locations;
+    std::vector<StmtBinding> macroLocations;
+    std::vector<std::string> *fileList;
+    std::vector<SourceLocation> addedMacroPositions;
+    bool matchMacroDefinition, matchMacroExpansion;
+    void setMatchMacro(bool match);
+    void setMatchMacro(bool matchDef, bool matchExp);
     // void setSourceMgr(SourceManager &sourceManager);
     // SourceManager* getSourceMgr();
     // Rewriter Rewrite;
+    void nodeCallbackMacroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left = false);
+    void nodeCallbackMacroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left = false);
+    void nodeCallbackMacroExpansion(std::string binding, const Stmt *stmt, bool left = false);
+    void nodeCallbackMacroExpansion(std::string binding, const Decl *decl, bool left = false);
     void nodeCallback(std::string binding, const Stmt *stmt, bool left = false);
     void nodeCallback(std::string binding, const Decl *decl, bool left = false);
     void nodeCallback(std::string binding, std::vector<const Stmt *> list);
@@ -202,6 +235,7 @@ class FaultInjector {
     std::vector<std::string> bindings;
     MatchFinder Matcher; // child classes have to add Matchers
     void _sort();
+    void _sortMacro(SourceManager &SM);
     static bool comparefunc(StmtBinding st1, StmtBinding st2);
     bool verbose;
     std::string dir;

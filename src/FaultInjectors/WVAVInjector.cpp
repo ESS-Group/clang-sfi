@@ -210,13 +210,13 @@ std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context) {
         }
     } else {
         std::string text = R.getRewrittenText(range);
-        R.ReplaceText(range, "("+type.getAsString()+")"+ text + "^0xFF");
+        R.ReplaceText(range, "(" + type.getAsString() + ")" + text + "^0xFF");
     }
 
     return getEditedString(R, Context);
 }
 
 OWVAVInjector::OWVAVInjector()
-    : WVAVInjector(true) {
+    : WVAVInjector(true){
 
       };

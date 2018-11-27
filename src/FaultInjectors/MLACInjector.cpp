@@ -112,8 +112,7 @@ bool MLACInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
         if (op->getOpcode() == BinaryOperatorKind::BO_LAnd) {
             const Expr *left = op->getLHS()->IgnoreImplicit();
             const Expr *right = op->getRHS()->IgnoreImplicit();
-            if (!isa<BinaryOperator>(left) ||
-                cast<BinaryOperator>(left)->getOpcode() != BinaryOperatorKind::BO_LAnd) {
+            if (!isa<BinaryOperator>(left) || cast<BinaryOperator>(left)->getOpcode() != BinaryOperatorKind::BO_LAnd) {
                 nodeCallback("MLOC", op, true);
             }
             if (!isa<BinaryOperator>(right) ||

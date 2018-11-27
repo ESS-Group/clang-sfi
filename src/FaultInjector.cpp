@@ -26,19 +26,35 @@ bool FaultInjector::checkStmt(const Decl *stmt, std::string binding, ASTContext 
     return false;
 }
 
+bool FaultInjector::checkMacroExpansion(const Stmt *stmt, std::string binding, ASTContext &Context) {
+    return checkStmt(stmt, binding, Context);
+}
+
+bool FaultInjector::checkMacroExpansion(const Decl *stmt, std::string binding, ASTContext &Context) {
+    return checkStmt(stmt, binding, Context);
+}
+
+bool FaultInjector::checkMacroDefinition(const Stmt *stmt, std::string binding, ASTContext &Context) {
+    return false;
+}
+
+bool FaultInjector::checkMacroDefinition(const Decl *stmt, std::string binding, ASTContext &Context) {
+    return false;
+}
+
 FaultInjector::FaultInjector() {
 }
 
 FaultInjector::~FaultInjector() {
 }
 
-void FaultInjector::push(std::string binding, const Stmt *st, bool left) {
-    StmtBinding sb(binding, st, left);
+void FaultInjector::push(std::string binding, const Stmt *st, bool left, bool isMacroExpansion) {
+    StmtBinding sb(binding, st, left, isMacroExpansion);
     locations.push_back(sb);
     _sort();
 }
-void FaultInjector::push(std::string binding, const Decl *st, bool left) {
-    StmtBinding sb(binding, st, left);
+void FaultInjector::push(std::string binding, const Decl *st, bool left, bool isMacroExpansion) {
+    StmtBinding sb(binding, st, left, isMacroExpansion);
     locations.push_back(sb);
     _sort();
 }
@@ -53,6 +69,19 @@ void FaultInjector::push(std::string binding, std::vector<const Decl *> list) {
     locations.push_back(sb);
     _sort();
 }
+
+void FaultInjector::pushMakroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left) {
+    StmtBinding sb(binding, stmt, left);
+    locations.push_back(sb);
+    addedMacroPositions.push_back(SM.getSpellingLoc(stmt->getLocStart()));
+    _sortMacro(SM);
+}
+void FaultInjector::pushMakroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left) {
+    StmtBinding sb(binding, decl, left);
+    locations.push_back(sb);
+    addedMacroPositions.push_back(SM.getSpellingLoc(decl->getLocStart()));
+    _sortMacro(SM);
+}
 void FaultInjector::matchAST(ASTContext &Context) {
     Matcher.matchAST(Context);
 }
@@ -64,6 +93,41 @@ void FaultInjector::setFileName(std::string name) {
 std::string FaultInjector::getFileName() {
     std::string ret(fileName.c_str());
     return ret;
+}
+
+void FaultInjector::setMatchMacro(bool match) {
+    matchMacroDefinition = match;
+    matchMacroExpansion = match;
+}
+
+void FaultInjector::setMatchMacro(bool matchDef, bool matchExp) {
+    matchMacroDefinition = matchDef;
+    matchMacroExpansion = matchExp;
+}
+
+void FaultInjector::nodeCallbackMacroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left) {
+    pushMakroDef(binding, stmt, SM, left);
+}
+void FaultInjector::nodeCallbackMacroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left) {
+    pushMakroDef(binding, decl, SM, left);
+}
+bool FaultInjector::isMacroDefinitionAdded(SourceLocation locStart, SourceManager &SM) {
+    BeforeThanCompare<SourceLocation> isBefore(SM);
+    for (SourceLocation loc : addedMacroPositions) {
+        if ((std::string(SM.getFilename(SM.getExpansionLoc(loc)))).compare(std::string(SM.getFilename(locStart))) ==
+            0) {
+            if (!isBefore(loc, locStart) && !isBefore(locStart, loc)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+void FaultInjector::nodeCallbackMacroExpansion(std::string binding, const Stmt *stmt, bool left) {
+    push(binding, stmt, left, true);
+}
+void FaultInjector::nodeCallbackMacroExpansion(std::string binding, const Decl *decl, bool left) {
+    push(binding, decl, left, true);
 }
 
 void FaultInjector::nodeCallback(std::string binding, const Stmt *stmt, bool left) {
@@ -82,6 +146,11 @@ void FaultInjector::nodeCallback(std::string binding, std::vector<const Decl *> 
 }
 void FaultInjector::_sort() {
     std::sort(locations.begin(), locations.end(), comparefunc);
+}
+void FaultInjector::_sortMacro(SourceManager &SM) {
+    BeforeThanCompare<SourceLocation> isBefore(SM);
+    std::sort(addedMacroPositions.begin(), addedMacroPositions.end(), isBefore);
+    std::sort(macroLocations.begin(), macroLocations.end(), comparefunc);
 }
 
 bool FaultInjector::comparefunc(StmtBinding st1, StmtBinding st2) {
@@ -226,6 +295,9 @@ void FaultInjector::printStep(StmtBinding current, const SourceManager &sourceMa
     getLocEnd().printToString(Context.getSourceManager())<<endl;
     }*/
 } // only position
+std::string FaultInjector::_inject(StmtBinding current, ASTContext &Context, bool isMacroDefinition) {
+    return inject(current, Context); // default case - no match in macro definitions
+}
 
 void FaultInjector::setVerbose(bool v) {
     verbose = v;
@@ -234,7 +306,7 @@ void FaultInjector::setVerbose(bool v) {
 void FaultInjector::setDirectory(std::string directory) {
     dir = directory;
 }
-void FaultInjector::inject(std::vector<StmtBinding> target, ASTContext &Context) {
+void FaultInjector::inject(std::vector<StmtBinding> target, ASTContext &Context, bool isMacroDefinition) {
     int i = 0;
 
     for (StmtBinding current : target) {
@@ -245,7 +317,7 @@ void FaultInjector::inject(std::vector<StmtBinding> target, ASTContext &Context)
         }
         // else
         //    printStep(current, Context.getSourceManager(),i++,target.size());
-        std::string result = inject(current, Context);
+        std::string result = _inject(current, Context, isMacroDefinition);
         if (result.compare("")) {
             if (verbose) {
                 std::cout << " -Success" << std::endl;
@@ -263,4 +335,30 @@ void FaultInjector::writeDown(std::string data, int i) {
     file.flush();
     file.close();
     system(("diff -U 0 \"" + fileName + "\" \"" + name + ".cpp\" > \"" + name + ".patch\"").c_str());
+}
+
+std::string FaultInjector::getFileName(const Stmt *stmt, SourceManager &SM) {
+    if (stmt != NULL) {
+        SourceLocation start = stmt->getLocStart();
+        if (start.isMacroID()) {
+            return std::string(SM.getFilename(SM.getExpansionLoc(start)));
+        } else {
+            return std::string(SM.getFilename(start));
+        }
+    } else {
+        return "";
+    }
+}
+
+std::string FaultInjector::getFileName(const Decl *decl, SourceManager &SM) {
+    if (decl != NULL) {
+        SourceLocation start = decl->getLocStart();
+        if (start.isMacroID()) {
+            return std::string(SM.getFilename(SM.getExpansionLoc(start)));
+        } else {
+            return std::string(SM.getFilename(start));
+        }
+    } else {
+        return "";
+    }
 }

@@ -5,8 +5,8 @@
 
 #include "FaultConstraints.h"
 #include "FaultInjector.h"
-#include "utils.h"
 #include "StmtHandler.h"
+#include "utils.h"
 
 using namespace clang::ast_matchers;
 

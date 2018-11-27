@@ -198,6 +198,6 @@ getParentOfType<ForStmt>(decl,Context,3)){
 */
 
 OMVAEInjector::OMVAEInjector()
-    : MVAEInjector(true) {
+    : MVAEInjector(true){
 
       };

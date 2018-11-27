@@ -7,20 +7,85 @@ StmtHandler::StmtHandler(FaultInjector *pFaultInjector, std::string fileName,
     : /*nodeCallback(nodeCallback),*/ bindings(bindings), fileName(fileName) {
     faultInjector = pFaultInjector;
 }
+bool considerFile(FaultInjector *injector, std::string fileName) {
+    // TODO: add possibility to inject into multiple Files
+    bool consider = false;
+    if (injector->fileList != NULL) {
+        for (std::string name : *(injector->fileList)) {
+            if (name.compare(fileName) == 0) {
+                consider = true;
+                break;
+            }
+        }
+    }
+
+    return consider || injector->getFileName().compare(fileName) == 0;
+}
+
 void StmtHandler::run(const MatchFinder::MatchResult &Result) {
+    SourceManager *SM = &Result.Context->getSourceManager();
     for (std::string binding : bindings) {
         if (const Stmt *stmt = Result.Nodes.getNodeAs<clang::Stmt>(binding)) {
-            std::string name(Result.Context->getSourceManager().getFilename(stmt->getLocStart()));
-            if (faultInjector->getFileName().compare(name) == 0) { // Only consider nodes of the currently parsed file.
-                if (faultInjector->checkStmt(stmt, binding, *Result.Context)) {
-                    faultInjector->nodeCallback(binding, stmt);
+            if (stmt != NULL) {
+                SourceLocation start = stmt->getLocStart();
+                bool isMacro = start.isMacroID();
+                std::string name = FaultInjector::getFileName(stmt, *SM);
+                if (!isMacro) {
+                    // Only consider nodes of the currently parsed file.
+                    if (considerFile(faultInjector, name)) {
+                        if (faultInjector->checkStmt(stmt, binding, *Result.Context)) {
+                            faultInjector->nodeCallback(binding, stmt);
+                        }
+                    }
+                } else {
+                    // MacroExpansion is to consider
+                    if (considerFile(faultInjector, name) && faultInjector->matchMacroExpansion) {
+                        if (faultInjector->checkMacroExpansion(stmt, binding, *Result.Context)) {
+                            faultInjector->nodeCallbackMacroExpansion(binding, stmt);
+                        }
+                    }
+                    // MacroDefinition is to consider
+                    if (considerFile(faultInjector, std::string(SM->getFilename(SM->getSpellingLoc(start)))) &&
+                        faultInjector->matchMacroDefinition) {
+                        // SourceRange range(SM->getSpellingLoc(start), SM->getSpellingLoc(stmt->getLocEnd()));
+                        if (faultInjector->checkMacroDefinition(stmt, binding, *Result.Context)) {
+                            if (!faultInjector->isMacroDefinitionAdded(SM->getSpellingLoc(start), *SM)) {
+                                faultInjector->nodeCallbackMacroDef(binding, stmt, *SM);
+                            }
+                        }
+                    }
                 }
             }
+
         } else if (const Decl *stmt = Result.Nodes.getNodeAs<clang::Decl>(binding)) {
-            std::string name(Result.Context->getSourceManager().getFilename(stmt->getLocStart()));
-            if (faultInjector->getFileName().compare(name) == 0) { // Only consider nodes of the currently parsed file.
-                if (faultInjector->checkStmt(stmt, binding, *Result.Context)) {
-                    faultInjector->nodeCallback(binding, stmt);
+            if (stmt != NULL) {
+                SourceLocation start = stmt->getLocStart();
+                bool isMacro = start.isMacroID();
+                std::string name = FaultInjector::getFileName(stmt, *SM);
+                if (!isMacro) {
+                    // Only consider nodes of the currently parsed file.
+                    if (considerFile(faultInjector, name)) {
+                        if (faultInjector->checkStmt(stmt, binding, *Result.Context)) {
+                            faultInjector->nodeCallback(binding, stmt);
+                        }
+                    }
+                } else {
+                    // MacroExpansion is to consider
+                    if (considerFile(faultInjector, name) && faultInjector->matchMacroExpansion) {
+                        if (faultInjector->checkMacroExpansion(stmt, binding, *Result.Context)) {
+                            faultInjector->nodeCallbackMacroExpansion(binding, stmt);
+                        }
+                    }
+                    // MacroDefinition is to consider
+                    if (considerFile(faultInjector, std::string(SM->getFilename(SM->getSpellingLoc(start)))) &&
+                        faultInjector->matchMacroDefinition) {
+                        // SourceRange range(SM->getSpellingLoc(start), SM->getSpellingLoc(stmt->getLocEnd()));
+                        if (faultInjector->checkMacroDefinition(stmt, binding, *Result.Context)) {
+                            if (!faultInjector->isMacroDefinitionAdded(SM->getSpellingLoc(start), *SM)) {
+                                faultInjector->nodeCallbackMacroDef(binding, stmt, *SM);
+                            }
+                        }
+                    }
                 }
             }
         }
