@@ -122,7 +122,7 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten) {
 bool WVAVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     // if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
     if (binding.compare("overwritten") == 0) {
-        const CXXOperatorCallExpr *opCall = (const CXXOperatorCallExpr *)stmt;
+        const CXXOperatorCallExpr *opCall = cast<CXXOperatorCallExpr>(stmt);
         if (!opCall->isInfixBinaryOp()) {
             return false;
         }
@@ -183,13 +183,14 @@ return false;
 std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context) {
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
-    Expr *val = NULL;
+    const Expr *val = NULL;
     // if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
     // if(alsoOverwritten){
     if (current.binding.compare("overwritten") == 0) {
-        val = (Expr *)(&*((const CXXOperatorCallExpr *)current.stmt)->getArg(1));
+        auto firstArg = cast<CXXOperatorCallExpr>(current.stmt)->getArg(1);
+        val = cast<Expr>(firstArg);
     } else {
-        val = ((const BinaryOperator *)current.stmt)->getRHS();
+        val = cast<BinaryOperator>(current.stmt)->getRHS();
     }
     //} else {
     // elif
@@ -198,7 +199,7 @@ std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context) {
     // endif
     SourceRange range(val->getLocStart(), val->getLocEnd());
     if (isa<CXXBoolLiteralExpr>(val)) {
-        bool value = ((const CXXBoolLiteralExpr *)val)->getValue();
+        bool value = cast<CXXBoolLiteralExpr>(val)->getValue();
         if (value) {
             R.ReplaceText(range, "false");
         } else {

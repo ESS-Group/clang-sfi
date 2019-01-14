@@ -12,10 +12,10 @@ std::string WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
 
-    Expr *val = ((const BinaryOperator *)current.stmt)->getRHS();
+    Expr *val = cast<BinaryOperator>(current.stmt)->getRHS();
     SourceRange range(val->getLocStart(), val->getLocEnd());
     if (isa<CXXBoolLiteralExpr>(val)) {
-        bool value = ((const CXXBoolLiteralExpr *)val)->getValue();
+        bool value = cast<CXXBoolLiteralExpr>(val)->getValue();
         if (value) {
             R.ReplaceText(range, "false");
         } else {
@@ -32,9 +32,9 @@ std::string WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
 bool WVAVInjectorSAFE::checkStmt(const Decl *decl, std::string binding, ASTContext &Context) {
     if (binding.compare("varDecl") == 0 && isa<VarDecl>(decl)) {
         std::vector<const BinaryOperator *> list =
-            getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl *)decl, true);
+            getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), cast<VarDecl>(decl), true);
         for (const BinaryOperator *op : list) {
-            if (isValueAssignment(op) && isInitializedBefore((const DeclRefExpr *)((op)->getLHS()), Context)) {
+            if (isValueAssignment(op) && isInitializedBefore(cast<DeclRefExpr>((op)->getLHS()), Context)) {
                 if (const ForStmt *forstmt = getParentOfType<ForStmt>(decl, Context, 3)) {
                     if (isParentOf(forstmt->getCond(), decl, Context) || isParentOf(forstmt->getInc(), decl, Context)) {
                     } else {

@@ -133,7 +133,7 @@ bool MVAVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
     // if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
 
     if (binding.compare("overwritten") == 0) {
-        const CXXOperatorCallExpr *opCall = (const CXXOperatorCallExpr *)stmt;
+        const CXXOperatorCallExpr *opCall = cast<CXXOperatorCallExpr>(stmt);
         if (!opCall->isInfixBinaryOp()) {
             return false;
         }

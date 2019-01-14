@@ -12,7 +12,7 @@ MIAInjector::MIAInjector() { // Missing if construct around statements
 }
 
 std::string MIAInjector::inject(StmtBinding current, ASTContext &Context) {
-    const IfStmt *ifS = (IfStmt *)(current.stmt);
+    const IfStmt *ifS = cast<IfStmt>(current.stmt);
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     SourceRange range(ifS->getLocStart(), ifS->getThen()->getLocStart().getLocWithOffset(-1));
@@ -24,7 +24,7 @@ std::string MIAInjector::inject(StmtBinding current, ASTContext &Context) {
 }
 bool MIAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
     // if(const IfStmt* ifS = (IfStmt *)(stmt)){
-    const IfStmt *ifS = (IfStmt *)(stmt);
+    const IfStmt *ifS = cast<IfStmt>(stmt);
     // commented to also inject, when the then-block contains more than 5
     // statements
     return C9(ifS->getThen(), &Context);
@@ -34,6 +34,6 @@ bool MIAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &C
 }
 
 bool SMIAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    const IfStmt *ifS = (IfStmt *)(stmt);
+    const IfStmt *ifS = cast<IfStmt>(stmt);
     return C9(ifS->getThen(), &Context, false, 5, true); // && C2(ifS,Context);
 }

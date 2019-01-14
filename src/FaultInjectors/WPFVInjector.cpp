@@ -34,11 +34,11 @@ WPFVInjector::WPFVInjector() {
 // clang-format on
 
 std::string WPFVInjector::inject(StmtBinding current, ASTContext &Context) {
-    const DeclRefExpr *stmt = (const DeclRefExpr *)current.stmt;
+    const DeclRefExpr *stmt = cast<DeclRefExpr>(current.stmt);
 
-    const VarDecl *arg = (VarDecl *)stmt->getDecl();
+    const VarDecl *arg = cast<VarDecl>(stmt->getDecl());
     const DeclContext *declContext = arg->getDeclContext();
-    const FunctionDecl *fkt = (const FunctionDecl *)declContext->getNonClosureAncestor();
+    const FunctionDecl *fkt = cast<FunctionDecl>(declContext->getNonClosureAncestor());
 
     bool isParam = true;
 
@@ -58,7 +58,7 @@ std::string WPFVInjector::inject(StmtBinding current, ASTContext &Context) {
 
     if (!isParam || localVariables.size() == 0) {
         for (DeclContext::decl_iterator it = declContext->decls_begin(), e = declContext->decls_end(); it != e; ++it) {
-            const VarDecl *vardecl = (const VarDecl *)*it;
+            const VarDecl *vardecl = cast<VarDecl>(*it);
             if (isVisible(vardecl, stmt, Context) && vardecl != arg &&
                 arg->getType().getNonReferenceType().getDesugaredType(Context) ==
                     vardecl->getType().getNonReferenceType().getDesugaredType(Context)) {
@@ -79,13 +79,13 @@ std::string WPFVInjector::inject(StmtBinding current, ASTContext &Context) {
 }
 
 bool WPFVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    for (auto i : getArgumentsOfType<DeclRefExpr>((const CallExpr *)stmt)) {
-        const VarDecl *arg = (VarDecl *)i->getDecl();
+    for (auto i : getArgumentsOfType<DeclRefExpr>(cast<CallExpr>(stmt))) {
+        const VarDecl *arg = cast<VarDecl>(i->getDecl());
         const DeclContext *declContext = arg->getDeclContext();
         int varcount = 0;
         const FunctionDecl *fkt = getParentFunctionDecl(getParentOfType<DeclStmt>(arg, Context), Context);
         if (fkt == NULL) {
-            const FunctionDecl *_fkt = (const FunctionDecl *)declContext->getNonClosureAncestor();
+            const FunctionDecl *_fkt = cast<FunctionDecl>(declContext->getNonClosureAncestor());
             if (_fkt != NULL) {
                 int paramCount = _fkt->getNumParams();
 
@@ -100,7 +100,7 @@ bool WPFVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
                 }
 
                 for (DeclContext::decl_iterator it = _fkt->decls_begin(), e = _fkt->decls_end(); it != e; ++it) {
-                    const VarDecl *vardecl = (const VarDecl *)*it;
+                    const VarDecl *vardecl = cast<VarDecl>(*it);
                     if (vardecl != arg &&
                         vardecl->getType().getNonReferenceType().getDesugaredType(Context) ==
                             arg->getType().getNonReferenceType().getDesugaredType(Context)) {
@@ -127,7 +127,7 @@ bool WPFVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
             }
 
             for (DeclContext::decl_iterator it = fkt->decls_begin(), e = fkt->decls_end(); it != e; ++it) {
-                const VarDecl *vardecl = (const VarDecl *)*it;
+                const VarDecl *vardecl = cast<VarDecl>(*it);
                 if (vardecl != arg &&
                     vardecl->getType().getNonReferenceType().getDesugaredType(Context) ==
                         arg->getType().getNonReferenceType().getDesugaredType(Context)) {

@@ -10,7 +10,7 @@ MIESInjector::MIESInjector() { // Missing if construct plus statements plus else
 }
 
 std::string MIESInjector::inject(StmtBinding current, ASTContext &Context) {
-    const IfStmt *ifS = (IfStmt *)(current.stmt);
+    const IfStmt *ifS = cast<IfStmt>(current.stmt);
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     SourceRange range(ifS->getLocStart(), ifS->getElse()->getLocEnd());
@@ -19,7 +19,7 @@ std::string MIESInjector::inject(StmtBinding current, ASTContext &Context) {
 }
 bool MIESInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
     // if(const IfStmt* ifS = (IfStmt *)(stmt)){
-    const IfStmt *ifS = (IfStmt *)(stmt);
+    const IfStmt *ifS = cast<IfStmt>(stmt);
     if (const Stmt *Else = ifS->getElse()) {
         return true;
     }

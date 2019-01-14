@@ -174,7 +174,7 @@ template <class T> std::vector<const T *> getChildrenOfType(const Stmt *parent, 
     for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
          i != e; ++i) {
         if (isa<T>(*i)) {
-            ret.push_back((const T *)*i);
+            ret.push_back(cast<T>(*i));
         }
         std::vector<const T *> children = getChildrenOfType<T>(*i, false);
         if (children.size() != 0) {
@@ -203,7 +203,7 @@ template <class T> std::vector<const T *> getStmtsOfType(std::vector<const Stmt 
     }
     for (const Stmt *stmt : list) {
         if (stmt != NULL && isa<T>(stmt)) {
-            ret.push_back((const T *)stmt);
+            ret.push_back(cast<T>(stmt));
         }
     }
 
@@ -221,16 +221,13 @@ template <class T> std::vector<const T *> getChildrenFlat(const Stmt *parent) {
     for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
          i != e; ++i) {
         if (*i != NULL) {
-            // if(isa<T>(*i)){
             if (isa<Expr>(*i)) {
-                const Expr *expr = ((const T *)*i)->IgnoreImplicit()->IgnoreParenCasts();
+                const Expr *expr = cast<Expr>(*i)->IgnoreImplicit()->IgnoreParenCasts();
                 if (isa<T>(expr)) {
-                    ret.push_back((const T *)expr);
+                    ret.push_back(cast<T>(expr));
                 }
-                // ret.push_back(((const T *)
-                // *i)->IgnoreImplicit()->IgnoreParenCasts());
             } else if (isa<T>(*i)) {
-                ret.push_back(((const T *)*i));
+                ret.push_back(cast<T>(*i));
             }
             // }
             /* else {
