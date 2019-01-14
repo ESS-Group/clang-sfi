@@ -83,7 +83,7 @@ const SwitchStmt *getParentSwitchStmt(const SwitchCase *sc, ASTContext &Context)
     } else if (isa<SwitchStmt>(parent)) {
         return (const SwitchStmt *)parent;
     } else { // if(isa<SwitchCase>(parent)) {
-        return getParentSwitchStmt((const SwitchCase *)parent, Context);
+        return getParentSwitchStmt(cast<SwitchCase>(parent), Context);
     }
 }
 
@@ -105,7 +105,7 @@ CaseChilds getCaseChilds(const SwitchCase *sc, ASTContext &Context) {
                     break;
                 } else if (isa<SwitchCase>(*i) && *i == begin) {
                     started = true;
-                    const Stmt *stmt = ((const SwitchCase *)*i)->getSubStmt();
+                    const Stmt *stmt = cast<SwitchCase>(*i)->getSubStmt();
                     if (stmt == NULL) {
                         break;
                     } else if (isa<BreakStmt>(stmt)) {
@@ -120,13 +120,13 @@ CaseChilds getCaseChilds(const SwitchCase *sc, ASTContext &Context) {
                 } else if (isa<SwitchCase>(*i) && started) {
                     break;
                 } else if (isa<SwitchCase>(*i)) {
-                    SwitchCase *tcase = (SwitchCase *)&(*(*i));
+                    SwitchCase *tcase = cast<SwitchCase>(*i);
                     while (tcase != NULL && tcase != begin && tcase->getSubStmt() != NULL &&
                            isa<SwitchCase>(tcase->getSubStmt()))
-                        tcase = (SwitchCase *)tcase->getSubStmt();
+                        tcase = cast<SwitchCase>(tcase->getSubStmt());
                     if (tcase == begin) {
                         started = true;
-                        const Stmt *stmt = ((const SwitchCase *)&(*tcase))->getSubStmt();
+                        const Stmt *stmt = tcase->getSubStmt();
                         if (stmt == NULL) {
                             break;
                         } else if (isa<BreakStmt>(stmt)) {
@@ -149,7 +149,7 @@ CaseChilds getCaseChilds(const SwitchCase *sc, ASTContext &Context) {
             }
             return ret;
         } else if (isa<SwitchCase>(body)) {
-            const Stmt *stmt = ((const SwitchCase *)body)->getSubStmt();
+            const Stmt *stmt = cast<SwitchCase>(body)->getSubStmt();
             if (stmt != NULL && !isa<SwitchCase>(stmt)) { // otherwise case 1:case
                                                           // 2:break; would end in
                                                           // "case 2" being seen
@@ -164,7 +164,7 @@ int childCount(const Stmt *stmt);
 int childCount(const Stmt *stmt, ASTContext &Context) {
     int count = 0;
     if (isa<SwitchCase>(stmt)) {
-        CaseChilds childs = getCaseChilds((const SwitchCase *)stmt, Context);
+        CaseChilds childs = getCaseChilds(cast<SwitchCase>(stmt), Context);
         int count = childs.stmts.size();
 #if DONTCOUNTBREAKINSWITCHCASEFORBLOCKSIZE
         if (childs.endWithBreak) {
@@ -195,10 +195,10 @@ bool C2(const Stmt *stmt, ASTContext &Context) {
     const Stmt *parent = getParentIgnoringImplicit(stmt, Context);
     if (parent != NULL) {
         if (isa<CompoundStmt>(parent)) {
-            const CompoundStmt *container = (const CompoundStmt *)parent;
+            const CompoundStmt *container = cast<CompoundStmt>(parent);
             return container->size() > 1;
         } else if (isa<SwitchCase>(parent)) {
-            const SwitchCase *container = (const SwitchCase *)parent;
+            const SwitchCase *container = cast<SwitchCase>(parent);
             return childCount(container, Context) > 1;
         } else {
             return false;
