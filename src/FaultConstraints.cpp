@@ -22,27 +22,23 @@ bool isaJumpStmt(const Stmt *stmt, bool returnIsAJump) {
     return false;
 }
 
-bool C9(const clang::Stmt::const_child_iterator &begin, const clang::Stmt::const_child_iterator &end,
-        ASTContext *Context, bool returnIsAJump, int maxNum, bool noDeclStmt) {
-    StmtIterator it = cast_away_const(begin);
-    int num = 0;
-    while (it != cast_away_const(end)) {
-        if (isaJumpStmt(*it, returnIsAJump) || (noDeclStmt && *it != NULL && isa<DeclStmt>(*it))) { // other jumps
+bool C9(const Stmt *stmt, ASTContext *Context, bool returnIsAJump, int maxNum, bool noDeclStmt) {
+    if (isa<CompoundStmt>(stmt)) {
+        StmtIterator it = cast_away_const(stmt->child_begin());
+        int num = 0;
+        while (it != cast_away_const(stmt->child_end())) {
+            if (!C9(*it, Context, returnIsAJump, maxNum, noDeclStmt)) {
+                return false;
+            }
+            num++;
+            it++;
+        }
+        if (num <= maxNum) {
+            return true;
+        } else {
             return false;
         }
-        num++;
-        it++;
-    }
-    if (num <= /*5*/ maxNum) {
-        return true;
     } else {
-        return false;
-    }
-}
-bool C9(const Stmt *stmt, ASTContext *Context, bool returnIsAJump, int maxNum, bool noDeclStmt) {
-    if (isa<CompoundStmt>(stmt))
-        return C9(stmt->child_begin(), stmt->child_end(), Context, returnIsAJump, maxNum, noDeclStmt);
-    else {
         return stmt == NULL || (!isaJumpStmt(stmt, returnIsAJump) && !(noDeclStmt && isa<DeclStmt>(stmt)));
     }
 }
