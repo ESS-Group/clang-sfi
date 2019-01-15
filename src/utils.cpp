@@ -75,9 +75,9 @@ const Stmt *IgnoreCast(const Stmt *stmt, bool ignoreImplicit) {
     }
     if (ignoreImplicit) {
         const Stmt *temp = stmt->IgnoreImplicit();
-        if (temp == NULL)
+        if (temp == NULL) {
             return NULL;
-        else if (isa<CastExpr>(temp)) {
+        } else if (isa<CastExpr>(temp)) {
             if (const Stmt *_stmt = IgnoreCast(cast<CastExpr>(temp)->getSubExpr())) {
                 return _stmt->IgnoreImplicit();
             } else {
@@ -123,8 +123,9 @@ bool isValueAssignment(const BinaryOperator *op) {
         } else {
             return false;
         }
-    } else
+    } else {
         return false;
+    }
 }
 
 bool isExprAssignment(const BinaryOperator *op) {
@@ -174,8 +175,9 @@ std::vector<const BinaryOperator *> getChildForFindInitForVar(const Stmt *parent
                         std::vector<const BinaryOperator *> inElse = getChildForFindInitForVar(elseS, var);
                         if (inElse.size() != 0) {
                             concatVector<const BinaryOperator *>(ret, inElse);
-                            if (inThen.size() != 0)
+                            if (inThen.size() != 0) {
                                 break; // initialization in both
+                            }
                         }
                     }
                 } else if (alsoinloop || (!isa<ForStmt>(*i) && !isa<WhileStmt>(*i) && !isa<DoStmt>(*i))) {

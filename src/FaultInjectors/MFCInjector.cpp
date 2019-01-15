@@ -21,7 +21,6 @@ MFCInjector::MFCInjector() {
                 )
             )
         ).bind("FunctionCall"), createStmtHandler("FunctionCall"));
-    //Matcher.addMatcher(callExpr().bind("FunctionCall"), createStmtHandler("FunctionCall"));
 }
 // clang-format on
 

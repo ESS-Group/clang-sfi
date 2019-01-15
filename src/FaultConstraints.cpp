@@ -22,8 +22,16 @@ bool isaJumpStmt(const Stmt *stmt, bool returnIsAJump) {
     return false;
 }
 
+/**
+ * C9 assures that a compound statement only consists of maxNum statements and that it does not include loops.
+ */
 bool C9(const Stmt *stmt, ASTContext *Context, bool returnIsAJump, int maxNum, bool noDeclStmt) {
-    if (isa<CompoundStmt>(stmt)) {
+    if (stmt == NULL) {
+        /**
+         * @TODO Should it not return false in that case?
+         */
+        return true;
+    } else if (isa<CompoundStmt>(stmt)) {
         StmtIterator it = cast_away_const(stmt->child_begin());
         int num = 0;
         while (it != cast_away_const(stmt->child_end())) {
@@ -33,15 +41,14 @@ bool C9(const Stmt *stmt, ASTContext *Context, bool returnIsAJump, int maxNum, b
             num++;
             it++;
         }
-        if (num <= maxNum) {
-            return true;
-        } else {
-            return false;
-        }
+        return (num <= maxNum);
     } else {
-        return stmt == NULL || (!isaJumpStmt(stmt, returnIsAJump) && !(noDeclStmt && isa<DeclStmt>(stmt)));
+        return !isaJumpStmt(stmt, returnIsAJump) && !(noDeclStmt && isa<DeclStmt>(stmt));
     }
 }
+/**
+ * C8 assures that if construct is not associated to an else construct.
+ */
 bool C8(const IfStmt *ifS) {
     if (const Stmt *Else = ifS->getElse()) {
         return false;
@@ -81,7 +88,7 @@ const SwitchStmt *getParentSwitchStmt(const SwitchCase *sc, ASTContext &Context)
     if (parent == NULL) {
         return NULL;
     } else if (isa<SwitchStmt>(parent)) {
-        return (const SwitchStmt *)parent;
+        return cast<SwitchStmt>(parent);
     } else { // if(isa<SwitchCase>(parent)) {
         return getParentSwitchStmt(cast<SwitchCase>(parent), Context);
     }
@@ -191,6 +198,9 @@ int childCount(const Stmt *stmt) {
     return count;
 }
 
+/**
+ * C2 assures that Call is not the only statement in the block
+ */
 bool C2(const Stmt *stmt, ASTContext &Context) {
     const Stmt *parent = getParentIgnoringImplicit(stmt, Context);
     if (parent != NULL) {
@@ -207,6 +217,9 @@ bool C2(const Stmt *stmt, ASTContext &Context) {
     return false;
 }
 
+/**
+ * C2 assures that Call is not the only statement in the block
+ */
 bool C2(const Decl *decl, ASTContext &Context) {
     ASTContext::DynTypedNodeList list = Context.getParents(*decl);
     while (!list.empty() && list[0].get<Stmt>() != NULL && isaImplicit(list[0].get<Stmt>())) {

@@ -6,7 +6,7 @@ std::string MIESInjector::toString() {
 
 MIESInjector::MIESInjector() { // Missing if construct plus statements plus else
                                // plus statements
-    Matcher.addMatcher(ifStmt().bind("ifStmt"), createStmtHandler("ifStmt"));
+    Matcher.addMatcher(ifStmt(hasElse(stmt())).bind("ifStmt"), createStmtHandler("ifStmt"));
 }
 
 std::string MIESInjector::inject(StmtBinding current, ASTContext &Context) {
@@ -17,9 +17,9 @@ std::string MIESInjector::inject(StmtBinding current, ASTContext &Context) {
     R.RemoveText(range);
     return getEditedString(R, Context);
 }
-bool MIESInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
-    // if(const IfStmt* ifS = (IfStmt *)(stmt)){
+bool MIESInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     const IfStmt *ifS = cast<IfStmt>(stmt);
+    // Else is checked in matcher already, so this is actually useless.
     if (const Stmt *Else = ifS->getElse()) {
         return true;
     }

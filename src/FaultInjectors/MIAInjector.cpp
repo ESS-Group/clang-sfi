@@ -16,21 +16,12 @@ std::string MIAInjector::inject(StmtBinding current, ASTContext &Context) {
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     SourceRange range(ifS->getLocStart(), ifS->getThen()->getLocStart().getLocWithOffset(-1));
-    // SourceRange sr(IfS->getLocStart(),
-    // Else->getLocStart().getLocWithOffset(-1));//-1 Offset da sonst das erste
-    // Zeichen des Else blockes mit gelöscht wird
     R.RemoveText(range);
     return getEditedString(R, Context);
 }
-bool MIAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
-    // if(const IfStmt* ifS = (IfStmt *)(stmt)){
+bool MIAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     const IfStmt *ifS = cast<IfStmt>(stmt);
-    // commented to also inject, when the then-block contains more than 5
-    // statements
     return C9(ifS->getThen(), &Context);
-
-    // return C8(ifS);
-    //} else return false;
 }
 
 bool SMIAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {

@@ -20,14 +20,10 @@ std::string MIEBInjector::inject(StmtBinding current, ASTContext &Context) {
     R.RemoveText(range);
     return getEditedString(R, Context);
 }
-bool MIEBInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
+bool MIEBInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     const IfStmt *ifS = cast<IfStmt>(stmt);
-    // commented to also inject, when the then-block contains more than 5
-    // statements
-    /*if(!C9(ifS->getThen()))
-        return false;*/
     return C9(ifS->getThen(), &Context);
-    // return !C8(ifS); //Else construct needed (ODC type)
+    // Else block may contain more than 5 statements.
 }
 
 bool SMIEBInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
