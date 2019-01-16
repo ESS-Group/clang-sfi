@@ -194,7 +194,7 @@ std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context) {
     }
     //} else {
     // elif
-    //    val = ((const BinaryOperator *)current.stmt)->getRHS();
+    //    val = cast<BinaryOperator>(current.stmt)->getRHS();
     //}
     // endif
     SourceRange range(val->getLocStart(), val->getLocEnd());

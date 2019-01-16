@@ -19,16 +19,14 @@ std::string MIFSInjector::inject(StmtBinding current, ASTContext &Context) {
     R.RemoveText(range);
     return getEditedString(R, Context);
 }
-bool MIFSInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
-    // if(const IfStmt* ifS = (IfStmt *)(stmt)){
+bool MIFSInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     const IfStmt *ifS = cast<IfStmt>(stmt);
-    // commented to also inject, when the then-block contains more than 5
-    // statements
+    // THEN block should contain less than 5 statements.
     if (!C9(ifS->getThen(), &Context)) {
         return false;
     }
-    return /*C8(ifS) && */ C2(stmt, Context); // also if the statement is the only statement in the block
-    //} else return false;
+    // IF statement should not be the only statement in the block.
+    return C2(stmt, Context);
 }
 
 bool SMIFSInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {

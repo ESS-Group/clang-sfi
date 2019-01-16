@@ -22,8 +22,9 @@ std::string MIEBInjector::inject(StmtBinding current, ASTContext &Context) {
 }
 bool MIEBInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     const IfStmt *ifS = cast<IfStmt>(stmt);
+    // IF block should contain less than 5 statements.
     return C9(ifS->getThen(), &Context);
-    // Else block may contain more than 5 statements.
+    // ELSE block may contain more than 5 statements.
 }
 
 bool SMIEBInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {

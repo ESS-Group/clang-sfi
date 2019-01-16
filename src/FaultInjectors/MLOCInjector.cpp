@@ -77,11 +77,11 @@ std::string MLOCInjector::inject(StmtBinding current, ASTContext &Context) {
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     SourceLocation start, end;
     if (left) {
-        start = ((const BinaryOperator *)current.stmt)->getLHS()->getLocStart();
-        end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocStart().getLocWithOffset(-1);
+        start = cast<BinaryOperator>(current.stmt)->getLHS()->getLocStart();
+        end = cast<BinaryOperator>(current.stmt)->getRHS()->getLocStart().getLocWithOffset(-1);
     } else {
-        start = ((const BinaryOperator *)current.stmt)->getOperatorLoc();
-        end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocEnd();
+        start = cast<BinaryOperator>(current.stmt)->getOperatorLoc();
+        end = cast<BinaryOperator>(current.stmt)->getRHS()->getLocEnd();
     }
 
     SourceRange range(start, end);
@@ -91,19 +91,19 @@ std::string MLOCInjector::inject(StmtBinding current, ASTContext &Context) {
 bool MLOCInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
     std::vector<const BinaryOperator *> binaryOperators;
     if (binding.compare("if") == 0) {
-        const Expr *condition = ((const IfStmt *)stmt)->getCond();
+        const Expr *condition = cast<IfStmt>(stmt)->getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(condition);
     } else if (binding.compare("do") == 0) {
-        const Stmt *condition = ((const DoStmt *)stmt)->getCond();
+        const Stmt *condition = cast<IfStmt>(stmt)->getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(condition);
     } else if (binding.compare("switch") == 0) {
-        const Stmt *condition = ((const SwitchStmt *)stmt)->getCond();
+        const Stmt *condition = cast<IfStmt>(stmt)->getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(condition);
     } else if (binding.compare("while") == 0) {
-        const Stmt *condition = ((const WhileStmt *)stmt)->getCond();
+        const Stmt *condition = cast<IfStmt>(stmt)->getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(condition);
     } else if (binding.compare("for") == 0) {
-        const Stmt *condition = ((const ForStmt *)stmt)->getCond();
+        const Stmt *condition = cast<IfStmt>(stmt)->getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(condition);
     } else {
         return false;
@@ -113,11 +113,11 @@ bool MLOCInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
             const Expr *left = op->getLHS()->IgnoreImplicit();
             const Expr *right = op->getRHS()->IgnoreImplicit();
             if (!isa<BinaryOperator>(left) ||
-                ((const BinaryOperator *)left)->getOpcode() != BinaryOperatorKind::BO_LOr) {
+                cast<BinaryOperator>(left)->getOpcode() != BinaryOperatorKind::BO_LOr) {
                 nodeCallback("MLOC", op, true);
             }
             if (!isa<BinaryOperator>(right) ||
-                ((const BinaryOperator *)right)->getOpcode() != BinaryOperatorKind::BO_LOr) {
+                cast<BinaryOperator>(right)->getOpcode() != BinaryOperatorKind::BO_LOr) {
                 nodeCallback("MLOC", op, false);
             }
         }

@@ -140,15 +140,15 @@ bool MVAVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
         if (!C2(stmt, Context)) {
             return false;
         }
-        if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3))
+        if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
             if (isParentOf(forstmt->getCond(), stmt) || isParentOf(forstmt->getInc(), stmt)) {
                 return false;
             }
+        }
         return true;
 
         // const Expr* arg = ((const CXXOperatorCallExpr*)stmt)->getArg(0);
-        // return
-        // isValue(arg->IgnoreImplicit()->IgnoreParenCasts()->IgnoreImplicit());
+        // return isValue(arg->IgnoreImplicit()->IgnoreParenCasts()->IgnoreImplicit());
     }
     // endif
     if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
@@ -156,11 +156,13 @@ bool MVAVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
     } else {
         return (C2(stmt, Context));
     }
-    /*if(!C2(stmt, Context)){
-    stmt->getLocStart().dump(Context.getSourceManager());
-    cerr<<endl;
+    /*
+    if(!C2(stmt, Context)){
+        stmt->getLocStart().dump(Context.getSourceManager());
+        cerr<<endl;
     }
-    return C2(stmt, Context);*/
+    return C2(stmt, Context);
+    */
 }
 /*
 bool MVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){

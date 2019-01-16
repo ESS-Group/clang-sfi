@@ -121,7 +121,6 @@ std::vector<std::vector<const Stmt *>> getStmtLists(const CompoundStmt *block, A
     }
 
     // TODO: delete all empty lists??
-    // ret;
 
     return ret;
 }
