@@ -19,16 +19,13 @@ std::string MIESInjector::inject(StmtBinding current, ASTContext &Context) {
 }
 bool MIESInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     const IfStmt *ifS = cast<IfStmt>(stmt);
-    // Else is checked in matcher already, so this is actually useless.
-    if (const Stmt *Else = ifS->getElse()) {
-        return true;
-    }
-    return false;
-    /*
-    if(!C9(ifS->getThen()))
+    // IF and ELSE block should not contain more than 5 statements.
+    if (!C9(ifS->getThen())) {
         return false;
-    return C8(ifS) && C2(stmt, Context); //also if the statement is the only
-    statement in the block
-    //} else return false;
-    */
+    }
+    if (!C9(ifS->getElse())) {
+        return false;
+    }
+    // IF statement should not be the only statement in the block.
+    return C2(stmt, Context);
 }
