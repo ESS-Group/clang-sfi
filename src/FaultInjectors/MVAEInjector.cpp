@@ -8,7 +8,7 @@ std::string OMVAEInjector::toString() {
 };
 
 // clang-format off
-MVAEInjector::MVAEInjector(bool alsoOverwritten) {
+MVAEInjector::MVAEInjector(bool alsoOverwritten) { // Missing variable assignment using an expression
     this->alsoOverwritten = alsoOverwritten;
     /*Matcher.addMatcher(
             varDecl(

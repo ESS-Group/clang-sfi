@@ -8,7 +8,7 @@ std::string OMVAVInjector::toString() {
 };
 
 // clang-format off
-MVAVInjector::MVAVInjector(bool alsoOverwritten) {
+MVAVInjector::MVAVInjector(bool alsoOverwritten) { // Missing variable assignment using a value
     this->alsoOverwritten = alsoOverwritten;
     Matcher.addMatcher(
             binaryOperator(

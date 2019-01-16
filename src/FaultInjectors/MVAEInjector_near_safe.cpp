@@ -5,7 +5,7 @@ std::string MVAEInjectorSAFE::toString() {
 };
 
 // clang-format off
-MVAEInjectorSAFE::MVAEInjectorSAFE() {
+MVAEInjectorSAFE::MVAEInjectorSAFE() { // Missing variable assignment using an expression
     /*
         Matcher.addMatcher(
         varDecl(

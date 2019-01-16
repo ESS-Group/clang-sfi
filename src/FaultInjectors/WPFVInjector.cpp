@@ -5,7 +5,7 @@ std::string WPFVInjector::toString() {
 };
 
 // clang-format off
-WPFVInjector::WPFVInjector() {
+WPFVInjector::WPFVInjector() { // Wrong variable used in parameter of function call
     Matcher.addMatcher(
         callExpr(
             allOf(

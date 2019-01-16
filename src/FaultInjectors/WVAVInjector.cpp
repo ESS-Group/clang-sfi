@@ -8,7 +8,7 @@ std::string WVAVInjector::toString() {
 };
 
 // clang-format off
-WVAVInjector::WVAVInjector(bool alsoOverwritten) {
+WVAVInjector::WVAVInjector(bool alsoOverwritten) { // Wrong value assigned to variable
     this->alsoOverwritten = alsoOverwritten;
     Matcher.addMatcher(
             binaryOperator(

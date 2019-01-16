@@ -5,7 +5,7 @@ std::string WAEPInjector::toString() {
 };
 
 // clang-format off
-WAEPInjector::WAEPInjector() {
+WAEPInjector::WAEPInjector() { // Wrong arithmetic expressino in parameter of function call
     Matcher.addMatcher(
         callExpr(
             allOf(

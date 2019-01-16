@@ -41,7 +41,7 @@ std::string MLOCInjector::inject(StmtBinding current, ASTContext &Context){
 */
 
 // clang-format off
-MLOCInjector::MLOCInjector() {
+MLOCInjector::MLOCInjector() { // Missing OR clause in branch condition
     //Matcher.addMatcher(binaryOperator(anyOf(hasAncestor(expr(anyOf(hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt())))),hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt()))).bind("FunctionCall"), createStmtHandler("FunctionCall"));
     Matcher.addMatcher(
         stmt(

@@ -5,7 +5,7 @@ std::string MVIVInjector::toString() {
 };
 
 // clang-format off
-MVIVInjector::MVIVInjector() {
+MVIVInjector::MVIVInjector() { // Missing variable initialization using a value
     Matcher.addMatcher(
         varDecl(//variable declaration
             allOf(

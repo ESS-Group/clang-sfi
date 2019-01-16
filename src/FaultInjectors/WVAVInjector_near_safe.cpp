@@ -4,7 +4,7 @@ std::string WVAVInjectorSAFE::toString() {
     return "WVAVSAFE";
 };
 
-WVAVInjectorSAFE::WVAVInjectorSAFE(bool alsoOverwritten) {
+WVAVInjectorSAFE::WVAVInjectorSAFE(bool alsoOverwritten) { // Wrong value assigned to variable
     Matcher.addMatcher(varDecl(hasAncestor(compoundStmt())).bind("varDecl"), createStmtHandler("varDecl"));
 }
 

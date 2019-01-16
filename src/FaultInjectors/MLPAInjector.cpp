@@ -177,7 +177,7 @@ std::vector<std::vector<const Stmt *>> getMLPAListOfSize(std::vector<const Stmt 
 }
 
 // clang-format off
-MLPAInjector::MLPAInjector() {
+MLPAInjector::MLPAInjector() { // Missing small and localized part of the algorithm
     Matcher.addMatcher(
                 compoundStmt(
                     allOf(
