@@ -30,9 +30,7 @@ MVIVInjectorSAFE::MVIVInjectorSAFE() { // Missing variable initialization using 
 }
 // clang-format on
 
-std::string MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+bool MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     if (current.isStmt) {
         SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
         R.RemoveText(range);
@@ -44,7 +42,8 @@ std::string MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
         SourceRange range(current.decl->getLocStart(), current.decl->getLocEnd());
         R.ReplaceText(range, withoutInit);
     }
-    return getEditedString(R, Context);
+    // return getEditedString(R, Context);
+    return true;
 }
 bool MVIVInjectorSAFE::checkStmt(const Decl *decl, std::string binding, ASTContext &Context) {
     if (binding.compare("notInitialized") == 0 && isa<VarDecl>(decl)) {

@@ -33,7 +33,7 @@ WPFVInjector::WPFVInjector() { // Wrong variable used in parameter of function c
 }
 // clang-format on
 
-std::string WPFVInjector::inject(StmtBinding current, ASTContext &Context) {
+bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     const DeclRefExpr *stmt = cast<DeclRefExpr>(current.stmt);
 
     const VarDecl *arg = cast<VarDecl>(stmt->getDecl());
@@ -71,11 +71,10 @@ std::string WPFVInjector::inject(StmtBinding current, ASTContext &Context) {
         }
     }
     std::string variableName(localVariables[0]->getName().data());
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
 
     R.ReplaceText(stmt->getSourceRange(), variableName);
-    return getEditedString(R, Context);
+    // return getEditedString(R, Context);
+    return true;
 }
 
 bool WPFVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {

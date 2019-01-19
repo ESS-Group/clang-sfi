@@ -27,9 +27,7 @@ WAEPInjector::WAEPInjector() { // Wrong arithmetic expressino in parameter of fu
 }
 // clang-format on
 
-std::string WAEPInjector::inject(StmtBinding current, ASTContext &Context) {
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+bool WAEPInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     SourceLocation start, end;
 
     start = ((const BinaryOperator *)current.stmt)->getOperatorLoc(); //.getLocWithOffset(-1);//.getLocWithOffset(1);
@@ -37,7 +35,8 @@ std::string WAEPInjector::inject(StmtBinding current, ASTContext &Context) {
 
     SourceRange range(start, end);
     R.RemoveText(range);
-    return getEditedString(R, Context);
+    // return getEditedString(R, Context);
+    return true;
 }
 bool WAEPInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     if (hasChildOfType<BinaryOperator>(stmt)) {

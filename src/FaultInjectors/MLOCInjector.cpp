@@ -4,42 +4,6 @@ std::string MLOCInjector::toString() {
     return "MLOC";
 };
 
-/*void MLOCInjector::inject(std::vector<StmtBinding> target, ASTContext
-&Context){
-    int i = 0;
-    for(StmtBinding current : target){
-        std::string result = "";
-        if(i%2==0){
-            if(verbose)
-                printStep(current, Context.getSourceManager(),
-Context.getLangOpts(),i++,target.size()/2);
-            else
-                printStep(current,
-Context.getSourceManager(),i++,target.size()/2);
-            result = inject(current, Context, true);
-            if(result.compare("")){
-                cout<<"-Success (1/2)"<<endl;
-                writeDown(result, i-1);
-            } else
-                cerr << "-Failed (1/2)"<<endl;
-        } else {
-            i++;
-            result = inject(current, Context, false);
-            if(result.compare("")){
-                cout<<"-Success (2/2)"<<endl;
-                writeDown(result, i-1);
-            } else
-                cerr << "-Failed (2/2)"<<endl;
-        }
-    }
-}
-*/
-/*
-std::string MLOCInjector::inject(StmtBinding current, ASTContext &Context){
-    return "";
-}
-*/
-
 // clang-format off
 MLOCInjector::MLOCInjector() { // Missing OR clause in branch condition
     //Matcher.addMatcher(binaryOperator(anyOf(hasAncestor(expr(anyOf(hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt())))),hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt()))).bind("FunctionCall"), createStmtHandler("FunctionCall"));
@@ -71,10 +35,9 @@ MLOCInjector::MLOCInjector() { // Missing OR clause in branch condition
 }
 // clang-format on
 
-std::string MLOCInjector::inject(StmtBinding current, ASTContext &Context) {
+bool MLOCInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     bool left = current.left;
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+
     SourceLocation start, end;
     if (left) {
         start = cast<BinaryOperator>(current.stmt)->getLHS()->getLocStart();
@@ -86,7 +49,8 @@ std::string MLOCInjector::inject(StmtBinding current, ASTContext &Context) {
 
     SourceRange range(start, end);
     R.RemoveText(range);
-    return getEditedString(R, Context);
+    // return getEditedString(R, Context);
+    return true;
 }
 bool MLOCInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
     std::vector<const BinaryOperator *> binaryOperators;

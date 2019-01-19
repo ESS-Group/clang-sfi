@@ -8,18 +8,19 @@ StmtHandler::StmtHandler(FaultInjector *pFaultInjector, std::string fileName,
     faultInjector = pFaultInjector;
 }
 bool considerFile(FaultInjector *injector, std::string fileName) {
-    // TODO: add possibility to inject into multiple Files
-    bool consider = false;
-    if (injector->fileList != NULL) {
+    if (injector->getFileName().compare(fileName) == 0)
+        return true;
+    else if (injector->considerFile != NULL && injector->considerFile(fileName)) {
+        return true;
+    } else if (injector->fileList != NULL) {
         for (std::string name : *(injector->fileList)) {
             if (name.compare(fileName) == 0) {
-                consider = true;
-                break;
+                return true;
             }
         }
     }
 
-    return consider || injector->getFileName().compare(fileName) == 0;
+    return false;
 }
 
 void StmtHandler::run(const MatchFinder::MatchResult &Result) {

@@ -190,7 +190,7 @@ MLPAInjector::MLPAInjector() { // Missing small and localized part of the algori
 }
 // clang-format on
 
-std::string MLPAInjector::inject(StmtBinding current, ASTContext &Context) {
+bool MLPAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     std::vector<const Stmt *> list = current.stmtlist;
     SourceLocation begin = list[0]->getLocStart(), end = list[0]->getLocEnd();
 
@@ -203,13 +203,12 @@ std::string MLPAInjector::inject(StmtBinding current, ASTContext &Context) {
         }
     }
 
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     SourceRange range(begin, end);
     R.RemoveText(range);
-    return getEditedString(R, Context);
-    /*    Rewriter R;
-        R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+    // return getEditedString(R, Context);
+    return true;
+    /*
+
         if(current.isStmt){
             SourceRange range(current.stmt->getLocStart(),
        current.stmt->getLocEnd());

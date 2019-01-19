@@ -7,7 +7,11 @@
 
 #include <fstream>
 
+#include <iterator>
+
 #include "StmtHandler.h"
+
+#include "libs/dtl/dtl/dtl.hpp"
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -295,8 +299,170 @@ void FaultInjector::printStep(StmtBinding current, const SourceManager &sourceMa
     getLocEnd().printToString(Context.getSourceManager())<<endl;
     }*/
 } // only position
-std::string FaultInjector::_inject(StmtBinding current, ASTContext &Context, bool isMacroDefinition) {
-    return inject(current, Context); // default case - no match in macro definitions
+
+class Diff {
+  public:
+    std::string name;
+    std::string dir;
+    std::string diff;
+    Diff(std::string name, std::string dir, std::string diff) : diff(diff), dir(dir), name(name) {
+    }
+    /*void print() {
+        std::cout << "Diff - Begin" << std::endl;
+        std::cout << dir << "/" << name << ":" << std::endl;
+        std::cout << diff << std::endl;
+        std::cout << "Diff - End" << std::endl;
+    }*/
+};
+
+void getLines(std::string str, std::vector<std::string> &lines) {
+    std::istringstream stream(str);
+    std::string temp;
+    while (std::getline(stream, temp)) {
+        lines.push_back(temp);
+    }
+}
+
+void FaultInjector::_inject(StmtBinding current, ASTContext &Context, int i, bool isMacroDefinition) {
+    Rewriter R;
+    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+    if (inject(current, Context, R)) { // default case - no match in macro definitions
+                                       /*
+                                               if (isMacroDefinition) {
+                               
+                                               } else {
+                                               rw = inject(current, Context);
+                                       }
+                                               */
+
+        std::map<clang::FileID, clang::RewriteBuffer>::iterator buffit;
+        for (buffit = R.buffer_begin(); buffit != R.buffer_end();
+             buffit++) { // iterate through all RewriteBuffers in the Rewriter (only Buffers where the Rewriter changed
+                         // sth.)
+            clang::FileID fileId = buffit->first;
+            const clang::FileEntry *fe = R.getSourceMgr().getFileEntryForID(fileId);
+            std::vector<Diff> diffs;
+            if (fe != NULL) {
+                const clang::DirectoryEntry *dire = fe->getDir();
+                if (dire != NULL) {
+                    llvm::MemoryBuffer *origBuff = R.getSourceMgr().getBuffer(fileId);
+                    if (origBuff != NULL) {
+                        std::string dir = dire->getName();
+                        std::string fileName = fe->getName();
+                        RewriteBuffer &buffer = buffit->second;
+
+                        // get lines vector for comparison
+                        std::vector<std::string> rewritten;
+                        getLines(rewriteBufferToString(buffer), rewritten);
+                        std::vector<std::string> original;
+                        std::string orig = origBuff->getBuffer();
+                        getLines(orig, original);
+
+                        // get unified diff
+                        dtl::Diff<std::string, std::vector<std::string>> d(original, rewritten);
+                        std::stringstream unified;
+                        d.onHuge();
+                        d.compose();
+                        d.composeUnifiedHunks();
+                        // d.printUnifiedFormat();
+                        // d.printUnifiedFormat(unified);
+
+                        auto hunks = d.getUniHunks();
+                        bool hasDiff = false;
+                        for (auto hunk : hunks) { // hunks to string
+                            std::vector<std::string> lines;
+                            int iLast = -1;
+                            int iCurr = -1;
+                            for (auto change : hunk.change) {
+                                iCurr++;
+                                switch (change.second.type) {
+                                case dtl::SES_ADD:
+                                    lines.push_back(SES_MARK_ADD + change.first); //<< std::endl;
+                                    iLast = iCurr;
+                                    hasDiff = true;
+                                    break;
+                                case dtl::SES_DELETE:
+                                    lines.push_back(SES_MARK_DELETE + change.first); // << std::endl;
+                                    iLast = iCurr;
+                                    hasDiff = true;
+                                    break;
+                                case dtl::SES_COMMON:
+                                    lines.push_back(SES_MARK_COMMON + change.first); //<< std::endl;
+                                    break;
+                                }
+                            }
+                            if (iLast != -1) {
+                                int prefixpadding = std::distance(hunk.common[0].begin(), hunk.common[0].end());
+                                int postfixpadding = iCurr - iLast; // same as std::distance(hunk.common[1].begin(),
+                                                                    // hunk.common[1].end()), but more efficient this
+                                                                    // way because already calculated before.
+                                unified << "@@ -" << hunk.a + prefixpadding;
+                                int b = hunk.b - postfixpadding - prefixpadding;
+                                if (b > 1) // if hunk.b==1 ',1' is optional
+                                    unified << "," << b;
+                                unified << " +" << hunk.c + prefixpadding;
+
+                                int d = hunk.d - postfixpadding - prefixpadding;
+                                if (d > 1) // if hunk.d==1 ',1' is optional
+                                    unified << "," << d;
+                                unified << " @@" << std::endl;
+
+                                int iCurr = -1;
+                                for (std::string change : lines) {
+                                    iCurr++;
+                                    if (iCurr > iLast)
+                                        break;
+                                    unified << change;
+                                }
+                            }
+                        }
+                        if (hasDiff) {
+                            diffs.push_back(Diff(fileName, dir, unified.str()));
+                        }
+                    }
+                }
+            }
+
+            if (diffs.size() > 0) {
+                std::stringstream data;
+                for (Diff diff : diffs) {
+                    // first filename
+                    data << "---" << diff.name << std::endl;
+                    data << "+++" << diff.name << std::endl;
+                    // then hunks
+                    data << diff.diff;
+                    // diff.print();
+                }
+
+                std::string name = (dir.compare("") ? dir + "/" : "") + toString() + "_" + std::to_string(i);
+                if (verbose)
+                    std::cerr << "New Patch File: " << name << std::endl;
+                std::ofstream file(name + ".patch");
+                file << data.str();
+                file.flush();
+                file.close();
+
+                if (verbose) {
+                    std::cout << " -Success" << std::endl;
+                }
+            } else if (verbose) {
+                std::cerr << "-Failed" << std::endl;
+            }
+
+            /*
+                                            clang::RopePieceBTreeIterator it;
+                                            for (it = buffer.begin(); it != buffer.end(); it++) {
+                                                            RewriteRope rope = it.piece;
+                                                            rope.std::cout << "Buffer:" << std::endl <<
+               std::string(buffer.begin(), buffer.end()) <<
+               std::endl;
+                                            }
+                                            // How do I access each element?
+                            */
+        }
+    } else if (verbose) {
+        std::cerr << "-Failed" << std::endl;
+    }
 }
 
 void FaultInjector::setVerbose(bool v) {
@@ -311,21 +477,10 @@ void FaultInjector::inject(std::vector<StmtBinding> target, ASTContext &Context,
 
     for (StmtBinding current : target) {
         if (verbose) {
-            printStep(current, Context.getSourceManager(), Context.getLangOpts(), i++, target.size());
-        } else {
-            i++;
+            printStep(current, Context.getSourceManager(), Context.getLangOpts(), i, target.size());
         }
-        // else
-        //    printStep(current, Context.getSourceManager(),i++,target.size());
-        std::string result = _inject(current, Context, isMacroDefinition);
-        if (result.compare("")) {
-            if (verbose) {
-                std::cout << " -Success" << std::endl;
-            }
-            writeDown(result, i - 1);
-        } else if (verbose) {
-            std::cerr << "-Failed" << std::endl;
-        }
+
+        _inject(current, Context, i++, isMacroDefinition);
     }
 }
 void FaultInjector::writeDown(std::string data, int i) {

@@ -11,6 +11,14 @@ cd llvm/tools
 git clone https://llvm.org/git/clang.git || true
 (cd clang && git reset --hard 0513b409d5e34b2d2a28ae21b6d620cc52de0e57)
 
+
+cd "$TOP_LEVEL_DIRECTORY"
+echo "Checking out dtl"
+git clone https://github.com/cubicdaiya/dtl.git src/libs/dtl || true
+(cd src/libs/dtl && git reset --hard 9cf6da72798e714307f63f416990dfc753fc94df)
+
+
+
 cd "$TOP_LEVEL_DIRECTORY"
 echo "Switched into $(pwd)"
 mkdir -p llvm-build

@@ -180,9 +180,7 @@ nodeCallback(binding, op);
 return false;
 }
 */
-std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context) {
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     const Expr *val = NULL;
     // if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
     // if(alsoOverwritten){
@@ -213,7 +211,8 @@ std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context) {
         R.ReplaceText(range, "(" + type.getAsString() + ")" + text + "^0xFF");
     }
 
-    return getEditedString(R, Context);
+    // return getEditedString(R, Context);
+    return true;
 }
 
 OWVAVInjector::OWVAVInjector()

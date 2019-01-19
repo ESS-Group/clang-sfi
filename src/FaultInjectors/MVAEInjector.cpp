@@ -125,14 +125,12 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten) { // Missing variable assignmen
 }
 // clang-format on
 
-std::string MVAEInjector::inject(StmtBinding current, ASTContext &Context) {
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
-
+bool MVAEInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
     R.RemoveText(range);
 
-    return getEditedString(R, Context);
+    // return getEditedString(R, Context);
+    return true;
 }
 
 bool MVAEInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {

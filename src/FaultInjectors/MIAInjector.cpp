@@ -11,13 +11,13 @@ MIAInjector::MIAInjector() { // Missing if construct around statements
     Matcher.addMatcher(ifStmt(unless(hasElse(stmt()))).bind("ifStmt"), createStmtHandler("ifStmt"));
 }
 
-std::string MIAInjector::inject(StmtBinding current, ASTContext &Context) {
+bool MIAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     const IfStmt *ifS = cast<IfStmt>(current.stmt);
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+
     SourceRange range(ifS->getLocStart(), ifS->getThen()->getLocStart().getLocWithOffset(-1));
     R.RemoveText(range);
-    return getEditedString(R, Context);
+    // return getEditedString(R, Context);
+    return true;
 }
 bool MIAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     const IfStmt *ifS = cast<IfStmt>(stmt);

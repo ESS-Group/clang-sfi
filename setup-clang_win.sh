@@ -19,6 +19,13 @@ git clone https://github.com/madler/zlib.git || true
 
 
 cd "$TOP_LEVEL_DIRECTORY"
+echo "Checking out dtl"
+git clone https://github.com/cubicdaiya/dtl.git src/libs/dtl || true
+(cd src/libs/dtl && git reset --hard 9cf6da72798e714307f63f416990dfc753fc94df)
+
+
+
+cd "$TOP_LEVEL_DIRECTORY"
 echo "Switched into $(pwd)"
 mkdir zlib-build || true
 cd zlib-build
@@ -37,6 +44,8 @@ cmake --build . --target ALL_BUILD --config $BUILD_TYPE
 #echo "Preparing Ninja files"
 #cmake --build .
 cd ..
+
+
 
 
 

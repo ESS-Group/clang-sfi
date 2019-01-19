@@ -8,10 +8,7 @@ WVAVInjectorSAFE::WVAVInjectorSAFE(bool alsoOverwritten) { // Wrong value assign
     Matcher.addMatcher(varDecl(hasAncestor(compoundStmt())).bind("varDecl"), createStmtHandler("varDecl"));
 }
 
-std::string WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
-
+bool WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     Expr *val = cast<BinaryOperator>(current.stmt)->getRHS();
     SourceRange range(val->getLocStart(), val->getLocEnd());
     if (isa<CXXBoolLiteralExpr>(val)) {
@@ -26,7 +23,8 @@ std::string WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
         R.ReplaceText(range, text + "^0xFF");
     }
 
-    return getEditedString(R, Context);
+    // return getEditedString(R, Context);
+    return true;
 }
 
 bool WVAVInjectorSAFE::checkStmt(const Decl *decl, std::string binding, ASTContext &Context) {

@@ -26,9 +26,7 @@ MVAEInjectorSAFE::MVAEInjectorSAFE() { // Missing variable assignment using an e
 }
 // clang-format on
 
-std::string MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+bool MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     if (current.isStmt) {
         SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
         R.RemoveText(range);
@@ -42,7 +40,8 @@ std::string MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
         R.ReplaceText(range, withoutInit);
     }
 
-    return getEditedString(R, Context);
+    // return getEditedString(R, Context);
+    return true;
 }
 
 bool MVAEInjectorSAFE::checkStmt(const Decl *decl, std::string binding, ASTContext &Context) {

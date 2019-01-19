@@ -43,31 +43,28 @@ MVIVInjector::MVIVInjector() { // Missing variable initialization using a value
 }
 // clang-format on
 
-std::string MVIVInjector::inject(StmtBinding current, ASTContext &Context) {
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+bool MVIVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     if (current.isStmt) {
         SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
         R.RemoveText(range);
     } else {
-        // @TODO This looks weird.
-        VarDecl temp(*((const VarDecl *)current.decl));
-        temp.setInit(NULL);
-        const VarDecl *tempP = &temp;
-        std::string withoutInit = stmtToString(tempP, Context.getLangOpts());
-        SourceRange range(current.decl->getLocStart(), current.decl->getLocEnd());
-        R.ReplaceText(range, withoutInit);
+        const VarDecl *vardecl = cast<VarDecl>(current.decl);
+        const DeclStmt *declstmt = getParentOfType<DeclStmt>(current.decl, Context, 3);
+        SourceRange range(vardecl->getLocation().getLocWithOffset(vardecl->getNameAsString().length()),
+                          vardecl->getInit()->getLocEnd());
+        R.RemoveText(range);
     }
-    return getEditedString(R, Context);
+    return true;
 }
 bool MVIVInjector::checkStmt(const Decl *decl, std::string binding, ASTContext &Context) {
     const DeclStmt *declstmt = getParentOfType<DeclStmt>(decl, Context, 3);
     if (const ForStmt *forstmt = getParentOfType<ForStmt>(declstmt, Context, 3)) {
         return isParentOf(forstmt->getBody(), declstmt) && !cast<VarDecl>(decl)->isStaticLocal() && C2(decl, Context);
-    } else {
+    } else if (declstmt != NULL) {
         const VarDecl *vardecl = cast<VarDecl>(decl);
         return !vardecl->getType().isConstant(Context) && !vardecl->isStaticLocal() && C2(decl, Context);
-    }
+    } else
+        return false;
     // C2 implementation implicitly excludes decl being part of an for
     // construct.
 }

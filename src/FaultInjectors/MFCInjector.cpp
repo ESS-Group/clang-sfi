@@ -44,10 +44,7 @@ MFCInjector::MFCInjector() { // Missing function call
 }
 // clang-format on
 
-std::string MFCInjector::inject(StmtBinding current, ASTContext &Context) {
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
-
+bool MFCInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     if (current.binding.compare("FunctionCall") == 0) {
         SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
         R.RemoveText(range);
@@ -64,7 +61,8 @@ std::string MFCInjector::inject(StmtBinding current, ASTContext &Context) {
         R.RemoveText(range);
     }
 
-    return getEditedString(R, Context);
+    // return getEditedString(R, Context);
+    return true;
 }
 std::vector<const Stmt *> getFunctionCallExprListInCommaOp(const BinaryOperator *bo, bool checkRight = false,
                                                            bool neverCheckRight = false) {

@@ -8,14 +8,12 @@ MVAVInjectorSAFE::MVAVInjectorSAFE(bool alsoOverwritten) { // Missing variable a
     Matcher.addMatcher(varDecl(hasAncestor(compoundStmt())).bind("varDecl"), createStmtHandler("varDecl"));
 }
 
-std::string MVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context) {
-    Rewriter R;
-    R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
-
+bool MVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
     R.RemoveText(range);
 
-    return getEditedString(R, Context);
+    /// return getEditedString(R, Context);
+    return true;
 }
 bool MVAVInjectorSAFE::checkStmt(const Decl *decl, std::string binding, ASTContext &Context) {
     if (binding.compare("varDecl") == 0 && isa<VarDecl>(decl)) {

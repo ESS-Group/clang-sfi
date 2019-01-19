@@ -160,9 +160,11 @@ class FaultInjector {
         Range location;
         bool left;
         bool isMacroExpansion;
+        // std::vector<int> additionalAttributesInt;
+        // std::vector<Str> additionalAttributesStr;
+        // std::vector<clang::FileID> injectedFiles;
     };
     StmtHandler *createStmtHandler(std::string binding);
-    // std::vector<StmtHandler> test;
     FaultInjector();
     ~FaultInjector();
     FaultInjector(const FaultInjector &that) = delete;
@@ -177,8 +179,8 @@ class FaultInjector {
     void push(std::string binding, std::vector<const Stmt *> list);
     void push(std::string binding, std::vector<const Decl *> list);
     virtual void inject(std::vector<StmtBinding> target, ASTContext &Context, bool isMacroDefinition = false);
-    virtual std::string _inject(StmtBinding current, ASTContext &Context, bool isMacroDefinition = false);
-    virtual std::string inject(StmtBinding current, ASTContext &Context) = 0;
+    virtual void _inject(StmtBinding current, ASTContext &Context, int i = 0, bool isMacroDefinition = false);
+    virtual bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) = 0;
     // default false
     virtual bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context);
     virtual bool checkStmt(const Decl *stmt, std::string binding, ASTContext &Context);
@@ -214,6 +216,7 @@ class FaultInjector {
     void setFileName(std::string name);
     void setVerbose(bool v);
     void setDirectory(std::string directory);
+    bool (*considerFile)(std::string);
 
   protected:
     static void dumpStmt(const Stmt *stmt, ASTContext &Context);
