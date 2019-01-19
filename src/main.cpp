@@ -66,7 +66,7 @@ int main(int argc, const char **argv) {
     std::string fileforInjection = "";
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
     if (op.getSourcePathList().size() != 1) {
-        std::cout << "Please select exactly one file" << std::endl;
+        std::cout << "Please select exactly one main file" << std::endl;
         return 1;
     } else {
         fileforInjection = op.getSourcePathList()[0];
