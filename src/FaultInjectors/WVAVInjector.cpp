@@ -186,11 +186,14 @@ std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context) {
     const Expr *val = NULL;
     // if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
     // if(alsoOverwritten){
+    clang::QualType type;
     if (current.binding.compare("overwritten") == 0) {
         auto firstArg = cast<CXXOperatorCallExpr>(current.stmt)->getArg(1);
         val = cast<Expr>(firstArg);
+        type = val->getType();
     } else {
         val = cast<BinaryOperator>(current.stmt)->getRHS();
+        type = cast<BinaryOperator>(current.stmt)->getLHS()->getType();
     }
     //} else {
     // elif
@@ -207,7 +210,7 @@ std::string WVAVInjector::inject(StmtBinding current, ASTContext &Context) {
         }
     } else {
         std::string text = R.getRewrittenText(range);
-        R.ReplaceText(range, text + "^0xFF");
+        R.ReplaceText(range, "("+type.getAsString()+")"+ text + "^0xFF");
     }
 
     return getEditedString(R, Context);
