@@ -66,7 +66,8 @@ bool MVIVInjector::checkStmt(const Decl *decl, std::string binding, ASTContext &
         return isParentOf(forstmt->getBody(), declstmt) && !cast<VarDecl>(decl)->isStaticLocal() &&
                C2(decl, Context);
     } else {
-        return !cast<VarDecl>(decl)->isStaticLocal() && C2(decl, Context);
+        const VarDecl *vardecl = cast<VarDecl>(decl); 
+        return !vardecl->getType().isConstant(Context)&&!vardecl->isStaticLocal() && C2(decl, Context);
     }
     // C2 implementation implicitly excludes decl being part of an for
     // construct.
