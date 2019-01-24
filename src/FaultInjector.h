@@ -196,7 +196,6 @@ class FaultInjector {
 
     std::vector<StmtBinding> locations;
     std::vector<StmtBinding> macroLocations;
-    std::vector<std::string> *fileList;
     std::vector<SourceLocation> addedMacroPositions;
     bool matchMacroDefinition, matchMacroExpansion;
     void setMatchMacro(bool match);
@@ -217,6 +216,10 @@ class FaultInjector {
     void setVerbose(bool v);
     void setDirectory(std::string directory);
     bool (*considerFile)(std::string);
+    void setRootDir(std::string);
+    void setFileList(std::vector<std::string> *list);
+    std::string rootDir = "";
+    std::vector<std::string> *fileList;
 
   protected:
     static void dumpStmt(const Stmt *stmt, ASTContext &Context);

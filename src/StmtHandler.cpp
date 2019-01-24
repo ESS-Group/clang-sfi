@@ -8,13 +8,14 @@ StmtHandler::StmtHandler(FaultInjector *pFaultInjector, std::string fileName,
     faultInjector = pFaultInjector;
 }
 bool considerFile(FaultInjector *injector, std::string fileName) {
+    std::cerr << fileName << std::endl;
     if (injector->getFileName().compare(fileName) == 0)
         return true;
     else if (injector->considerFile != NULL && injector->considerFile(fileName)) {
         return true;
     } else if (injector->fileList != NULL) {
         for (std::string name : *(injector->fileList)) {
-            if (name.compare(fileName) == 0) {
+            if (fileName.compare(name) == 0 || fileName.compare(injector->rootDir + name) == 0) {
                 return true;
             }
         }

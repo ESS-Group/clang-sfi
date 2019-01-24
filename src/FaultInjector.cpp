@@ -16,6 +16,14 @@
 using namespace clang;
 using namespace clang::ast_matchers;
 
+void FaultInjector::setRootDir(std::string dir) {
+    rootDir = dir;
+}
+
+void FaultInjector::setFileList(std::vector<std::string> *list) {
+    fileList = list;
+}
+
 StmtHandler *FaultInjector::createStmtHandler(std::string binding) {
     std::vector<std::string> bindings;
     bindings.push_back(binding);
@@ -330,6 +338,8 @@ void FaultInjector::_inject(StmtBinding current, ASTContext &Context, int i, boo
                                        /*
                                                if (isMacroDefinition) {
                                
+                               
+                               
                                                } else {
                                                rw = inject(current, Context);
                                        }
@@ -393,9 +403,10 @@ void FaultInjector::_inject(StmtBinding current, ASTContext &Context, int i, boo
                             }
                             if (iLast != -1) {
                                 int prefixpadding = std::distance(hunk.common[0].begin(), hunk.common[0].end());
-                                int postfixpadding = iCurr - iLast; // same as std::distance(hunk.common[1].begin(),
-                                                                    // hunk.common[1].end()), but more efficient this
-                                                                    // way because already calculated before.
+                                int postfixpadding =
+                                    iCurr -
+                                    iLast; // same as std::distance(hunk.common[1].begin(), hunk.common[1].end()), but
+                                           // more efficient this way because already calculated before.
                                 unified << "@@ -" << hunk.a + prefixpadding;
                                 int b = hunk.b - postfixpadding - prefixpadding;
                                 if (b > 1) // if hunk.b==1 ',1' is optional
@@ -412,12 +423,20 @@ void FaultInjector::_inject(StmtBinding current, ASTContext &Context, int i, boo
                                     iCurr++;
                                     if (iCurr > iLast)
                                         break;
-                                    unified << change;
+
+                                    // https://stackoverflow.com/questions/484213/replace-line-breaks-in-a-stl-string
+                                    std::string::size_type pos = 0; // Must initialize
+                                    while ((pos = change.find("\r", pos)) != std::string::npos) {
+                                        change.erase(pos, 1);
+                                    }
+                                    unified << change << std::endl;
                                 }
                             }
                         }
                         if (hasDiff) {
-                            diffs.push_back(Diff(fileName, dir, unified.str()));
+                            std::string temp = unified.str();
+
+                            diffs.push_back(Diff(fileName, dir, temp + "\n"));
                         }
                     }
                 }
@@ -448,17 +467,6 @@ void FaultInjector::_inject(StmtBinding current, ASTContext &Context, int i, boo
             } else if (verbose) {
                 std::cerr << "-Failed" << std::endl;
             }
-
-            /*
-                                            clang::RopePieceBTreeIterator it;
-                                            for (it = buffer.begin(); it != buffer.end(); it++) {
-                                                            RewriteRope rope = it.piece;
-                                                            rope.std::cout << "Buffer:" << std::endl <<
-               std::string(buffer.begin(), buffer.end()) <<
-               std::endl;
-                                            }
-                                            // How do I access each element?
-                            */
         }
     } else if (verbose) {
         std::cerr << "-Failed" << std::endl;

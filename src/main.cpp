@@ -1,9 +1,13 @@
 #include <fstream>
-
+#include <stdio.h>
 #ifdef _WIN32
 #include <direct.h>
+#define getCWD _getcwd
 #else
 #include <sys/stat.h>
+#include <unistd.h>
+#define _MAX_DIR PATH_MAX
+#define getCWD getcwd
 #endif
 
 #include "llvm/Support/raw_ostream.h"
@@ -64,14 +68,15 @@ int main(int argc, const char **argv) {
     CommonOptionsParser op(argc, argv, oCategory);
 
     std::string fileforInjection = "";
-    ClangTool Tool(op.getCompilations(), op.getSourcePathList());
-    if (op.getSourcePathList().size() != 1) {
+    auto sourcePathList = op.getSourcePathList();
+    ClangTool Tool(op.getCompilations(), sourcePathList);
+    if (sourcePathList.size() != 1) {
         std::cout << "Please select exactly one main file" << std::endl;
         return 1;
     } else {
         fileforInjection = op.getSourcePathList()[0];
     }
-
+    std::string mainFileName = sourcePathList.at(0);
     std::vector<FaultInjector *> available;
     std::vector<FaultInjector *> injectors;
 
@@ -165,11 +170,66 @@ int main(int argc, const char **argv) {
             return 1;
         }
     }
+    std::vector<std::string> filesToConsider;
+    char cwd[_MAX_DIR];
+    getCWD(cwd, _MAX_DIR);
+    std::string path(cwd);
+#ifdef _WIN32
+    char pathSep = '\\';
+#else
+    char pathSep = '/';
+#endif
+    path = path + pathSep;
+    size_t pos = mainFileName.find_last_of('/');
+    /*if (std::string::npos != pos) {
+        std::string temp(mainFileName.begin(), mainFileName.begin() + pos);
+        path = path + pathSep + temp + '/';
+    } else
+        path + pathSep;
+                */
+    if (j.find("consideredFilesList") != j.end()) {
+        std::string fileList = j["consideredFilesList"];
+
+        if (verbose) {
+            std::cout << "Searching for files to consider based on \"" << path << "\"" << std::endl;
+        }
+        if (stat(fileList.c_str(), &buf) != -1) {
+            std::ifstream list(fileList);
+            for (std::string file; std::getline(list, file);) {
+                if (file.compare("") != 0 && file.compare("\n") != 0 && file.compare("\r\n") != 0 &&
+                    file.compare("\r") != 0) {
+                    if (stat((path + file).c_str(), &buf) != -1) {
+                        filesToConsider.push_back(file);
+                        if (verbose) {
+                            std::cout << "Considering File: " << file << std::endl;
+                        }
+                    } else {
+                        if (verbose) {
+                            std::cerr << "File not found: " << file << std::endl;
+                        }
+                    }
+                }
+            }
+        } else {
+            std::cerr << "FileList defined, but File (" << fileList << ") not found." << std::endl
+                      << "Exiting..." << std::endl;
+        }
+    }
+    if (j.find("consideredFiles") != j.end()) {
+        for (json::iterator it = j.find("consideredFiles")->begin(); it != j.find("consideredFiles")->end(); ++it) {
+            std::string file = it->get<std::string>();
+            if (stat(file.c_str(), &buf) != -1) {
+                filesToConsider.push_back(file);
+            }
+        }
+    }
 
     for (FaultInjector *inj : injectors) {
         // set verbose and directory options for injectors
         inj->setVerbose(verbose);
         inj->setDirectory(dir);
+        inj->setRootDir(path);
+        inj->fileList = &filesToConsider;
     }
 
     int ret = Tool.run(newSFIFrontendActionFactory(injectors).get());
