@@ -42,6 +42,10 @@ static llvm::cl::OptionCategory oCategory("clang-sfi");
 static llvm::cl::opt<bool> VerboseOption("verbose", llvm::cl::cat(oCategory), llvm::cl::desc("verbose execution"));
 static llvm::cl::opt<std::string> DirectoryOption("dir", llvm::cl::cat(oCategory), llvm::cl::init("injections"),
                                                   llvm::cl::desc("Directory where to store the patch files"));
+static llvm::cl::opt<std::string> RootDirectoryOption(
+    "sourcetree", llvm::cl::cat(oCategory), llvm::cl::init("injections"),
+    llvm::cl::desc("Absolute path to source directory or '.' for current working directory. If defined matches in all "
+                   "files in the directory will be matched if there is a reference from main source file."));
 static llvm::cl::opt<std::string> ConfigOption("config", llvm::cl::cat(oCategory),
                                                llvm::cl::desc("Specify an optional configuration file"));
 
@@ -187,6 +191,18 @@ int main(int argc, const char **argv) {
     } else
         path + pathSep;
                 */
+
+    std::string rootDir = RootDirectoryOption.getValue();
+    if (rootDir.compare("") != 0) {
+        if (rootDir.compare(".") == 0 || rootDir.compare("cwd") == 0)
+            rootDir = path;
+        if (verbose)
+            std::cout << "Sourcetree directory defined, files in this directory are also considered for matches."
+                      << std::endl;
+        for (FaultInjector *injector : injectors) {
+            injector->setRootDir(rootDir);
+        }
+    }
     if (j.find("consideredFilesList") != j.end()) {
         std::string fileList = j["consideredFilesList"];
 
