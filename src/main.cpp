@@ -44,8 +44,8 @@ static llvm::cl::opt<std::string> DirectoryOption("dir", llvm::cl::cat(oCategory
                                                   llvm::cl::desc("Directory where to store the patch files"));
 static llvm::cl::opt<std::string> RootDirectoryOption(
     "sourcetree", llvm::cl::cat(oCategory), llvm::cl::init("injections"),
-    llvm::cl::desc("Absolute path to source directory or '.' for current working directory. If defined matches in all "
-                   "files in the directory will be matched if there is a reference from main source file."));
+    llvm::cl::desc("Absolute path to source directory or '.' for current working directory. If defined, matches in all "
+                   "files in the directory that are referenced from main source file."));
 static llvm::cl::opt<std::string> ConfigOption("config", llvm::cl::cat(oCategory),
                                                llvm::cl::desc("Specify an optional configuration file"));
 
