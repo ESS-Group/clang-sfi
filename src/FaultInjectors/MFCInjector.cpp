@@ -51,11 +51,11 @@ bool MFCInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewrit
     } else if (current.binding.compare("CommaOperator") == 0) { // totest
         SourceLocation start, end;
         if (current.left) {
-            start = ((const BinaryOperator *)current.stmt)->getLHS()->getLocStart();
-            end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocStart().getLocWithOffset(-1);
+            start = cast<const BinaryOperator>(current.stmt)->getLHS()->getLocStart();
+            end = cast<const BinaryOperator>(current.stmt)->getRHS()->getLocStart().getLocWithOffset(-1);
         } else {
-            start = ((const BinaryOperator *)current.stmt)->getOperatorLoc();
-            end = ((const BinaryOperator *)current.stmt)->getRHS()->getLocEnd();
+            start = cast<const BinaryOperator>(current.stmt)->getOperatorLoc();
+            end = cast<const BinaryOperator>(current.stmt)->getRHS()->getLocEnd();
         }
         SourceRange range(start, end);
         R.RemoveText(range);
@@ -83,16 +83,16 @@ std::vector<const Stmt *> getFunctionCallExprListInCommaOp(const BinaryOperator 
     std::vector<const Stmt *> ret;
     if (isa<CallExpr>(lhs) && !isa<CXXOperatorCallExpr>(lhs)) {
         ret.push_back(lhs);
-    } else if (isa<BinaryOperator>(lhs) && ((const BinaryOperator *)lhs)->getOpcode() == BO_Comma) {
-        std::vector<const Stmt *> temp = getFunctionCallExprListInCommaOp((const BinaryOperator *)lhs);
+    } else if (isa<BinaryOperator>(lhs) && cast<const BinaryOperator>(lhs)->getOpcode() == BO_Comma) {
+        std::vector<const Stmt *> temp = getFunctionCallExprListInCommaOp(cast<const BinaryOperator>(lhs));
         if (temp.size() != 0) {
             for (const Stmt *tmp : temp) {
                 ret.push_back(tmp);
             }
         }
     }
-    if (isa<BinaryOperator>(rhs) && ((const BinaryOperator *)rhs)->getOpcode() == BO_Comma) {
-        std::vector<const Stmt *> temp = getFunctionCallExprListInCommaOp((const BinaryOperator *)rhs, true);
+    if (isa<BinaryOperator>(rhs) && cast<const BinaryOperator>(rhs)->getOpcode() == BO_Comma) {
+        std::vector<const Stmt *> temp = getFunctionCallExprListInCommaOp(cast<const BinaryOperator>(rhs), true);
         if (temp.size() != 0) {
             for (const Stmt *tmp : temp) {
                 ret.push_back(tmp);
@@ -110,7 +110,7 @@ bool MFCInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &C
     } else if (binding.compare("CommaOperator") == 0) {
         const Stmt *parent = getParentIgnoringParenCasts(stmt, Context);
 
-        std::vector<const Stmt *> stmts = getFunctionCallExprListInCommaOp((const BinaryOperator *)stmt, true,
+        std::vector<const Stmt *> stmts = getFunctionCallExprListInCommaOp(cast<const BinaryOperator>(stmt), true,
                                                                            parent != NULL && !isa<CallExpr>(parent));
         if (stmts.size() != 0) {
             for (const Stmt *stmt : stmts) {
