@@ -29,15 +29,15 @@ bool considerFile(FaultInjector *injector, std::string fileName) {
 }
 
 void StmtHandler::run(const MatchFinder::MatchResult &Result) {
-    SourceManager *SM = &Result.Context->getSourceManager();
+    SourceManager &SM = Result.Context->getSourceManager();
     for (std::string binding : bindings) {
         if (const Stmt *stmt = Result.Nodes.getNodeAs<clang::Stmt>(binding)) {
             if (stmt != NULL &&
-                !SM->isInSystemHeader(stmt->getLocStart()) && // do not match on system headers or system macros
-                !SM->isInSystemMacro(stmt->getLocStart())) {
+                !SM.isInSystemHeader(stmt->getLocStart()) && // do not match on system headers or system macros
+                !SM.isInSystemMacro(stmt->getLocStart())) {
                 SourceLocation start = stmt->getLocStart();
                 bool isMacro = start.isMacroID();
-                std::string name = FaultInjector::getFileName(stmt, *SM);
+                std::string name = FaultInjector::getFileName(stmt, SM);
                 if (!isMacro) {
                     // Only consider nodes of the currently parsed file.
                     if (considerFile(faultInjector, name)) {
@@ -54,24 +54,23 @@ void StmtHandler::run(const MatchFinder::MatchResult &Result) {
                     }
                     // MacroDefinition is to consider
                     if (faultInjector->matchMacroDefinition &&
-                        considerFile(faultInjector, std::string(SM->getFilename(SM->getSpellingLoc(start))))) {
-                        // SourceRange range(SM->getSpellingLoc(start), SM->getSpellingLoc(stmt->getLocEnd()));
+                        considerFile(faultInjector, std::string(SM.getFilename(SM.getSpellingLoc(start))))) {
+                        // SourceRange range(SM->getSpellingLoc(start), SM.getSpellingLoc(stmt->getLocEnd()));
                         if (faultInjector->checkMacroDefinition(stmt, binding, *Result.Context)) {
-                            if (!faultInjector->isMacroDefinitionAdded(SM->getSpellingLoc(start), *SM)) {
-                                faultInjector->nodeCallbackMacroDef(binding, stmt, *SM);
+                            if (!faultInjector->isMacroDefinitionAdded(SM.getSpellingLoc(start), SM)) {
+                                faultInjector->nodeCallbackMacroDef(binding, stmt, SM);
                             }
                         }
                     }
                 }
             }
-
         } else if (const Decl *stmt = Result.Nodes.getNodeAs<clang::Decl>(binding)) {
             if (stmt != NULL &&
-                !SM->isInSystemHeader(stmt->getLocStart()) && // do not match on system headers or system macros
-                !SM->isInSystemMacro(stmt->getLocStart())) {
+                !SM.isInSystemHeader(stmt->getLocStart()) && // do not match on system headers or system macros
+                !SM.isInSystemMacro(stmt->getLocStart())) {
                 SourceLocation start = stmt->getLocStart();
                 bool isMacro = start.isMacroID();
-                std::string name = FaultInjector::getFileName(stmt, *SM);
+                std::string name = FaultInjector::getFileName(stmt, SM);
                 if (!isMacro) {
                     // Only consider nodes of the currently parsed file.
                     if (considerFile(faultInjector, name)) {
@@ -88,11 +87,11 @@ void StmtHandler::run(const MatchFinder::MatchResult &Result) {
                     }
                     // MacroDefinition is to consider
                     if (faultInjector->matchMacroDefinition &&
-                        considerFile(faultInjector, std::string(SM->getFilename(SM->getSpellingLoc(start))))) {
+                        considerFile(faultInjector, std::string(SM.getFilename(SM.getSpellingLoc(start))))) {
                         // SourceRange range(SM->getSpellingLoc(start), SM->getSpellingLoc(stmt->getLocEnd()));
                         if (faultInjector->checkMacroDefinition(stmt, binding, *Result.Context)) {
-                            if (!faultInjector->isMacroDefinitionAdded(SM->getSpellingLoc(start), *SM)) {
-                                faultInjector->nodeCallbackMacroDef(binding, stmt, *SM);
+                            if (!faultInjector->isMacroDefinitionAdded(SM.getSpellingLoc(start), SM)) {
+                                faultInjector->nodeCallbackMacroDef(binding, stmt, SM);
                             }
                         }
                     }
