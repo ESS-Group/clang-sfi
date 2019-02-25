@@ -245,7 +245,7 @@ int main(int argc, const char **argv) {
         inj->setVerbose(verbose);
         inj->setDirectory(dir);
         inj->setRootDir(path);
-        inj->fileList = &filesToConsider;
+        inj->setFileList(filesToConsider);
     }
 
     int ret = Tool.run(newSFIFrontendActionFactory(injectors).get());

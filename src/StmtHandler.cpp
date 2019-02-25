@@ -10,15 +10,13 @@ StmtHandler::StmtHandler(FaultInjector *pFaultInjector, std::string fileName,
 
 bool considerFile(FaultInjector *injector, std::string fileName) {
     // std::cerr << fileName << std::endl;
-    if (injector->considerFile != NULL && injector->considerFile(fileName)) {
-        return true;
-    } else if (injector->getFileName().compare(fileName) == 0)
+    if (injector->getFileName().compare(fileName) == 0)
         return true;
     else if (injector->rootDir.compare("") != 0 &&
              fileName.rfind(injector->rootDir, 0) == 0) // is in source tree and rootDir is defined
         return true;
-    else if (injector->fileList != NULL) {
-        for (std::string name : *(injector->fileList)) {
+    else if (injector->fileList.size() != 0) {
+        for (std::string name : injector->fileList) {
             if (fileName.compare(name) == 0 || fileName.compare(injector->rootDir + name) == 0) {
                 return true;
             }

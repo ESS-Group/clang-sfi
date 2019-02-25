@@ -20,7 +20,7 @@ void FaultInjector::setRootDir(std::string dir) {
     rootDir = dir;
 }
 
-void FaultInjector::setFileList(std::vector<std::string> *list) {
+void FaultInjector::setFileList(std::vector<std::string> list) {
     fileList = list;
 }
 

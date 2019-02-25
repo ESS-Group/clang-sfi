@@ -215,11 +215,10 @@ class FaultInjector {
     void setFileName(std::string name);
     void setVerbose(bool v);
     void setDirectory(std::string directory);
-    bool (*considerFile)(std::string);
     void setRootDir(std::string);
-    void setFileList(std::vector<std::string> *list);
+    void setFileList(std::vector<std::string> list);
     std::string rootDir = "";
-    std::vector<std::string> *fileList;
+    std::vector<std::string> fileList;
 
   protected:
     static void dumpStmt(const Stmt *stmt, ASTContext &Context);
