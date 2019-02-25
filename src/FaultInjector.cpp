@@ -405,7 +405,7 @@ void FaultInjector::_inject(StmtBinding current, ASTContext &Context, int i, boo
                         if (hasDiff) {
                             std::string temp = unified.str();
 
-                            diffs.push_back(Diff(fileName, dir, temp + "\n"));
+                            diffs.push_back(Diff(fileName, dir, temp));
                         }
                     }
                 }
