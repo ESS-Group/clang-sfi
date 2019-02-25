@@ -281,7 +281,10 @@ int main(int argc, const char **argv) {
             }
             summary["types"].push_back(type);
             summary["injections"].push_back(injection);
-            float part = ((float)size) / injectioncount * 100.0;
+            float part = 0;
+            if (injectioncount > 0) {
+                part = ((float)size) / injectioncount * 100.0;
+            }
 
             std::cout << "Injected " << size << " " << type << " faults." << std::endl
                       << "> " << size << "/" << injectioncount << " (" << roundf(part * 100) / 100 << "\%)"
