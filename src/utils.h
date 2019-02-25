@@ -35,7 +35,7 @@ template <class T> const T *getFirstChild(const Stmt *parent) {
          i != e; ++i) {
         if (*i != NULL) {
             if (isa<T>(*i)) {
-                return (const T *)*i;
+                return cast<const T>(*i);
             } else {
                 if (const T *ret = getFirstChild<T>(*i)) {
                     return ret;
@@ -53,49 +53,19 @@ std::vector<const BinaryOperator *> getChildForFindVarAssignment(const Stmt *par
                                                                  bool alsoinloop = true, bool alsoinforconstruct = true,
                                                                  bool pinited = false);
 
-template <class T>
-const T *getParentOfType(const Stmt *stmt, ASTContext &Context, int maxDepth = 3) { // MaxDepth = -1 for to the root
-    T *ret = NULL;
-    if (stmt == NULL) {
-        return NULL;
-    }
-    if (maxDepth != 0) {
+template <class T, class SD>
+const T *getParentOfType(const SD *stmt, ASTContext &Context, int maxDepth = 3) { // MaxDepth = -1 for to the root
+    if (stmt != NULL && maxDepth != 0) {
         ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
         for (auto p : list) {
-            if (isa<T>(p.get<Stmt>())) {
+            if ((p.get<Stmt>() != NULL) && isa<T>(p.get<Stmt>())) {
                 return p.get<T>();
-            } else if (ret == NULL) {
+            } else {
                 return getParentOfType<T>(p.get<T>(), Context, maxDepth - 1);
             }
         }
     }
-    if (ret == NULL) {
-        return NULL;
-    } else {
-        return const_cast<const T *>(ret);
-    }
-}
-
-template <class T>
-const T *getParentOfType(const Decl *decl, ASTContext &Context, int maxDepth = 3) { // MaxDepth = -1 for to the root
-    T *ret = NULL;
-    if (maxDepth != 0) {
-        ASTContext::DynTypedNodeList list = Context.getParents(*decl);
-        for (auto p : list) {
-            if (p.get<Stmt>() == NULL) {
-            } else if (isa<T>(p.get<Stmt>())) {
-                return p.get<T>();
-            } else if (ret == NULL) {
-                return getParentOfType<T>(p.get<Stmt>(), Context, maxDepth - 1);
-            }
-        }
-    }
-
-    if (ret == NULL) {
-        return NULL;
-    } else {
-        return const_cast<const T *>(ret);
-    }
+    return NULL;
 }
 
 template <class T> bool hasParentOfType(const Stmt *stmt, ASTContext &Context) {
@@ -123,40 +93,6 @@ template <class T> bool hasChildOfType(const Stmt *stmt) {
     }
     return false;
 }
-/*
-template<class T>
-std::vector<const T*> getInnerstChildOfType(const Stmt* stmt, ASTContext
-&Context, int maxDepth = 1){//MaxDepth = -1 for to the root
-    //T* ret;
-    std::vector<const T*> ret;
-    //cout<<"+line1"<<endl;
-    if(stmt==NULL)
-        return NULL;
-    if(maxDepth!=0){
-        //cout<<"+line2"<<endl;
-        ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
-        //cout<<"+line3"<<endl;
-        for(auto p : list){
-            //cout<<"+line4"<<endl;
-            if(isa<T>(p.get<Stmt>())){
-                //cout<<"+line5.1.1"<<endl;
-                return p.get<T>();
-                //cout<<"+line5.1.2"<<endl;
-            }else if(ret == NULL){
-                //cout<<"+line5.2.1"<<endl;
-                ret = (T*)(&(*getParentOfType<T>(p.get<T>(), Context,
-maxDepth-1)));
-                //cout<<"+line5.2.2"<<endl;
-            }
-        }
-    }
-    //cout<<"+line6"<<endl;
-    if(ret == NULL)
-        return NULL;
-    else
-        return const_cast<const T*>(ret);
-}
-*/
 
 bool isParentOf(const Stmt *parent, const Stmt *stmt);
 bool isParentOf(const Stmt *parent, const Decl *decl, ASTContext &Context);
@@ -169,7 +105,7 @@ template <class T> std::vector<const T *> getChildrenOfType(const Stmt *parent, 
         return ret;
     }
     if (isa<T>(parent) && first) {
-        ret.push_back((const T *)parent);
+        ret.push_back(cast<const T>(parent));
     }
     for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
          i != e; ++i) {
@@ -211,7 +147,7 @@ template <class T> std::vector<const T *> getStmtsOfType(std::vector<const Stmt 
 }
 
 template <class T> bool _comparefunc(const T *st1, const T *st2) {
-    return st1->getLocStart() < st2->getLocStart(); // l2<l1;
+    return st1->getLocStart() < st2->getLocStart();
 }
 
 bool isArithmetic(const BinaryOperator *op);
@@ -229,11 +165,6 @@ template <class T> std::vector<const T *> getChildrenFlat(const Stmt *parent) {
             } else if (isa<T>(*i)) {
                 ret.push_back(cast<T>(*i));
             }
-            // }
-            /* else {
-                 if(const T* ret = getFirstChild<T>(*i))
-                     return ret;
-             }*/
         }
     }
     return ret;
@@ -245,40 +176,16 @@ template <class T> std::vector<const T *> getArgumentsOfType(const CallExpr *cal
     const Expr *const *args = call->getArgs();
     for (int i = 0; i < call->getNumArgs(); i++) {
         const Expr *arg = args[i];
-        // catch here
         if (isa<MaterializeTemporaryExpr>(arg)) {
             if (const DeclRefExpr *ref = getDeclRefExprOfImplicitConstructExpr(cast<MaterializeTemporaryExpr>(arg))) {
                 if (isa<T>(ref)) {
-                    // cerr<<"implicitconstructorcall"<<endl;
                     ret.push_back(ref);
                 }
             }
         }
-        /*
-        if(arg->IgnoreImplicit()->IgnoreImpCasts() != NULL &&
-        isa<CXXConstructExpr>(arg->IgnoreImplicit()->IgnoreImpCasts())){
-            const CXXConstructExpr* expr =(const CXXConstructExpr*)
-        arg->IgnoreImplicit()->IgnoreImpCasts();
-            cerr<<(expr->isElidable()?"true":"false")<<endl;
-            switch(expr->getConstructionKind()){
-                case CXXConstructExpr::ConstructionKind::CK_Complete :
-                cerr<<"complete"<<endl;
-                break;
-                case CXXConstructExpr::ConstructionKind::CK_NonVirtualBase :
-                cerr<<"nonvirtual"<<endl;
-                break;
-                case CXXConstructExpr::ConstructionKind::CK_VirtualBase :
-                cerr<<"virtualbase"<<endl;
-                break;
-                case CXXConstructExpr::ConstructionKind::CK_Delegating :
-                cerr<<"delegating"<<endl;
-                break;
-            }
-        }
-        */
         if (arg->IgnoreImpCasts() != NULL && arg->IgnoreImpCasts()->IgnoreParenCasts() != NULL &&
             isa<T>(arg->IgnoreImpCasts()->IgnoreParenCasts())) {
-            ret.push_back((const T *)arg->IgnoreImpCasts()->IgnoreParenCasts());
+            ret.push_back(cast<const T>(arg->IgnoreImpCasts()->IgnoreParenCasts()));
         }
     }
     return ret;

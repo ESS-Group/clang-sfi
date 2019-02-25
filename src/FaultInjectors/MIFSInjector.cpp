@@ -14,9 +14,8 @@ MIFSInjector::MIFSInjector() { // Missing if construct plus statements
 bool MIFSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     const IfStmt *ifS = cast<IfStmt>(current.stmt);
 
-    SourceRange range(ifS->getLocStart(), ifS /*->getThen()*/->getLocEnd());
+    SourceRange range(ifS->getLocStart(), ifS->getLocEnd());
     R.RemoveText(range);
-    // return getEditedString(R, Context);
     return true;
 }
 bool MIFSInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {

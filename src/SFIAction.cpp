@@ -8,7 +8,7 @@ using namespace clang::ast_matchers;
 SFIAction::SFIAction(std::vector<FaultInjector *> injs) : injectors(injs) {
 }
 void SFIAction::EndSourceFileAction() {
-    std::cout << "Parsed file  " << fileName /*<<" - done."*/ << std::endl;
+    std::cout << "Parsed file  " << fileName << std::endl;
 }
 std::unique_ptr<ASTConsumer> SFIAction::CreateASTConsumer(CompilerInstance &CI, StringRef file) {
     fileName = file.data();

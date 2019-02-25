@@ -14,7 +14,6 @@ bool MIESInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
 
     SourceRange range(ifS->getLocStart(), ifS->getElse()->getLocEnd());
     R.RemoveText(range);
-    // return getEditedString(R, Context);
     return true;
 }
 bool MIESInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {

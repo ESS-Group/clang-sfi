@@ -59,12 +59,10 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten) { // Missing variable assignmen
                             )
                         ))
                     )
-                    //hasAncestor(compoundStmt())
             ).bind("assignment"), createStmtHandler("assignment"));
 
-//if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
             if(alsoOverwritten) {
-            Matcher.addMatcher(//overwritten assignmentoperator call, rest like above
+            Matcher.addMatcher( // overwritten assignmentoperator call, rest like above
                 cxxOperatorCallExpr(allOf(
                     hasOverloadedOperatorName("="),
                     argumentCountIs(2),
@@ -115,7 +113,6 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten) { // Missing variable assignmen
                     )
             ).bind("overwritten"), createStmtHandler("overwritten"));
         }
-//endif
 }
 // clang-format on
 
@@ -123,13 +120,10 @@ bool MVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
     R.RemoveText(range);
 
-    // return getEditedString(R, Context);
     return true;
 }
 
 bool MVAVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    // if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
-
     if (binding.compare("overwritten") == 0) {
         const CXXOperatorCallExpr *opCall = cast<CXXOperatorCallExpr>(stmt);
         if (!opCall->isInfixBinaryOp()) {
@@ -144,48 +138,13 @@ bool MVAVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
             }
         }
         return true;
-
-        // const Expr* arg = ((const CXXOperatorCallExpr*)stmt)->getArg(0);
-        // return isValue(arg->IgnoreImplicit()->IgnoreParenCasts()->IgnoreImplicit());
     }
-    // endif
     if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
         return !isParentOf(forstmt->getCond(), stmt) && !isParentOf(forstmt->getInc(), stmt) && C2(stmt, Context);
     } else {
         return (C2(stmt, Context));
     }
-    /*
-    if(!C2(stmt, Context)){
-        stmt->getLocStart().dump(Context.getSourceManager());
-        cerr<<endl;
-    }
-    return C2(stmt, Context);
-    */
 }
-/*
-bool MVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
-    std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl,
-                                            true, //also search in loops
-                                            false, //do not search in for constructs
-                                            true); //do not check initialization => use every assignment
-    for(const BinaryOperator* op:list){
-        if(
-            isValueAssignment(op)
-            //&& isInitializedBefore((const DeclRefExpr*)((op)->getLHS()), Context)
-        ){
-            if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3*/ /*5*/ /*)){
-if(!isParentOf(forstmt->getCond(), decl, Context) &&
-!isParentOf(forstmt->getInc(), decl,Context)){ // not part of for construct!!!
-nodeCallback(binding, op);
-}
-} else {
-nodeCallback(binding, op);
-}
-}
-}
-
-return false;
-}*/
 
 OMVAVInjector::OMVAVInjector()
     : MVAVInjector(true){

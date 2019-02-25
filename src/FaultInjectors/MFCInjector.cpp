@@ -61,20 +61,19 @@ bool MFCInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewrit
         R.RemoveText(range);
     }
 
-    // return getEditedString(R, Context);
     return true;
 }
 std::vector<const Stmt *> getFunctionCallExprListInCommaOp(const BinaryOperator *bo, bool checkRight = false,
                                                            bool neverCheckRight = false) {
     if (neverCheckRight)
         checkRight = false;
-    const Expr *lhs = ((const BinaryOperator *)bo)
+    const Expr *lhs = cast<const BinaryOperator>(bo)
                           ->getLHS()
                           ->IgnoreParenCasts()
                           ->IgnoreImplicit()
                           ->IgnoreParenCasts()
                           ->IgnoreImplicit();
-    const Expr *rhs = ((const BinaryOperator *)bo)
+    const Expr *rhs = cast<const BinaryOperator>(bo)
                           ->getRHS()
                           ->IgnoreParenCasts()
                           ->IgnoreImplicit()

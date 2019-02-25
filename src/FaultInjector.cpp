@@ -288,19 +288,6 @@ void FaultInjector::printStep(StmtBinding current, const SourceManager &sourceMa
 
 void FaultInjector::printStep(StmtBinding current, const SourceManager &sourceManager, int i, int size) {
     std::cout << "injecting '" << toString() << "' [" << i + 1 << "/" << size << "]" << std::endl;
-    /*if(current.isStmt){
-        std::cout <<
-    sourceRangeToString(current.stmt,sourceManager)<<endl;//current.stmt ->
-    getLocStart().printToString(Context.getSourceManager())<< " -
-    "<<current.stmt ->
-    getLocEnd().printToString(Context.getSourceManager())<<endl;
-    } else {
-        std::cout <<
-    sourceRangeToString(current.decl,sourceManager)<<endl;//current.stmt ->
-    getLocStart().printToString(Context.getSourceManager())<< " -
-    "<<current.stmt ->
-    getLocEnd().printToString(Context.getSourceManager())<<endl;
-    }*/
 } // only position
 
 class Diff {
@@ -310,12 +297,6 @@ class Diff {
     std::string diff;
     Diff(std::string name, std::string dir, std::string diff) : diff(diff), dir(dir), name(name) {
     }
-    /*void print() {
-        std::cout << "Diff - Begin" << std::endl;
-        std::cout << dir << "/" << name << ":" << std::endl;
-        std::cout << diff << std::endl;
-        std::cout << "Diff - End" << std::endl;
-    }*/
 };
 
 void getLines(std::string str, std::vector<std::string> &lines) {
@@ -330,16 +311,6 @@ void FaultInjector::_inject(StmtBinding current, ASTContext &Context, int i, boo
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     if (inject(current, Context, R)) { // default case - no match in macro definitions
-                                       /*
-                                               if (isMacroDefinition) {
-                               
-                               
-                               
-                                               } else {
-                                               rw = inject(current, Context);
-                                       }
-                                               */
-
         std::map<clang::FileID, clang::RewriteBuffer>::iterator buffit;
         for (buffit = R.buffer_begin(); buffit != R.buffer_end();
              buffit++) { // iterate through all RewriteBuffers in the Rewriter (only Buffers where the Rewriter changed

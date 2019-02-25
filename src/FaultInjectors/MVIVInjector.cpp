@@ -65,6 +65,6 @@ bool MVIVInjector::checkStmt(const Decl *decl, std::string binding, ASTContext &
         return !vardecl->getType().isConstant(Context) && !vardecl->isStaticLocal() && C2(decl, Context);
     } else
         return false;
-    // C2 implementation implicitly excludes decl being part of an for
+    // C2 implementation implicitly excludes decl being part of a for
     // construct.
 }

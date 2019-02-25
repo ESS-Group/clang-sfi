@@ -35,20 +35,18 @@ bool MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::R
         SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
         R.RemoveText(range);
     } else {
-        VarDecl temp(*((const VarDecl *)current.decl));
-        temp.setInit(NULL);
-        const VarDecl *tempP = &temp;
-        std::string withoutInit = stmtToString(tempP, Context.getLangOpts());
-        SourceRange range(current.decl->getLocStart(), current.decl->getLocEnd());
-        R.ReplaceText(range, withoutInit);
+        const VarDecl *vardecl = cast<VarDecl>(current.decl);
+        const DeclStmt *declstmt = getParentOfType<DeclStmt>(current.decl, Context, 3);
+        SourceRange range(vardecl->getLocation().getLocWithOffset(vardecl->getNameAsString().length()),
+                          vardecl->getInit()->getLocEnd());
+        R.RemoveText(range);
     }
-    // return getEditedString(R, Context);
     return true;
 }
 bool MVIVInjectorSAFE::checkStmt(const Decl *decl, std::string binding, ASTContext &Context) {
     if (binding.compare("notInitialized") == 0 && isa<VarDecl>(decl)) {
         std::vector<const BinaryOperator *> list =
-            getChildForFindInitForVar(getParentCompoundStmt(decl, Context), (const VarDecl *)decl);
+            getChildForFindInitForVar(getParentCompoundStmt(decl, Context), cast<const VarDecl>(decl));
         for (const BinaryOperator *op : list) {
             if (isValueAssignment(op) && C2(op, Context)) {
                 nodeCallback(binding, op);

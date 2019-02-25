@@ -10,10 +10,6 @@ std::string OMVAEInjector::toString() {
 // clang-format off
 MVAEInjector::MVAEInjector(bool alsoOverwritten) { // Missing variable assignment using an expression
     this->alsoOverwritten = alsoOverwritten;
-    /*Matcher.addMatcher(
-            varDecl(
-                    hasAncestor(compoundStmt())
-            ).bind("varDecl"), createStmtHandler("varDecl")); */
     Matcher.addMatcher(
             binaryOperator(
                     allOf(
@@ -65,12 +61,10 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten) { // Missing variable assignmen
                             )
                         )
                     )
-                    //hasAncestor(compoundStmt())
             ).bind("assignment"), createStmtHandler("assignment"));
 
-//if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
         if(alsoOverwritten) {
-            Matcher.addMatcher(//overwritten assignmentoperator call, rest like above
+            Matcher.addMatcher( //overwritten assignmentoperator call, rest like above
                 cxxOperatorCallExpr(allOf(
                     hasOverloadedOperatorName("="),
                     argumentCountIs(2),
@@ -121,7 +115,6 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten) { // Missing variable assignmen
                     )
             ).bind("overwritten"), createStmtHandler("overwritten"));
         }
-//endif
 }
 // clang-format on
 
@@ -129,14 +122,12 @@ bool MVAEInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
     R.RemoveText(range);
 
-    // return getEditedString(R, Context);
     return true;
 }
 
 bool MVAEInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    // if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
     if (binding.compare("overwritten") == 0) {
-        const CXXOperatorCallExpr *opCall = (const CXXOperatorCallExpr *)stmt;
+        const CXXOperatorCallExpr *opCall = cast<const CXXOperatorCallExpr>(stmt);
         if (!opCall->isInfixBinaryOp()) {
             return false;
         }
@@ -149,51 +140,13 @@ bool MVAEInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
             }
         }
         return true;
-        // const Expr* arg = ((const CXXOperatorCallExpr*)stmt)->getArg(0);
-        // return !isValue(arg->IgnoreImplicit()->IgnoreParenCasts()->IgnoreImplicit());
     }
-    // endif
     if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
         return !isParentOf(forstmt->getCond(), stmt) && !isParentOf(forstmt->getInc(), stmt) && C2(stmt, Context);
     } else {
         return (C2(stmt, Context));
     }
-    /*
-    if(!C2(stmt, Context)) {
-        stmt->getLocStart().dump(Context.getSourceManager());
-        cerr<<endl;
-    }
-    return C2(stmt, Context);
-    */
 }
-/*
-bool MVAEInjector::checkStmt(const Decl* decl, std::string binding, ASTContext
-&Context){
-    return true;
-        std::vector<const BinaryOperator*> list =
-getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const
-VarDecl*)decl, true, false, true);
-        for(const BinaryOperator* op:list){
-
-            if(isExprAssignment(op)
-                //&&(isInitializedBefore((const DeclRefExpr*)((op)->getLHS()),
-Context))
-            ){
-                if(const ForStmt* forstmt =
-getParentOfType<ForStmt>(decl,Context,3)){
-                    if(!isParentOf(forstmt->getCond(), decl, Context) &&
-!isParentOf(forstmt->getInc(), decl,Context) && C2(op, Context)){
-                        nodeCallback(binding, op);
-                    }
-                } else if(C2(op, Context)){
-                    nodeCallback(binding, op);
-                }
-            }
-        }
-
-        return false;
-}
-*/
 
 OMVAEInjector::OMVAEInjector()
     : MVAEInjector(true){

@@ -23,7 +23,6 @@ bool WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::R
         R.ReplaceText(range, text + "^0xFF");
     }
 
-    // return getEditedString(R, Context);
     return true;
 }
 

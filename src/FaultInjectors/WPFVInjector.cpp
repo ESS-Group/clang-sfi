@@ -73,7 +73,6 @@ bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     std::string variableName(localVariables[0]->getName().data());
 
     R.ReplaceText(stmt->getSourceRange(), variableName);
-    // return getEditedString(R, Context);
     return true;
 }
 

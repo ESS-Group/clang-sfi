@@ -59,11 +59,10 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten) { // Wrong value assigned to va
                             )
                         ))
                     )
-                    //hasAncestor(compoundStmt())
+                    // hasAncestor(compoundStmt())
             ).bind("assignment"), createStmtHandler("assignment"));
 
-//if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
-        if(alsoOverwritten) {//overwritten assignmentoperator call, rest like above
+        if(alsoOverwritten) { // overwritten assignmentoperator call, rest like above
             Matcher.addMatcher(
                 cxxOperatorCallExpr(allOf(
                     hasOverloadedOperatorName("="),
@@ -115,75 +114,31 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten) { // Wrong value assigned to va
                     )
             ).bind("overwritten"), createStmtHandler("overwritten"));
         }
-//endif
 }
 // clang-format on
 
 bool WVAVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    // if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
     if (binding.compare("overwritten") == 0) {
         const CXXOperatorCallExpr *opCall = cast<CXXOperatorCallExpr>(stmt);
         if (!opCall->isInfixBinaryOp()) {
             return false;
         }
-        /*if(!C2(stmt, Context))
-            return false;*/
         if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
             if (isParentOf(forstmt->getCond(), stmt) || isParentOf(forstmt->getInc(), stmt)) {
                 return false;
             }
         }
         return true;
-
-        // const Expr* arg = ((const CXXOperatorCallExpr*)stmt)->getArg(0);
-        // return
-        // isValue(arg->IgnoreImplicit()->IgnoreParenCasts()->IgnoreImplicit());
     }
-    // endif
-    // stmt->dumpColor();
-    // stmt->getLocStart().dump(Context.getSourceManager());
-    // cerr<<endl;
     if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
-        //        cerr<<"1"<<endl;
-        return !isParentOf(forstmt->getCond(), stmt) && !isParentOf(forstmt->getInc(), stmt); // && C2(stmt, Context);
+        return !isParentOf(forstmt->getCond(), stmt) && !isParentOf(forstmt->getInc(), stmt);
     } else {
-        return true; // return(C2(stmt, Context));
+        return true;
     }
-    /*if(!C2(stmt, Context)){
-    stmt->getLocStart().dump(Context.getSourceManager());
-    cerr<<endl;
-    }
-    return C2(stmt, Context);*/
-}
-/*
-bool WVAVInjector::checkStmt(const Decl* decl, std::string binding, ASTContext &Context){
-    std::vector<const BinaryOperator*> list = getChildForFindVarAssignment(getParentCompoundStmt(decl, Context), (const VarDecl*)decl,
-                                            true, //also search in loops
-                                            false, //do not search in for constructs
-                                            true); //do not check initialization => use every assignment
-    for(const BinaryOperator* op:list){
-        if(
-            isValueAssignment(op)
-            //&& isInitializedBefore((const DeclRefExpr*)((op)->getLHS()), Context)
-        ){
-            if(const ForStmt* forstmt = getParentOfType<ForStmt>(decl,Context,3*/ /*5*/ /*)){
-if(!isParentOf(forstmt->getCond(), decl, Context) &&
-!isParentOf(forstmt->getInc(), decl,Context)){ // not part of for construct!!!
-nodeCallback(binding, op);
-}
-} else {
-nodeCallback(binding, op);
-}
-}
 }
 
-return false;
-}
-*/
 bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     const Expr *val = NULL;
-    // if OVERWRITTENASSIGNMENTOPERATORISASSIGNEMENT
-    // if(alsoOverwritten){
     clang::QualType type;
     if (current.binding.compare("overwritten") == 0) {
         auto firstArg = cast<CXXOperatorCallExpr>(current.stmt)->getArg(1);
@@ -193,11 +148,7 @@ bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
         val = cast<BinaryOperator>(current.stmt)->getRHS();
         type = cast<BinaryOperator>(current.stmt)->getLHS()->getType();
     }
-    //} else {
-    // elif
-    //    val = cast<BinaryOperator>(current.stmt)->getRHS();
-    //}
-    // endif
+
     SourceRange range(val->getLocStart(), val->getLocEnd());
     if (isa<CXXBoolLiteralExpr>(val)) {
         bool value = cast<CXXBoolLiteralExpr>(val)->getValue();
@@ -211,7 +162,6 @@ bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
         R.ReplaceText(range, "(" + type.getAsString() + ")" + text + "^0xFF");
     }
 
-    // return getEditedString(R, Context);
     return true;
 }
 

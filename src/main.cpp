@@ -86,8 +86,8 @@ int main(int argc, const char **argv) {
 
     bool verbose = VerboseOption.getValue();
 
-    // add an instance of every available FaultInjector to list
-    // only this instaces can be added by the config
+    // Add an instance of every available FaultInjector to list.
+    // Only these instances can be added by the config.
     available.push_back(new SMIFSInjector);
     available.push_back(new SMIAInjector);
     available.push_back(new SMIEBInjector);
@@ -185,12 +185,6 @@ int main(int argc, const char **argv) {
 #endif
     path = path + pathSep;
     size_t pos = mainFileName.find_last_of('/');
-    /*if (std::string::npos != pos) {
-        std::string temp(mainFileName.begin(), mainFileName.begin() + pos);
-        path = path + pathSep + temp + '/';
-    } else
-        path + pathSep;
-                */
 
     std::string rootDir = RootDirectoryOption.getValue();
     if (rootDir.compare("") != 0) {
@@ -241,7 +235,7 @@ int main(int argc, const char **argv) {
     }
 
     for (FaultInjector *inj : injectors) {
-        // set verbose and directory options for injectors
+        // Set verbose and directory options for injectors.
         inj->setVerbose(verbose);
         inj->setDirectory(dir);
         inj->setRootDir(path);
@@ -259,7 +253,7 @@ int main(int argc, const char **argv) {
         std::cout << "An error occurred while running the tool..." << std::endl;
         return 1;
     } else {
-        // create overview in summary.json
+        // Create overview in summary.json.
         json summary;
         int injectioncount = 0;
         std::cout << std::endl << std::endl << std::endl;

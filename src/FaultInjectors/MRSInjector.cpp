@@ -14,7 +14,6 @@ bool MRSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewrit
 
     SourceRange range(stmt->getLocStart(), stmt->getLocEnd());
     R.RemoveText(range);
-    // return getEditedString(R, Context);
     return true;
 }
 bool MRSInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {

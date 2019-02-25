@@ -5,7 +5,6 @@ std::string MLACInjector::toString() {
 };
 // clang-format off
 MLACInjector::MLACInjector() { // Missing AND clause in branch condition
-    //Matcher.addMatcher(binaryOperator(anyOf(hasAncestor(expr(anyOf(hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt())))),hasParent(ifStmt()),hasParent(doStmt()),hasParent(switchStmt()),hasParent(whileStmt()))).bind("FunctionCall"), createStmtHandler("FunctionCall"));
     Matcher.addMatcher(
         stmt(
             switchStmt(hasCondition(anyOf(binaryOperator(), hasDescendant(binaryOperator()))))
@@ -48,7 +47,6 @@ bool MLACInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
 
     SourceRange range(start, end);
     R.RemoveText(range);
-    // return getEditedString(R, Context);
     return true;
 }
 bool MLACInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else

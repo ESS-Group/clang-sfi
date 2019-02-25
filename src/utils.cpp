@@ -82,7 +82,7 @@ bool isAssignment(const BinaryOperator *op, bool anyAssign) {
             return false;
         }
     }
-    return /*isa<DeclRefExpr>(op->getLHS()) && */ ret;
+    return ret;
 }
 const Stmt *IgnoreCast(const Stmt *stmt, bool ignoreImplicit) {
     if (stmt == NULL) {
@@ -107,8 +107,9 @@ const Stmt *IgnoreCast(const Stmt *stmt, bool ignoreImplicit) {
         } else {
             return NULL;
         }
-    } else
+    } else {
         return stmt;
+    }
 }
 bool isAssignmentOrFC(const Stmt *stmt) {
     if (stmt == NULL) {
@@ -243,11 +244,11 @@ std::vector<const BinaryOperator *> getChildForFindVarAssignment(const Stmt *par
     }
     bool inited = pinited || var->hasInit();
     if (isa<BinaryOperator>(parent)) {
-        if (isAssignment((const BinaryOperator *)parent)) {
-            if (const DeclRefExpr *exp = getFirstChild<DeclRefExpr>(((const BinaryOperator *)parent)->getLHS())) {
+        if (isAssignment(cast<const BinaryOperator>(parent))) {
+            if (const DeclRefExpr *exp = getFirstChild<DeclRefExpr>(cast<const BinaryOperator>(parent)->getLHS())) {
                 if (exp->getDecl() == var) {
                     if (inited) {
-                        ret.push_back((const BinaryOperator *)parent);
+                        ret.push_back(cast<const BinaryOperator>(parent));
                     } else {
                         inited = true;
                     }
@@ -257,9 +258,8 @@ std::vector<const BinaryOperator *> getChildForFindVarAssignment(const Stmt *par
     } else {
         for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
              i != e; ++i) {
-            if (*i == NULL) {
-            } else if (isa<BinaryOperator>(*i)) {
-                if (isAssignment((const BinaryOperator *)*i)) {
+            if ((*i != NULL) && isa<BinaryOperator>(*i)) {
+                if (isAssignment(cast<const BinaryOperator>(*i))) {
                     if (const DeclRefExpr *exp = getFirstChild<DeclRefExpr>(*i)) {
                         if (exp->getDecl() == var) {
                             if (inited) {
@@ -270,10 +270,8 @@ std::vector<const BinaryOperator *> getChildForFindVarAssignment(const Stmt *par
                         }
                     }
                 }
-            } else if (isa<Stmt>(*i) && *i != NULL) {
-                if (isa<IfStmt>(*i)) {
-                    IfStmt *ifS = (IfStmt *)*i;
-
+            } else if ((*i != NULL) && isa<Stmt>(*i)) {
+                if (IfStmt *ifS = dyn_cast<IfStmt>(*i)) {
                     std::vector<const BinaryOperator *> inThen =
                         getChildForFindVarAssignment(ifS->getThen(), var, alsoinloop, alsoinforconstruct, inited);
                     if (inThen.size() != 0) {
@@ -292,20 +290,20 @@ std::vector<const BinaryOperator *> getChildForFindVarAssignment(const Stmt *par
                     if (isa<ForStmt>(*i)) {
                         std::vector<const BinaryOperator *> temp;
                         if (alsoinforconstruct) {
-                            temp = getChildForFindVarAssignment(((const ForStmt *)*i)->getInit(), var, alsoinloop,
+                            temp = getChildForFindVarAssignment(cast<const ForStmt>(*i)->getInit(), var, alsoinloop,
                                                                 alsoinforconstruct, inited);
                             if (temp.size() != 0) {
                                 concatVector<const BinaryOperator *>(ret, temp);
                                 inited = true;
                             }
-                            temp = getChildForFindVarAssignment(((const ForStmt *)*i)->getInc(), var, alsoinloop,
+                            temp = getChildForFindVarAssignment(cast<const ForStmt>(*i)->getInc(), var, alsoinloop,
                                                                 alsoinforconstruct, inited);
                             if (temp.size() != 0) {
                                 concatVector<const BinaryOperator *>(ret, temp);
                                 inited = true;
                             }
                         }
-                        temp = getChildForFindVarAssignment(((const ForStmt *)*i)->getBody(), var, alsoinloop,
+                        temp = getChildForFindVarAssignment(cast<const ForStmt>(*i)->getBody(), var, alsoinloop,
                                                             alsoinforconstruct, true);
 
                         if (temp.size() != 0) {
@@ -314,14 +312,14 @@ std::vector<const BinaryOperator *> getChildForFindVarAssignment(const Stmt *par
                         }
                     } else if (isa<WhileStmt>(*i)) {
                         std::vector<const BinaryOperator *> temp = getChildForFindVarAssignment(
-                            ((const WhileStmt *)*i)->getBody(), var, alsoinloop, alsoinforconstruct, true);
+                            cast<const WhileStmt>(*i)->getBody(), var, alsoinloop, alsoinforconstruct, true);
                         if (temp.size() != 0) {
                             concatVector<const BinaryOperator *>(ret, temp);
                             inited = true;
                         }
                     } else if (isa<DoStmt>(*i)) {
                         std::vector<const BinaryOperator *> temp = getChildForFindVarAssignment(
-                            ((const DoStmt *)*i)->getBody(), var, alsoinloop, alsoinforconstruct, true);
+                            cast<const DoStmt>(*i)->getBody(), var, alsoinloop, alsoinforconstruct, true);
                         if (temp.size() != 0) {
                             concatVector<const BinaryOperator *>(ret, temp);
                             inited = true;
@@ -347,29 +345,6 @@ std::vector<const BinaryOperator *> getChildForFindVarAssignment(const Stmt *par
     }
     return ret;
 }
-/*
-std::vector<const BinaryOperation*> findInitForVar(const Stmt* parent, const
-VarDecl* var, bool alsoinloop=false){
-    std::vector<const BinaryOperator*> ret;
-    if(alsoinloop || (!isa<ForStmt>(parent) && !isa<WhileStmt>(parent) &&
-!isa<DoStmt>(parent))){
-        for(Stmt::child_iterator i = cast_away_const(parent->child_begin()), e =
-cast_away_const(parent->child_end());i!=e;++i){
-            Stmt *stmt = *i;
-            if(stmt != NULL){
-                if(isa<BinaryOperator>(stmt)){
-                    if(((const BinaryOperation *)stmt)->getOpcode()==20&&(const
-DeclRefExpr* declE =getChildForFindInitForVar(stmt, var, alsoinloop)));
-                        ret.push_back(stmt);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    return ret;
-}
-*/
 
 const FunctionDecl *getParentFunctionDecl(const Stmt *stmt, ASTContext &Context) {
     if (stmt == NULL) {
@@ -388,21 +363,13 @@ const FunctionDecl *getParentFunctionDecl(const Stmt *stmt, ASTContext &Context)
         return NULL;
     }
 }
+
 bool isPartOfFunction(const Stmt *stmt, ASTContext &Context) {
     if (stmt == NULL) {
         return false;
     }
     const FunctionDecl *decl = getParentFunctionDecl(stmt, Context);
     return decl != NULL;
-    /*const DeclStmt* ret = getParentOfType<DeclStmt>(stmt,Context, -1);
-    if(ret == NULL)
-        return false;
-    else if(ret->isSingleDecl()){
-        if(isa<FunctionDecl>(ret->getSingleDecl()))
-            return true;
-        else
-            return isPartOfFunction(ret, Context);
-    } else return false;*/
 }
 bool isLocal(const Stmt *stmt, ASTContext &Context) {
     if (stmt == NULL) {
@@ -447,7 +414,7 @@ bool isParentOf(const Stmt *parent, const Decl *decl, ASTContext &Context) {
 }
 
 bool isInitializedBefore(const DeclRefExpr *ref, ASTContext &Context) {
-    const VarDecl *decl = (const VarDecl *)ref->getDecl();
+    const VarDecl *decl = cast<const VarDecl>(ref->getDecl());
     if (decl->getInit() != NULL) { // if declaration is initialization => every
                                    // use after that is an assignment
         return true;
@@ -467,11 +434,10 @@ std::vector<const DeclRefExpr *> getAllRefs(const Stmt *parent, const VarDecl *v
     std::vector<const DeclRefExpr *> ret;
     for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
          i != e; ++i) {
-        if (*i == NULL) {
-        } else if (isa<Stmt>(*i)) {
+        if ((*i != NULL) && isa<Stmt>(*i)) {
             if (isa<DeclRefExpr>(*i)) {
-                if (((const DeclRefExpr *)*i)->getDecl() == var)
-                    ret.push_back((const DeclRefExpr *)*i);
+                if (cast<const DeclRefExpr>(*i)->getDecl() == var)
+                    ret.push_back(cast<const DeclRefExpr>(*i));
             } else {
                 std::vector<const DeclRefExpr *> list = getAllRefs(*i, var);
                 if (list.size() != 0) {
@@ -499,12 +465,6 @@ const DeclRefExpr *getLatestRef(const Stmt *parent, const VarDecl *var) {
         } else {
             ret.push_back(ref);
         }
-        /*
-        if(ret == NULL)
-            ret = ref;
-        else if(ret->getLocEnd()<ref->getLocEnd())
-            ret = ref;
-        */
     }
 
     for (const DeclRefExpr *ref : ret) {
@@ -523,7 +483,7 @@ bool isArithmetic(const BinaryOperator *op) {
 }
 const BinaryOperator *getBinaryOperatorWithRightedtRHS(const BinaryOperator *op) {
     if (isa<BinaryOperator>(op->getRHS()) && isArithmetic(op)) {
-        return getBinaryOperatorWithRightedtRHS((const BinaryOperator *)op->getRHS());
+        return getBinaryOperatorWithRightedtRHS(cast<const BinaryOperator>(op->getRHS()));
     } else {
         return op;
     }
@@ -531,12 +491,12 @@ const BinaryOperator *getBinaryOperatorWithRightedtRHS(const BinaryOperator *op)
 
 const DeclRefExpr *getDeclRefExprOfImplicitConstructExpr(const MaterializeTemporaryExpr *matexpr) {
     if (matexpr != NULL && matexpr->getTemporary() != NULL && isa<CXXBindTemporaryExpr>(matexpr->getTemporary())) {
-        const CXXBindTemporaryExpr *tempbind = (const CXXBindTemporaryExpr *)matexpr->getTemporary();
+        const CXXBindTemporaryExpr *tempbind = cast<const CXXBindTemporaryExpr>(matexpr->getTemporary());
         if (isa<CXXConstructExpr>(tempbind->getSubExpr())) {
-            const CXXConstructExpr *constructexpr = (const CXXConstructExpr *)tempbind->getSubExpr();
+            const CXXConstructExpr *constructexpr = cast<const CXXConstructExpr>(tempbind->getSubExpr());
             if (constructexpr->getNumArgs() == 1 && constructexpr->getArg(0)->IgnoreImplicit() != NULL &&
                 isa<DeclRefExpr>(constructexpr->getArg(0)->IgnoreImplicit())) {
-                const DeclRefExpr *ref = (const DeclRefExpr *)constructexpr->getArg(0)->IgnoreImplicit();
+                const DeclRefExpr *ref = cast<const DeclRefExpr>(constructexpr->getArg(0)->IgnoreImplicit());
                 return ref;
             }
         }

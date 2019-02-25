@@ -14,13 +14,7 @@ std::vector<std::vector<const Stmt *>> getStmtLists(const CompoundStmt *block, A
     int index = -1;
     for (Stmt::child_iterator i = cast_away_const(block->child_begin()), e = cast_away_const(block->child_end());
          i != e; ++i) {
-        if (*i == NULL) {
-        } else if (isa<Stmt>(*i)) {
-            /*if(Context.getFullLoc(i->getLocStart()).getLineNumber()==965){
-                i->getLocStart().dump(Context.getSourceManager());
-                cerr<<endl;
-                i->dumpColor();
-            }*/
+        if ((*i != NULL) && isa<Stmt>(*i)) {
             if (index == -1) {
                 std::vector<const Stmt *> list;
                 ret.push_back(list);
@@ -79,11 +73,11 @@ std::vector<std::vector<const Stmt *>> getStmtLists(const CompoundStmt *block, A
                 }
             }
 
-            if (ref.size() /*ref!=NULL*/) {
+            if (ref.size()) {
                 for (const DeclRefExpr *reference : ref) {
                     if (reference != NULL && list.back()->getLocEnd() < reference->getLocStart() &&
                         std::find(list.begin(), list.end(), declstmt) != list.end()) {
-                        const DeclStmt *statement = (const DeclStmt *)declstmt; // declStmt;
+                        const DeclStmt *statement = cast<DeclStmt>(declstmt);
 
                         notPossible.push_back(statement);
                     }
@@ -145,16 +139,11 @@ bool isMLPAListPossible(std::vector<const Stmt *> stmtlist, const CompoundStmt *
             } else {
                 ref.push_back(latest);
             }
-            /*if(ref==NULL)
-                ref = latest;
-            else if(ref->getLocStart()<latest->getLocStart())
-                ref = latest;
-            */
         }
         for (const DeclRefExpr *reference : ref) {
             if (reference != NULL && stmtlist.back()->getLocEnd() < reference->getLocStart() &&
                 std::find(stmtlist.begin(), stmtlist.end(), declstmt) != stmtlist.end()) {
-                const DeclStmt *statement = (const DeclStmt *)declstmt; // declStmt;
+                const DeclStmt *statement = cast<const DeclStmt>(declstmt);
                 notPossible.push_back(statement);
             }
         }
@@ -168,9 +157,9 @@ std::vector<std::vector<const Stmt *>> getMLPAListOfSize(std::vector<const Stmt 
     int listsize = stmtlist.size();
     for (int begin = 0; begin + size <= listsize; begin++) {
         std::vector<const Stmt *> list(stmtlist.begin() + begin, stmtlist.begin() + begin + size);
-        // cout<<"list:"<<list.size()<<endl;
-        if (isMLPAListPossible(list, block))
+        if (isMLPAListPossible(list, block)) {
             ret.push_back(list);
+        }
     }
     return ret;
 }
@@ -205,57 +194,14 @@ bool MLPAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
 
     SourceRange range(begin, end);
     R.RemoveText(range);
-    // return getEditedString(R, Context);
     return true;
-    /*
-
-        if(current.isStmt){
-            SourceRange range(current.stmt->getLocStart(),
-       current.stmt->getLocEnd());
-            R.RemoveText(range);
-        } else {
-            VarDecl temp (*((const VarDecl*)current.decl));
-            temp.setInit(NULL);
-            const VarDecl* tempP = &temp;
-            std::string withoutInit = stmtToString(tempP,
-       Context.getLangOpts());
-
-
-            SourceRange range(current.decl->getLocStart(),
-       current.decl->getLocEnd());
-            R.ReplaceText(range, withoutInit);
-        }
-
-        return getEditedString(R, Context);*/
 }
 
 bool MLPAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
     const CompoundStmt *compoundStmt = cast<CompoundStmt>(stmt);
     std::vector<std::vector<const Stmt *>> stmtlists = getStmtLists(compoundStmt, Context);
-    // int s = stmt->size();
-    /*
-    if(compoundStmt->size()>2){
-        stmt->dumpColor();
-        cerr << "=================" << endl;
-        for(std::vector<const Stmt*> it:stmtlists){
-
-                        cerr<<"--sublist:"<<it.size()<<endl;
-                        */
-    /*
-                        for(const Stmt * stmt:it){
-                            stmt->dumpColor();
-                        }
-                        cerr<<"--endlist"<<endl;
-                        */ /*
-}
-}
-return false;
-*/
     for (std::vector<const Stmt *> it : stmtlists) {
         if (it.size() >= 2) {
-            // if(isMLPAListPossible(it,compoundStmt))
-            // nodeCallback(binding, it);continue;
-
             int size = it.size();
             if (size == compoundStmt->size()) { // because 1 statement must remain
                                                 // within the compoundStmt

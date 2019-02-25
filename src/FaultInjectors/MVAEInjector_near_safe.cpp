@@ -6,18 +6,6 @@ std::string MVAEInjectorSAFE::toString() {
 
 // clang-format off
 MVAEInjectorSAFE::MVAEInjectorSAFE() { // Missing variable assignment using an expression
-    /*
-        Matcher.addMatcher(
-        varDecl(
-                hasInitializer(
-                    allOf(
-                        expr(anyOf(callExpr(),cxxNewExpr(),binaryOperator(),unaryOperator())),
-                        hasAncestor(compoundStmt())
-                    )
-                )
-            ).bind("variable"), createStmtHandler("variable"));
-    */
-
     Matcher.addMatcher(
             varDecl(
                 //commented to include global assignments
@@ -40,7 +28,6 @@ bool MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::R
         R.ReplaceText(range, withoutInit);
     }
 
-    // return getEditedString(R, Context);
     return true;
 }
 

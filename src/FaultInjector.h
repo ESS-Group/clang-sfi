@@ -160,9 +160,6 @@ class FaultInjector {
         Range location;
         bool left;
         bool isMacroExpansion;
-        // std::vector<int> additionalAttributesInt;
-        // std::vector<Str> additionalAttributesStr;
-        // std::vector<clang::FileID> injectedFiles;
     };
     StmtHandler *createStmtHandler(std::string binding);
     FaultInjector();
@@ -200,9 +197,6 @@ class FaultInjector {
     bool matchMacroDefinition, matchMacroExpansion;
     void setMatchMacro(bool match);
     void setMatchMacro(bool matchDef, bool matchExp);
-    // void setSourceMgr(SourceManager &sourceManager);
-    // SourceManager* getSourceMgr();
-    // Rewriter Rewrite;
     void nodeCallbackMacroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left = false);
     void nodeCallbackMacroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left = false);
     void nodeCallbackMacroExpansion(std::string binding, const Stmt *stmt, bool left = false);
@@ -222,7 +216,7 @@ class FaultInjector {
 
   protected:
     static void dumpStmt(const Stmt *stmt, ASTContext &Context);
-    static std::string stmtToString(const Stmt *stmt /*, SourceManager &sourceManager*/, const LangOptions &langOpts);
+    static std::string stmtToString(const Stmt *stmt, const LangOptions &langOpts);
     static void dumpStmt(const Decl *decl);
     static std::string stmtToString(const Decl *decl, const LangOptions &langOpts);
     static std::string sourceLocationToString(SourceLocation loc, const SourceManager &sourceManager);
@@ -236,7 +230,6 @@ class FaultInjector {
                    int size = 0); // with printing statements
     void printStep(StmtBinding current, const SourceManager &sourceManager, int i = 0, int size = 0); // only position
     std::string fileName;
-    // SourceManager *sourceMgr;
     std::vector<std::string> bindings;
     MatchFinder Matcher; // child classes have to add Matchers
     void _sort();
