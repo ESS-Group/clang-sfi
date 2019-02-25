@@ -65,8 +65,9 @@ bool MFCInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewrit
 }
 std::vector<const Stmt *> getFunctionCallExprListInCommaOp(const BinaryOperator *bo, bool checkRight = false,
                                                            bool neverCheckRight = false) {
-    if (neverCheckRight)
+    if (neverCheckRight) {
         checkRight = false;
+    }
     const Expr *lhs = cast<const BinaryOperator>(bo)
                           ->getLHS()
                           ->IgnoreParenCasts()
