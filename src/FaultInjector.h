@@ -172,8 +172,8 @@ class FaultInjector {
     static std::string getFileName(const Stmt *stmt, SourceManager &SM);
     static std::string getFileName(const Decl *decl, SourceManager &SM);
 
-    void pushMakroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left = false);
-    void pushMakroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left = false);
+    void pushMacroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left = false);
+    void pushMacroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left = false);
     void push(std::string binding, const Stmt *st, bool left = false, bool isMacroExpansion = false);
     void push(std::string binding, const Decl *st, bool left = false, bool isMacroExpansion = false);
     void push(std::string binding, std::vector<const Stmt *> list);

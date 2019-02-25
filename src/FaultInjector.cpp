@@ -1,8 +1,3 @@
-/*
-//ASTContext &Context
-        //Rewriter rw;
-        //rw.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
-*/
 #include "FaultInjector.h"
 
 #include <fstream>
@@ -82,13 +77,13 @@ void FaultInjector::push(std::string binding, std::vector<const Decl *> list) {
     _sort();
 }
 
-void FaultInjector::pushMakroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left) {
+void FaultInjector::pushMacroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left) {
     StmtBinding sb(binding, stmt, left);
     locations.push_back(sb);
     addedMacroPositions.push_back(SM.getSpellingLoc(stmt->getLocStart()));
     _sortMacro(SM);
 }
-void FaultInjector::pushMakroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left) {
+void FaultInjector::pushMacroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left) {
     StmtBinding sb(binding, decl, left);
     locations.push_back(sb);
     addedMacroPositions.push_back(SM.getSpellingLoc(decl->getLocStart()));
@@ -118,10 +113,10 @@ void FaultInjector::setMatchMacro(bool matchDef, bool matchExp) {
 }
 
 void FaultInjector::nodeCallbackMacroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left) {
-    pushMakroDef(binding, stmt, SM, left);
+    pushMacroDef(binding, stmt, SM, left);
 }
 void FaultInjector::nodeCallbackMacroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left) {
-    pushMakroDef(binding, decl, SM, left);
+    pushMacroDef(binding, decl, SM, left);
 }
 bool FaultInjector::isMacroDefinitionAdded(SourceLocation locStart, SourceManager &SM) {
     BeforeThanCompare<SourceLocation> isBefore(SM);
@@ -214,7 +209,7 @@ bool FaultInjector::comparefunc(StmtBinding st1, StmtBinding st2) {
             l2 = st2.decl->getLocStart();
         }
     }
-    return l1 < l2; // l2<l1;
+    return l1 < l2;
 }
 
 void FaultInjector::dumpStmt(const Stmt *stmt, ASTContext &Context) {
@@ -409,20 +404,23 @@ void FaultInjector::_inject(StmtBinding current, ASTContext &Context, int i, boo
                                            // more efficient this way because already calculated before.
                                 unified << "@@ -" << hunk.a + prefixpadding;
                                 int b = hunk.b - postfixpadding - prefixpadding;
-                                if (b > 1) // if hunk.b==1 ',1' is optional
+                                if (b > 1) { // if hunk.b==1 ',1' is optional
                                     unified << "," << b;
+                                }
                                 unified << " +" << hunk.c + prefixpadding;
 
                                 int d = hunk.d - postfixpadding - prefixpadding;
-                                if (d > 1) // if hunk.d==1 ',1' is optional
+                                if (d > 1) { // if hunk.d==1 ',1' is optional
                                     unified << "," << d;
+                                }
                                 unified << " @@" << std::endl;
 
                                 int iCurr = -1;
                                 for (std::string change : lines) {
                                     iCurr++;
-                                    if (iCurr > iLast)
+                                    if (iCurr > iLast) {
                                         break;
+                                    }
 
                                     // https://stackoverflow.com/questions/484213/replace-line-breaks-in-a-stl-string
                                     std::string::size_type pos = 0; // Must initialize
@@ -454,8 +452,9 @@ void FaultInjector::_inject(StmtBinding current, ASTContext &Context, int i, boo
                 }
 
                 std::string name = (dir.compare("") ? dir + "/" : "") + toString() + "_" + std::to_string(i);
-                if (verbose)
+                if (verbose) {
                     std::cerr << "New Patch File: " << name << std::endl;
+                }
                 std::ofstream file(name + ".patch");
                 file << data.str();
                 file.flush();
