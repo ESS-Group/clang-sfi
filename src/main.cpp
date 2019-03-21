@@ -130,25 +130,25 @@ int main(int argc, const char **argv) {
 
     struct stat buf;
 
-    std::string cfgFile = ConfigOption.getValue();
+    std::string cfgFileName = ConfigOption.getValue();
     std::string dir = DirectoryOption.getValue();
-    if (cfgFile.compare("") == 0) {
-        cfgFile = "config.json";
+    if (cfgFileName.compare("") == 0) {
+        cfgFileName = "config.json";
     }
 
-    json j;
-    if (stat(cfgFile.c_str(), &buf) != -1) { // config file exists
-        std::cout << "Using config (" << cfgFile << ")." << std::endl;
-        std::ifstream i(cfgFile.c_str());
-        i >> j;
-        if (j.find("verbose") != j.end() && !verbose) {
-            verbose = j["verbose"].get<bool>();
+    json cfgFile;
+    if (stat(cfgFileName.c_str(), &buf) != -1) { // config file exists
+        std::cout << "Using config (" << cfgFileName << ")." << std::endl;
+        std::ifstream cfgFileInStream(cfgFileName.c_str());
+        cfgFileInStream >> cfgFile;
+        if (cfgFile.find("verbose") != cfgFile.end() && !verbose) {
+            verbose = cfgFile["verbose"].get<bool>();
         }
-        if (dir.compare("") == 0 && j.find("destDirectory") != j.end()) {
-            dir = j["destDirectory"].get<std::string>();
+        if (dir.compare("") == 0 && cfgFile.find("destDirectory") != cfgFile.end()) {
+            dir = cfgFile["destDirectory"].get<std::string>();
         }
-        if (j.find("injectors") != j.end()) {
-            for (json::iterator it = j.find("injectors")->begin(); it != j.find("injectors")->end(); ++it) {
+        if (cfgFile.find("injectors") != cfgFile.end()) {
+            for (json::iterator it = cfgFile.find("injectors")->begin(); it != cfgFile.find("injectors")->end(); ++it) {
                 for (FaultInjector *injector : available) {
                     if (injector->toString().compare(it->get<std::string>()) == 0) {
                         // std::cout<<injector->toString()<<endl;
@@ -212,8 +212,8 @@ int main(int argc, const char **argv) {
             injector->setRootDir(rootDir);
         }
     }
-    if (j.find("consideredFilesList") != j.end()) {
-        std::string fileList = j["consideredFilesList"];
+    if (cfgFile.find("consideredFilesList") != cfgFile.end()) {
+        std::string fileList = cfgFile["consideredFilesList"];
 
         if (verbose) {
             std::cout << "Searching for files to consider based on \"" << path << "\"" << std::endl;
@@ -240,8 +240,8 @@ int main(int argc, const char **argv) {
                       << "Exiting..." << std::endl;
         }
     }
-    if (j.find("consideredFiles") != j.end()) {
-        for (json::iterator it = j.find("consideredFiles")->begin(); it != j.find("consideredFiles")->end(); ++it) {
+    if (cfgFile.find("consideredFiles") != cfgFile.end()) {
+        for (json::iterator it = cfgFile.find("consideredFiles")->begin(); it != cfgFile.find("consideredFiles")->end(); ++it) {
             std::string file = it->get<std::string>();
             if (stat(file.c_str(), &buf) != -1) {
                 filesToConsider.push_back(file);
@@ -308,23 +308,23 @@ int main(int argc, const char **argv) {
         std::cout << ">>> Total injected faults: " << injectioncount << std::endl;
         summary["injectionCount"] = injectioncount;
         summary["fileName"] = fileforInjection;
-        if (j.find("multipleRuns") != j.end()) {
-            summary["multipleRuns"] = j["multipleRuns"];
+        if (cfgFile.find("multipleRuns") != cfgFile.end()) {
+            summary["multipleRuns"] = cfgFile["multipleRuns"];
         }
-        if (j.find("timeout") != j.end()) {
-            summary["timeout"] = j["timeout"];
+        if (cfgFile.find("timeout") != cfgFile.end()) {
+            summary["timeout"] = cfgFile["timeout"];
         }
-        if (j.find("compileCommand") != j.end()) {
-            summary["compileCommand"] = j["compileCommand"];
+        if (cfgFile.find("compileCommand") != cfgFile.end()) {
+            summary["compileCommand"] = cfgFile["compileCommand"];
         }
-        if (j.find("compileCommandArgs") != j.end()) {
-            summary["compileCommandArgs"] = j["compileCommandArgs"];
+        if (cfgFile.find("compileCommandArgs") != cfgFile.end()) {
+            summary["compileCommandArgs"] = cfgFile["compileCommandArgs"];
         }
-        if (j.find("fileToExec") != j.end()) {
-            summary["fileToExec"] = j["fileToExec"];
+        if (cfgFile.find("fileToExec") != cfgFile.end()) {
+            summary["fileToExec"] = cfgFile["fileToExec"];
         }
-        if (j.find("fileToExecArgs") != j.end()) {
-            summary["fileToExecArgs"] = j["fileToExecArgs"];
+        if (cfgFile.find("fileToExecArgs") != cfgFile.end()) {
+            summary["fileToExecArgs"] = cfgFile["fileToExecArgs"];
         }
         summary["directory"] = dir;
         summary["verbose"] = verbose;
