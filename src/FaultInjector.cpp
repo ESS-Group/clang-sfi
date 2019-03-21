@@ -55,40 +55,28 @@ FaultInjector::FaultInjector() {
 FaultInjector::~FaultInjector() {
 }
 
-void FaultInjector::push(std::string binding, const Stmt *st, bool left, bool isMacroExpansion) {
-    StmtBinding sb(binding, st, left, isMacroExpansion);
-    locations.push_back(sb);
-    _sort();
-}
-void FaultInjector::push(std::string binding, const Decl *st, bool left, bool isMacroExpansion) {
-    StmtBinding sb(binding, st, left, isMacroExpansion);
+template<class T>
+void FaultInjector::push(std::string binding, const T *stmtOrDecl, bool left, bool isMacroExpansion) {
+    StmtBinding sb(binding, stmtOrDecl, left, isMacroExpansion);
     locations.push_back(sb);
     _sort();
 }
 
-void FaultInjector::push(std::string binding, std::vector<const Stmt *> list) {
-    StmtBinding sb(binding, list);
-    locations.push_back(sb);
-    _sort();
-}
-void FaultInjector::push(std::string binding, std::vector<const Decl *> list) {
+template<class T>
+void FaultInjector::push(std::string binding, std::vector<const T *> list) {
     StmtBinding sb(binding, list);
     locations.push_back(sb);
     _sort();
 }
 
-void FaultInjector::pushMacroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left) {
-    StmtBinding sb(binding, stmt, left);
+template<class T>
+void FaultInjector::pushMacroDef(std::string binding, const T *stmtOrDecl, SourceManager &SM, bool left) {
+    StmtBinding sb(binding, stmtOrDecl, left);
     locations.push_back(sb);
-    addedMacroPositions.push_back(SM.getSpellingLoc(stmt->getLocStart()));
+    addedMacroPositions.push_back(SM.getSpellingLoc(stmtOrDecl->getLocStart()));
     _sortMacro(SM);
 }
-void FaultInjector::pushMacroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left) {
-    StmtBinding sb(binding, decl, left);
-    locations.push_back(sb);
-    addedMacroPositions.push_back(SM.getSpellingLoc(decl->getLocStart()));
-    _sortMacro(SM);
-}
+
 void FaultInjector::matchAST(ASTContext &Context) {
     Matcher.matchAST(Context);
 }
@@ -307,7 +295,7 @@ void getLines(std::string str, std::vector<std::string> &lines) {
     }
 }
 
-void FaultInjector::_inject(StmtBinding current, ASTContext &Context, int i, bool isMacroDefinition) {
+void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, int i, bool isMacroDefinition) {
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     if (inject(current, Context, R)) { // default case - no match in macro definitions
@@ -458,7 +446,7 @@ void FaultInjector::inject(std::vector<StmtBinding> target, ASTContext &Context,
             printStep(current, Context.getSourceManager(), Context.getLangOpts(), i, target.size());
         }
 
-        _inject(current, Context, i++, isMacroDefinition);
+        generatePatchFile(current, Context, i++, isMacroDefinition);
     }
 }
 void FaultInjector::writeDown(std::string data, int i) {
@@ -470,9 +458,10 @@ void FaultInjector::writeDown(std::string data, int i) {
     system(("diff -U 0 \"" + fileName + "\" \"" + name + ".cpp\" > \"" + name + ".patch\"").c_str());
 }
 
-std::string FaultInjector::getFileName(const Stmt *stmt, SourceManager &SM) {
-    if (stmt != NULL) {
-        SourceLocation start = stmt->getLocStart();
+template<class T>
+std::string FaultInjector::getFileName(const T *stmtOrDecl, SourceManager &SM) {
+    if (stmtOrDecl != NULL) {
+        SourceLocation start = stmtOrDecl->getLocStart();
         if (start.isMacroID()) {
             return std::string(SM.getFilename(SM.getExpansionLoc(start)));
         } else {
@@ -482,16 +471,7 @@ std::string FaultInjector::getFileName(const Stmt *stmt, SourceManager &SM) {
         return "";
     }
 }
-
-std::string FaultInjector::getFileName(const Decl *decl, SourceManager &SM) {
-    if (decl != NULL) {
-        SourceLocation start = decl->getLocStart();
-        if (start.isMacroID()) {
-            return std::string(SM.getFilename(SM.getExpansionLoc(start)));
-        } else {
-            return std::string(SM.getFilename(start));
-        }
-    } else {
-        return "";
-    }
-}
+template
+std::string FaultInjector::getFileName<Stmt const>(const Stmt *stmtOrDecl, SourceManager &SM);
+template
+std::string FaultInjector::getFileName<Decl const>(const Decl *stmtOrDecl, SourceManager &SM);

@@ -166,18 +166,22 @@ class FaultInjector {
     ~FaultInjector();
     FaultInjector(const FaultInjector &that) = delete;
 
-    static std::string getFileName(const Stmt *stmt, SourceManager &SM);
-    static std::string getFileName(const Decl *decl, SourceManager &SM);
+    template<class T>
+    static std::string getFileName(const T *stmtOrDecl, SourceManager &SM);
 
-    void pushMacroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left = false);
-    void pushMacroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left = false);
-    void push(std::string binding, const Stmt *st, bool left = false, bool isMacroExpansion = false);
-    void push(std::string binding, const Decl *st, bool left = false, bool isMacroExpansion = false);
-    void push(std::string binding, std::vector<const Stmt *> list);
-    void push(std::string binding, std::vector<const Decl *> list);
+    template<class T>
+    void pushMacroDef(std::string binding, const T *stmtOrDecl, SourceManager &SM, bool left = false);
+    template<class T>
+    void push(std::string binding, const T *stmtOrDecl, bool left = false, bool isMacroExpansion = false);
+    template<class T>
+    void push(std::string binding, std::vector<const T *> list);
+    /// Perform injections for a list of StmtBindings.
     virtual void inject(std::vector<StmtBinding> target, ASTContext &Context, bool isMacroDefinition = false);
-    virtual void _inject(StmtBinding current, ASTContext &Context, int i = 0, bool isMacroDefinition = false);
+    /// Perform an injection for a specific StmtBinding in the provided Rewriter.
+    /// \return True if the rewriting was successful.
     virtual bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) = 0;
+    /// Generate a patch for a single StmtBinding.
+    virtual void generatePatchFile(StmtBinding current, ASTContext &Context, int i = 0, bool isMacroDefinition = false);
     // default false
     virtual bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context);
     virtual bool checkStmt(const Decl *stmt, std::string binding, ASTContext &Context);

@@ -27,8 +27,11 @@ bool considerFile(FaultInjector *injector, std::string fileName) {
 void MatchHandler::run(const MatchFinder::MatchResult &Result) {
     SourceManager &SM = Result.Context->getSourceManager();
     for (std::string binding : bindings) {
-        run_stmt_or_decl(Result, SM, binding, Result.Nodes.getNodeAs<clang::Stmt>(binding));
-        run_stmt_or_decl(Result, SM, binding, Result.Nodes.getNodeAs<clang::Decl>(binding));
+        if (const Stmt *stmt = dyn_cast<Stmt>(Result.Nodes.getNodeAs<Stmt>(binding))) {
+            run_stmt_or_decl(Result, SM, binding, stmt);
+        } else if (const Decl *decl = dyn_cast<Decl>(Result.Nodes.getNodeAs<Decl>(binding))) {
+            run_stmt_or_decl(Result, SM, binding, decl);
+        }
     }
 }
 
@@ -39,7 +42,7 @@ void MatchHandler::run_stmt_or_decl(const MatchFinder::MatchResult &Result, Sour
         !SM.isInSystemMacro(stmtOrDecl->getLocStart())) {
         SourceLocation start = stmtOrDecl->getLocStart();
         bool isMacro = start.isMacroID();
-        std::string name = FaultInjector::getFileName(stmt, SM);
+        std::string name = FaultInjector::getFileName<SD>(stmtOrDecl, SM);
         if (!isMacro) {
             // Only consider nodes of the currently parsed file.
             if (considerFile(faultInjector, name)) {
