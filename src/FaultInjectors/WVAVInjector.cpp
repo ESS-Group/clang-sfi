@@ -60,7 +60,7 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten) { // Wrong value assigned to va
                         ))
                     )
                     // hasAncestor(compoundStmt())
-            ).bind("assignment"), createStmtHandler("assignment"));
+            ).bind("assignment"), createMatchHandler("assignment"));
 
         if(alsoOverwritten) { // overwritten assignmentoperator call, rest like above
             Matcher.addMatcher(
@@ -112,7 +112,7 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten) { // Wrong value assigned to va
                             )
                         ))
                     )
-            ).bind("overwritten"), createStmtHandler("overwritten"));
+            ).bind("overwritten"), createMatchHandler("overwritten"));
         }
 }
 // clang-format on

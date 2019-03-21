@@ -4,7 +4,7 @@
 
 #include <iterator>
 
-#include "StmtHandler.h"
+#include "MatchHandler.h"
 
 #include "libs/dtl/dtl/dtl.hpp"
 
@@ -19,10 +19,10 @@ void FaultInjector::setFileList(std::vector<std::string> list) {
     fileList = list;
 }
 
-StmtHandler *FaultInjector::createStmtHandler(std::string binding) {
+MatchHandler *FaultInjector::createMatchHandler(std::string binding) {
     std::vector<std::string> bindings;
     bindings.push_back(binding);
-    return new StmtHandler(this, fileName, bindings);
+    return new MatchHandler(this, fileName, bindings);
 }
 
 bool FaultInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {

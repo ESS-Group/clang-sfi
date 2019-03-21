@@ -7,8 +7,8 @@
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Rewrite/Core/Rewriter.h"
 
-class StmtHandler;
-// include "StmtHandler.h"
+class MatchHandler;
+// include "MatchHandler.h"
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -161,7 +161,7 @@ class FaultInjector {
         bool left;
         bool isMacroExpansion;
     };
-    StmtHandler *createStmtHandler(std::string binding);
+    MatchHandler *createMatchHandler(std::string binding);
     FaultInjector();
     ~FaultInjector();
     FaultInjector(const FaultInjector &that) = delete;

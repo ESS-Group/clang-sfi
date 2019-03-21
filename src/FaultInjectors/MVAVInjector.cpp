@@ -59,7 +59,7 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten) { // Missing variable assignmen
                             )
                         ))
                     )
-            ).bind("assignment"), createStmtHandler("assignment"));
+            ).bind("assignment"), createMatchHandler("assignment"));
 
             if(alsoOverwritten) {
             Matcher.addMatcher( // overwritten assignmentoperator call, rest like above
@@ -111,7 +111,7 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten) { // Missing variable assignmen
                             )
                         ))
                     )
-            ).bind("overwritten"), createStmtHandler("overwritten"));
+            ).bind("overwritten"), createMatchHandler("overwritten"));
         }
 }
 // clang-format on

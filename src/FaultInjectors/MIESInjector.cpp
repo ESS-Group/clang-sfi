@@ -6,7 +6,7 @@ std::string MIESInjector::toString() {
 
 MIESInjector::MIESInjector() { // Missing if construct plus statements plus else
                                // plus statements
-    Matcher.addMatcher(ifStmt(hasElse(stmt())).bind("ifStmt"), createStmtHandler("ifStmt"));
+    Matcher.addMatcher(ifStmt(hasElse(stmt())).bind("ifStmt"), createMatchHandler("ifStmt"));
 }
 
 bool MIESInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {

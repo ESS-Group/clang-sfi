@@ -39,7 +39,7 @@ MVIVInjector::MVIVInjector() { // Missing variable initialization using a value
             ,hasDeclContext(functionDecl())//declaration in function context (local)
         )
         
-        ).bind("variable"), createStmtHandler("variable"));
+        ).bind("variable"), createMatchHandler("variable"));
 }
 // clang-format on
 

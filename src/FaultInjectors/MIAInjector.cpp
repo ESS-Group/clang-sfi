@@ -8,7 +8,7 @@ std::string SMIAInjector::toString() {
 };
 
 MIAInjector::MIAInjector() { // Missing if construct around statements
-    Matcher.addMatcher(ifStmt(unless(hasElse(stmt()))).bind("ifStmt"), createStmtHandler("ifStmt"));
+    Matcher.addMatcher(ifStmt(unless(hasElse(stmt()))).bind("ifStmt"), createMatchHandler("ifStmt"));
 }
 
 bool MIAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {

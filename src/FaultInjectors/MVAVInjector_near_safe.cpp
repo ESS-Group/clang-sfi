@@ -5,7 +5,7 @@ std::string MVAVInjectorSAFE::toString() {
 };
 
 MVAVInjectorSAFE::MVAVInjectorSAFE(bool alsoOverwritten) { // Missing variable assignment using a value
-    Matcher.addMatcher(varDecl(hasAncestor(compoundStmt())).bind("varDecl"), createStmtHandler("varDecl"));
+    Matcher.addMatcher(varDecl(hasAncestor(compoundStmt())).bind("varDecl"), createMatchHandler("varDecl"));
 }
 
 bool MVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {

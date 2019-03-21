@@ -9,27 +9,27 @@ MLOCInjector::MLOCInjector() { // Missing OR clause in branch condition
     Matcher.addMatcher(
         stmt(
             switchStmt(hasCondition(anyOf(binaryOperator(), hasDescendant(binaryOperator()))))
-        ).bind("switch"), createStmtHandler("switch")
+        ).bind("switch"), createMatchHandler("switch")
     );
     Matcher.addMatcher(
         stmt(
             doStmt(hasCondition(anyOf(binaryOperator(), hasDescendant(binaryOperator()))))
-        ).bind("do"), createStmtHandler("do")
+        ).bind("do"), createMatchHandler("do")
     );
     Matcher.addMatcher(
         stmt(
             whileStmt(hasCondition(anyOf(binaryOperator(), hasDescendant(binaryOperator()))))
-        ).bind("while"), createStmtHandler("while")
+        ).bind("while"), createMatchHandler("while")
     );
     Matcher.addMatcher(
         stmt(
             forStmt(hasCondition(anyOf(binaryOperator(), hasDescendant(binaryOperator()))))
-        ).bind("for"), createStmtHandler("for")
+        ).bind("for"), createMatchHandler("for")
     );
     Matcher.addMatcher(
         stmt(
             ifStmt(hasCondition(anyOf(binaryOperator(), hasDescendant(binaryOperator()))))
-        ).bind("if"), createStmtHandler("if")
+        ).bind("if"), createMatchHandler("if")
     );
 }
 // clang-format on

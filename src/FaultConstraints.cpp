@@ -4,7 +4,7 @@
 
 #include "clang/ASTMatchers/ASTMatchers.h"
 
-#include "StmtHandler.h"
+#include "MatchHandler.h"
 
 bool isaJumpStmt(const Stmt *stmt, bool returnIsAJump) {
     if (stmt == NULL) {

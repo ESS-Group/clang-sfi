@@ -20,7 +20,7 @@ WAEPInjector::WAEPInjector() { // Wrong arithmetic expressino in parameter of fu
                 )))
             )
         ).bind("functionCall"),
-        createStmtHandler("functionCall")
+        createMatchHandler("functionCall")
     );
 }
 // clang-format on

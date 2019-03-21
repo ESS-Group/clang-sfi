@@ -10,7 +10,7 @@ MVAEInjectorSAFE::MVAEInjectorSAFE() { // Missing variable assignment using an e
             varDecl(
                 //commented to include global assignments
                     hasAncestor(compoundStmt())
-            ).bind("varDecl"), createStmtHandler("varDecl"));
+            ).bind("varDecl"), createMatchHandler("varDecl"));
 }
 // clang-format on
 

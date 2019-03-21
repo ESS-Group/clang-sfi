@@ -9,7 +9,7 @@ std::string SMIEBInjector::toString() {
 
 MIEBInjector::MIEBInjector() { // Missing if construct plus statements + Else
                                // before statements
-    Matcher.addMatcher(ifStmt(hasElse(stmt())).bind("ifStmt"), createStmtHandler("ifStmt"));
+    Matcher.addMatcher(ifStmt(hasElse(stmt())).bind("ifStmt"), createMatchHandler("ifStmt"));
 }
 
 bool MIEBInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {

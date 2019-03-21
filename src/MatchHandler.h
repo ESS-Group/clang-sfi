@@ -1,5 +1,5 @@
-#ifndef STMTHANDLER_H
-#define STMTHANDLER_H 1
+#ifndef MATCHHANDLER_H
+#define MATCHHANDLER_H 1
 
 #include <iostream>
 
@@ -11,12 +11,12 @@ class FaultInjector;
 using namespace clang;
 using namespace clang::ast_matchers;
 
-class StmtHandler : public MatchFinder::MatchCallback {
+class MatchHandler : public MatchFinder::MatchCallback {
   public:
-    StmtHandler(FaultInjector *pFaultInjector, std::string fileName, std::vector<std::string> bindings);
+    MatchHandler(FaultInjector *pFaultInjector, std::string fileName, std::vector<std::string> bindings);
     virtual void run(const MatchFinder::MatchResult &Result);
     template <typename SD>
-    void run_stmt_or_decl(const MatchFinder::MatchResult &Result, SourceManager &SM, std::string binding, SD *stmt);
+    void run_stmt_or_decl(const MatchFinder::MatchResult &Result, SourceManager &SM, std::string binding, SD *stmtOrDecl);
 
   private:
     std::string fileName;

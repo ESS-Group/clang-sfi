@@ -8,7 +8,7 @@ std::string SMIFSInjector::toString() {
 };
 
 MIFSInjector::MIFSInjector() { // Missing if construct plus statements
-    Matcher.addMatcher(ifStmt(unless(hasElse(stmt()))).bind("ifStmt"), createStmtHandler("ifStmt"));
+    Matcher.addMatcher(ifStmt(unless(hasElse(stmt()))).bind("ifStmt"), createMatchHandler("ifStmt"));
 }
 
 bool MIFSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {

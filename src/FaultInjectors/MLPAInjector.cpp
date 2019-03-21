@@ -173,7 +173,7 @@ MLPAInjector::MLPAInjector() { // Missing small and localized part of the algori
                         unless(hasParent(switchStmt()))
                     )
                 ).bind("compoundStmt"), 
-                createStmtHandler("compoundStmt")
+                createMatchHandler("compoundStmt")
         );
 
 }

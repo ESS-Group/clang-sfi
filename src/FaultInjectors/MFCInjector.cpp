@@ -20,7 +20,7 @@ MFCInjector::MFCInjector() { // Missing function call
                     )
                 )
             )
-        ).bind("FunctionCall"), createStmtHandler("FunctionCall"));
+        ).bind("FunctionCall"), createMatchHandler("FunctionCall"));
 	Matcher.addMatcher(
 		binaryOperator(
 			allOf(
@@ -40,7 +40,7 @@ MFCInjector::MFCInjector() { // Missing function call
 					callExpr()
 				)
 			)
-		).bind("CommaOperator"), createStmtHandler("CommaOperator"));
+		).bind("CommaOperator"), createMatchHandler("CommaOperator"));
 }
 // clang-format on
 

@@ -6,7 +6,7 @@ std::string MRSInjector::toString() {
 
 MRSInjector::MRSInjector() { // Missing if construct plus statements plus else
                              // plus statements
-    Matcher.addMatcher(returnStmt().bind("returnStmt"), createStmtHandler("returnStmt"));
+    Matcher.addMatcher(returnStmt().bind("returnStmt"), createMatchHandler("returnStmt"));
 }
 
 bool MRSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {

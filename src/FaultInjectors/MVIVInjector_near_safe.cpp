@@ -16,7 +16,7 @@ MVIVInjectorSAFE::MVIVInjectorSAFE() { // Missing variable initialization using 
             ))
             ,hasAncestor(compoundStmt())
             )
-        )).bind("variable"), createStmtHandler("variable"));
+        )).bind("variable"), createMatchHandler("variable"));
 
     Matcher.addMatcher(
             varDecl(
@@ -25,7 +25,7 @@ MVIVInjectorSAFE::MVIVInjectorSAFE() { // Missing variable initialization using 
                     hasAncestor(compoundStmt()),
                     unless(varDecl(hasInitializer(expr())))
                     )
-            ).bind("notInitialized"), createStmtHandler("notInitialized")); // in this case get next assignment
+            ).bind("notInitialized"), createMatchHandler("notInitialized")); // in this case get next assignment
 
 }
 // clang-format on

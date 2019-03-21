@@ -28,7 +28,7 @@ WPFVInjector::WPFVInjector() { // Wrong variable used in parameter of function c
                     //implicit constructorcall + implicit cast
                 )
             ).bind("functionCall"),
-        createStmtHandler("functionCall")
+        createMatchHandler("functionCall")
     );
 }
 // clang-format on
