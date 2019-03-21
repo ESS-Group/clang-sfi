@@ -78,13 +78,17 @@ int main(int argc, const char **argv) {
     assert(opts.count("debug") == 1);
     opts["debug"]->setCategory(oCategory);
 
-    // We could do the same for debug-only flag, but since this is of no use at the moment, we directly set the debug type.
-    // assert(opts.count("debug-only") == 1);
-    // opts["debug-only"]->setCategory(oCategory);
+    // We do the same for debug-only flag.
+    assert(opts.count("debug-only") == 1);
+    opts["debug-only"]->setCategory(oCategory);
+    // Additionally we preset the value with clang-sfi
     ::llvm::setCurrentDebugType("clang-sfi");
     #endif
 
     CommonOptionsParser op(argc, argv, oCategory);
+
+    // LLVM_DEBUG(dbgs() << "Normal debug\n");
+    // DEBUG_WITH_TYPE("clang2", dbgs() << "Extended debug\n");
 
     std::string fileforInjection = "";
     auto sourcePathList = op.getSourcePathList();
