@@ -14,6 +14,9 @@
 
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
+#include "llvm/Support/Debug.h"
+#define DEBUG_TYPE "clang-sfi"
+using namespace llvm;
 
 #include "SFIASTConsumer.h"
 
@@ -69,6 +72,18 @@ newSFIFrontendActionFactory(std::vector<FaultInjector *> injectors) { // factory
 };
 
 int main(int argc, const char **argv) {
+    #ifndef NDEBUG
+    // Modify debug flag to show up for our tool.
+    StringMap<llvm::cl::Option*> &opts = llvm::cl::getRegisteredOptions();
+    assert(opts.count("debug") == 1);
+    opts["debug"]->setCategory(oCategory);
+
+    // We could do the same for debug-only flag, but since this is of no use at the moment, we directly set the debug type.
+    // assert(opts.count("debug-only") == 1);
+    // opts["debug-only"]->setCategory(oCategory);
+    ::llvm::setCurrentDebugType("clang-sfi");
+    #endif
+
     CommonOptionsParser op(argc, argv, oCategory);
 
     std::string fileforInjection = "";
