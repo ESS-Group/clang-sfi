@@ -49,25 +49,27 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)
 # that we wish to use
 
 # Normally:
-# llvm_map_components_to_libnames(llvm_libs Support core irreader MC ProfileData Option AArch64AsmParser)
+llvm_map_components_to_libnames(LLVM_LIBS Support core irreader Option ProfileData MC AArch64AsmParser)
 # Link against LLVM libraries
-# target_link_libraries(${PROJECT_NAME} PRIVATE ${llvm_libs})
+#target_link_libraries(${PROJECT_NAME} PRIVATE ${LLVM_LIBS})
 # but this does not work for the clang libs, so we just link against everything...
 if(WIN32)
-	file(GLOB ALL_MY_LLVM_LIBS "${LLVM_DIR}/../../../Release/lib/*.lib")
+	file(GLOB CLANG_LIBS "${LLVM_DIR}/../../../Release/lib/libclang*.lib")
 else()
-	file(GLOB ALL_MY_LLVM_LIBS "${LLVM_DIR}/../../*.a")
+	file(GLOB CLANG_LIBS "${LLVM_DIR}/../../libclang*.a")
 endif()
 
-if (NOT ALL_MY_LLVM_LIBS)
+if (NOT CLANG_LIBS)
 	message(FATAL_ERROR "Did not find any library files in \"${LLVM_DIR}/../../*.a\"")
-endif(NOT ALL_MY_LLVM_LIBS)
-# message(STATUS "Using following libs: ${ALL_MY_LLVM_LIBS}")
+endif(NOT CLANG_LIBS)
+# message(STATUS "Using the following Clang libs: ${CLANG_LIBS}")
+# message(STATUS "Using the following LLVM libs: ${LLVM_LIBS}")
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	# GCC will likely use a linker which cares for link order, so we wrap the LLVM libs in a group.
-	target_link_libraries(${PROJECT_NAME} PRIVATE -Wl,--start-group ${ALL_MY_LLVM_LIBS} -Wl,--end-group)
+	# message(STATUS "Using GCC so we fall back to --start-group/--end-group")
+	target_link_libraries(${PROJECT_NAME} PRIVATE -Wl,--start-group ${CLANG_LIBS} ${LLVM_LIBS} -Wl,--end-group)
 else()
-	target_link_libraries(${PROJECT_NAME} PRIVATE ${ALL_MY_LLVM_LIBS})
+	target_link_libraries(${PROJECT_NAME} PRIVATE ${CLANG_LIBS} ${LLVM_LIBS})
 endif()
 if(WIN32)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${ZLIB_LIBRARIES} Version.lib)
