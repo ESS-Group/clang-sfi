@@ -1,6 +1,8 @@
-#include "SFIASTConsumer.h"
+#include "SFIAction.h"
 
 #include <iostream>
+
+#include "SFIASTConsumer.h"
 
 using namespace clang;
 using namespace clang::ast_matchers;

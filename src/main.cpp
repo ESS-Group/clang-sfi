@@ -18,7 +18,7 @@
 #define DEBUG_TYPE "clang-sfi"
 using namespace llvm;
 
-#include "SFIASTConsumer.h"
+#include "SFIAction.h"
 
 #include "libs/json.hpp"
 using json = nlohmann::json;
