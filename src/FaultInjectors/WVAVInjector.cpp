@@ -135,7 +135,7 @@ bool WVAVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
     }
     if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
         assert(forstmt->getCond() != NULL);
-            assert(forstmt->getInc() != NULL);
+        assert(forstmt->getInc() != NULL);
         return !isParentOf(forstmt->getCond(), stmt) && !isParentOf(forstmt->getInc(), stmt);
     } else {
         return true;
