@@ -300,10 +300,13 @@ void getLines(std::string str, std::vector<std::string> &lines) {
 }
 
 void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, int i, bool isMacroDefinition) {
+    LLVM_DEBUG(dbgs() << "Entering generatePatchFile\n");
     Rewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     if (inject(current, Context, R)) { // default case - no match in macro definitions
+        LLVM_DEBUG(dbgs() << "Injection in Rewriter was successful\n");
         std::map<clang::FileID, clang::RewriteBuffer>::iterator buffit;
+        assert(R.buffer_begin() != R.buffer_end() && "No rewrite buffer found");
         for (buffit = R.buffer_begin(); buffit != R.buffer_end();
              buffit++) { // iterate through all RewriteBuffers in the Rewriter (only Buffers where the Rewriter changed
                          // sth.)
@@ -399,8 +402,14 @@ void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, 
 
                             diffs.push_back(Diff(fileName, dir, temp));
                         }
+                    } else {
+                        std::cerr << "Did not find SourceBuffer" << std::endl;
                     }
+                } else {
+                    std::cerr << "Did not find DirectoryEntry" << std::endl;
                 }
+            } else {
+                std::cerr << "Did not find FileEntry" << std::endl;
             }
 
             if (diffs.size() > 0) {
@@ -426,12 +435,13 @@ void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, 
                 if (verbose) {
                     std::cout << " -Success" << std::endl;
                 }
-            } else if (verbose) {
-                std::cerr << "-Failed" << std::endl;
+                LLVM_DEBUG(dbgs() << "Generated patch file successfully\n");
+            } else {
+                std::cerr << "Injection did not generate hunks" << std::endl;
             }
         }
-    } else if (verbose) {
-        std::cerr << "-Failed" << std::endl;
+    } else {
+        std::cerr << "Injection failed" << std::endl;
     }
 }
 
