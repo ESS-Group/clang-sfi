@@ -17,9 +17,8 @@ void deleteFromList(std::vector<T> &src, std::vector<T> &toDelete) {
     }
 }
 
-const CompoundStmt *getParentCompoundStmt(const Stmt *stmt, ASTContext &Context);
-
-const CompoundStmt *getParentCompoundStmt(const Decl *decl, ASTContext &Context);
+template<class T>
+const CompoundStmt *getParentCompoundStmt(const T *stmtOrDecl, ASTContext &Context);
 
 template <class T>
 void concatVector(std::vector<T> &dst, std::vector<T> &src) {
@@ -42,6 +41,9 @@ bool isExprAssignment(const BinaryOperator *op);
 
 template <class T>
 const T *getFirstChild(const Stmt *parent) {
+    if (parent == NULL) {
+        return NULL;
+    }
     for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
          i != e; ++i) {
         if (*i != NULL) {
@@ -100,6 +102,7 @@ bool hasChildOfType(const Stmt *stmt) {
     if (stmt == NULL) {
         return false;
     }
+
     for (Stmt::child_iterator i = cast_away_const(stmt->child_begin()), e = cast_away_const(stmt->child_end()); i != e;
          ++i) {
         if (isa<T>(*i)) {

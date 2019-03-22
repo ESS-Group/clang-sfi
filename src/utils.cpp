@@ -21,21 +21,9 @@ const T *getParentOfType(const Stmt *stmt, ASTContext &Context) {
     return NULL;
 }
 
-const CompoundStmt *getParentCompoundStmt(const Stmt *stmt, ASTContext &Context) {
-    ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
-    if (!list.empty()) {
-        if (list[0].get<Stmt>() != NULL) {
-            if (isa<CompoundStmt>(list[0].get<Stmt>())) {
-                const CompoundStmt *container = list[0].get<CompoundStmt>();
-                return container;
-            }
-        }
-    }
-    return NULL;
-}
-
-const CompoundStmt *getParentCompoundStmt(const Decl *decl, ASTContext &Context) {
-    ASTContext::DynTypedNodeList list = Context.getParents(*decl);
+template<class T>
+const CompoundStmt *getParentCompoundStmt(const T *stmtOrDecl, ASTContext &Context) {
+    ASTContext::DynTypedNodeList list = Context.getParents(*stmtOrDecl);
 
     if (!list.empty()) {
         if (list[0].get<Stmt>() != NULL) {
@@ -51,6 +39,10 @@ const CompoundStmt *getParentCompoundStmt(const Decl *decl, ASTContext &Context)
 }
 
 bool isIncDecUO(const UnaryOperator *op) {
+    if (op == NULL) {
+        return false;
+    }
+
     switch (op->getOpcode()) {
     case UO_PostInc:
     case UO_PostDec:
@@ -63,6 +55,10 @@ bool isIncDecUO(const UnaryOperator *op) {
 }
 
 bool isAssignment(const BinaryOperator *op, bool anyAssign) {
+    if (op == NULL) {
+        return false;
+    }
+
     bool ret = op->getOpcode() == BinaryOperatorKind::BO_Assign;
     if (!ret && anyAssign) {
         switch (op->getOpcode()) {
@@ -88,6 +84,7 @@ const Stmt *IgnoreCast(const Stmt *stmt, bool ignoreImplicit) {
     if (stmt == NULL) {
         return NULL;
     }
+
     if (ignoreImplicit) {
         const Stmt *temp = stmt->IgnoreImplicit();
         if (auto castExpr = dyn_cast_or_null<CastExpr>(temp)) {
@@ -114,6 +111,7 @@ bool isAssignmentOrFC(const Stmt *stmt) {
     if (stmt == NULL) {
         return false;
     }
+
     const Stmt *_stmt = IgnoreCast(stmt, true);
     if (_stmt == NULL) {
         return false;
@@ -238,6 +236,7 @@ std::vector<const BinaryOperator *> getChildForFindVarAssignment(const Stmt *par
     if (parent == NULL) {
         return ret;
     }
+
     bool inited = pinited || var->hasInit();
     if (auto binOp = dyn_cast<const BinaryOperator>(parent)) {
         if (isAssignment(binOp)) {
@@ -346,6 +345,7 @@ const FunctionDecl *getParentFunctionDecl(const Stmt *stmt, ASTContext &Context)
     if (stmt == NULL) {
         return NULL;
     }
+
     const DeclStmt *ret = getParentOfType<DeclStmt>(stmt, Context, -1);
     if (ret == NULL) {
         return NULL;
@@ -364,6 +364,7 @@ bool isPartOfFunction(const Stmt *stmt, ASTContext &Context) {
     if (stmt == NULL) {
         return false;
     }
+
     const FunctionDecl *decl = getParentFunctionDecl(stmt, Context);
     return decl != NULL;
 }
@@ -371,24 +372,25 @@ bool isPartOfFunction(const Stmt *stmt, ASTContext &Context) {
 bool isLocal(const Stmt *stmt, ASTContext &Context) {
     if (stmt == NULL) {
         return false;
-    } else {
-        return isPartOfFunction(stmt, Context);
     }
+
+    return isPartOfFunction(stmt, Context);
 }
 
 bool isLocal(const Decl *decl, ASTContext &Context) {
     if (decl == NULL) {
         return false;
     }
+
     return isLocal(getParentOfType<DeclStmt>(decl, Context), Context);
 }
 
 bool isParentOf(const Stmt *parent, const Stmt &stmt) {
     if (parent == NULL) {
         return false;
-    } else {
-        return isParentOf(*parent, stmt);
     }
+
+    return isParentOf(*parent, stmt);
 }
 
 bool isParentOf(const Stmt &parent, const Stmt &stmt) {
