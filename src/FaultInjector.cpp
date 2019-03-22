@@ -11,6 +11,10 @@
 using namespace clang;
 using namespace clang::ast_matchers;
 
+#include "llvm/Support/Debug.h"
+#define DEBUG_TYPE "clang-sfi-injector"
+using namespace llvm;
+
 void FaultInjector::setRootDir(std::string dir) {
     rootDir = dir;
 }

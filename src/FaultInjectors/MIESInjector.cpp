@@ -1,4 +1,5 @@
 #include "_all.h"
+#define DEBUG_TYPE "clang-sfi-injector-mies"
 
 std::string MIESInjector::toString() {
     return "MIES";

@@ -1,4 +1,5 @@
 #include "_all.h"
+#define DEBUG_TYPE "clang-sfi-injector-mia"
 
 std::string MIAInjector::toString() {
     return "MIA";

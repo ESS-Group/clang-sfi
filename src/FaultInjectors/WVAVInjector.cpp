@@ -1,4 +1,5 @@
 #include "_all.h"
+#define DEBUG_TYPE "clang-sfi-injector-wvav"
 
 std::string OWVAVInjector::toString() {
     return "OWVAV";

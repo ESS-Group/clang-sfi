@@ -1,4 +1,5 @@
 #include "_all.h"
+#define DEBUG_TYPE "clang-sfi-injector-wvav-safe"
 
 std::string WVAVInjectorSAFE::toString() {
     return "WVAVSAFE";

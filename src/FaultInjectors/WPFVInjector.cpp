@@ -1,4 +1,5 @@
 #include "_all.h"
+#define DEBUG_TYPE "clang-sfi-injector-wpfv"
 
 std::string WPFVInjector::toString() {
     return "WPFV";

@@ -10,6 +10,9 @@
 
 using namespace clang::ast_matchers;
 
+#include "llvm/Support/Debug.h"
+using namespace llvm;
+
 class MIFSInjector : public FaultInjector {
   public:
     MIFSInjector();

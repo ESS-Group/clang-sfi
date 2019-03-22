@@ -1,4 +1,5 @@
 #include "_all.h"
+#define DEBUG_TYPE "clang-sfi-injector-mifs"
 
 std::string MIFSInjector::toString() {
     return "MIFS";

@@ -1,4 +1,5 @@
 #include "_all.h"
+#define DEBUG_TYPE "clang-sfi-injector-mvav-safe"
 
 std::string MVAVInjectorSAFE::toString() {
     return "MVAVSAFE";
