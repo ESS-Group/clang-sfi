@@ -154,7 +154,9 @@ bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
         type = cast<BinaryOperator>(current.stmt)->getLHS()->getType();
     }
 
-    SourceRange range(val->getLocStart(), val->getLocEnd());
+    SourceLocation start = val->getLocStart(),
+        end = val->getLocEnd();
+    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     if (isa<CXXBoolLiteralExpr>(val)) {
         bool value = cast<CXXBoolLiteralExpr>(val)->getValue();
         if (value) {

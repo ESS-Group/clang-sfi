@@ -15,7 +15,9 @@ MIFSInjector::MIFSInjector() { // Missing if construct plus statements
 bool MIFSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     const IfStmt *ifS = cast<IfStmt>(current.stmt);
 
-    SourceRange range(ifS->getLocStart(), ifS->getLocEnd());
+    SourceLocation start = ifS->getLocStart(),
+        end = ifS->getLocEnd();
+    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     R.RemoveText(range);
     return true;
 }

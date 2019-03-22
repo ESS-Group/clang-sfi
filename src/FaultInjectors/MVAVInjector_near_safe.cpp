@@ -10,7 +10,9 @@ MVAVInjectorSAFE::MVAVInjectorSAFE(bool alsoOverwritten) { // Missing variable a
 }
 
 bool MVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
-    SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
+    SourceLocation start = current.stmt->getLocStart(),
+        end = current.stmt->getLocEnd();
+    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     R.RemoveText(range);
 
     return true;

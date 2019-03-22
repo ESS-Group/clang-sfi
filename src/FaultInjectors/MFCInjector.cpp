@@ -47,8 +47,14 @@ MFCInjector::MFCInjector() { // Missing function call
 
 bool MFCInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     if (current.binding.compare("FunctionCall") == 0) {
-        SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
+        SourceLocation start = current.stmt->getLocStart(),
+            end = current.stmt->getLocEnd();
+        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.RemoveText(range);
+        LLVM_DEBUG(dbgs() << "MFC: Removed range for FunctionCall" << "\n"
+            << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+            << range.getEnd().printToString(R.getSourceMgr())
+            << "\n");
     } else if (current.binding.compare("CommaOperator") == 0) { // totest
         SourceLocation start, end;
         if (current.left) {
@@ -58,8 +64,15 @@ bool MFCInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewrit
             start = cast<const BinaryOperator>(current.stmt)->getOperatorLoc();
             end = cast<const BinaryOperator>(current.stmt)->getRHS()->getLocEnd();
         }
-        SourceRange range(start, end);
+        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.RemoveText(range);
+        LLVM_DEBUG(dbgs() << "MFC: Removed range for CommaOperator" << "\n"
+            << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+            << range.getEnd().printToString(R.getSourceMgr())
+            << "\n");
+    } else {
+        assert(false && "Unkown binding in MFC injector");
+        std::cerr << "Unknown binding in MFC injector" << std::endl;
     }
 
     return true;

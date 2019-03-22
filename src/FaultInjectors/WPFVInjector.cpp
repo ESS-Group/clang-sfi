@@ -75,7 +75,11 @@ bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     }
     std::string variableName(localVariables[0]->getName().data());
 
-    R.ReplaceText(stmt->getSourceRange(), variableName);
+    SourceRange range = stmt->getSourceRange();
+    SourceLocation start = range.getBegin(),
+        end = range.getEnd();
+    SourceRange expandedRange(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+    R.ReplaceText(expandedRange, variableName);
     return true;
 }
 

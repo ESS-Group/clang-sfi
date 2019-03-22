@@ -46,13 +46,16 @@ MVIVInjector::MVIVInjector() { // Missing variable initialization using a value
 
 bool MVIVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     if (current.isStmt) {
-        SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
+        SourceLocation start = current.stmt->getLocStart(),
+            end = current.stmt->getLocEnd();
+        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.RemoveText(range);
     } else {
         const VarDecl *vardecl = cast<VarDecl>(current.decl);
         const DeclStmt *declstmt = getParentOfType<DeclStmt>(current.decl, Context, 3);
-        SourceRange range(vardecl->getLocation().getLocWithOffset(vardecl->getNameAsString().length()),
-                          vardecl->getInit()->getLocEnd());
+        SourceLocation start = vardecl->getLocation().getLocWithOffset(vardecl->getNameAsString().length()),
+            end = vardecl->getInit()->getLocEnd();
+        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.RemoveText(range);
     }
     return true;

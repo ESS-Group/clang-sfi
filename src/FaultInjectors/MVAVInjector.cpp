@@ -118,7 +118,9 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten) { // Missing variable assignmen
 // clang-format on
 
 bool MVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
-    SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
+    SourceLocation start = current.stmt->getLocStart(),
+        end = current.stmt->getLocEnd();
+    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     R.RemoveText(range);
 
     return true;

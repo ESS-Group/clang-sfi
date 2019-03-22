@@ -13,7 +13,9 @@ MRSInjector::MRSInjector() { // Missing if construct plus statements plus else
 bool MRSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     const Stmt *stmt = current.stmt;
 
-    SourceRange range(stmt->getLocStart(), stmt->getLocEnd());
+    SourceLocation start = stmt->getLocStart(),
+        end = stmt->getLocEnd();
+    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     R.RemoveText(range);
     return true;
 }

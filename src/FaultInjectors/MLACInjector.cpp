@@ -46,7 +46,7 @@ bool MLACInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
         end = cast<BinaryOperator>(current.stmt)->getRHS()->getLocEnd();
     }
 
-    SourceRange range(start, end);
+    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     R.RemoveText(range);
     return true;
 }

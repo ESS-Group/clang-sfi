@@ -16,7 +16,9 @@ MIEBInjector::MIEBInjector() { // Missing if construct plus statements + Else
 bool MIEBInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     const IfStmt *ifS = cast<IfStmt>(current.stmt);
 
-    SourceRange range(ifS->getLocStart(), ifS->getElse()->getLocStart().getLocWithOffset(-1));
+    SourceLocation start = ifS->getLocStart(),
+        end = ifS->getElse()->getLocStart().getLocWithOffset(-1);
+    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     R.RemoveText(range);
     return true;
 }

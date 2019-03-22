@@ -32,7 +32,7 @@ bool WAEPInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     start = cast<const BinaryOperator>(current.stmt)->getOperatorLoc();
     end = cast<const BinaryOperator>(current.stmt)->getRHS()->getLocEnd();
 
-    SourceRange range(start, end);
+    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     R.RemoveText(range);
     return true;
 }

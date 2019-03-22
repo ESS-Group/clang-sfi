@@ -188,18 +188,18 @@ MLPAInjector::MLPAInjector() { // Missing small and localized part of the algori
 
 bool MLPAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     std::vector<const Stmt *> list = current.stmtlist;
-    SourceLocation begin = list[0]->getLocStart(), end = list[0]->getLocEnd();
+    SourceLocation start = list[0]->getLocStart(), end = list[0]->getLocEnd();
 
     for (const Stmt *stmt : list) {
-        if (stmt->getLocStart() < begin) {
-            begin = stmt->getLocStart();
+        if (stmt->getLocStart() < start) {
+            start = stmt->getLocStart();
         }
         if (end < stmt->getLocEnd()) {
             end = stmt->getLocEnd();
         }
     }
 
-    SourceRange range(begin, end);
+    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     R.RemoveText(range);
     return true;
 }

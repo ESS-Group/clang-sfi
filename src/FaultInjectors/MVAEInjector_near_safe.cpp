@@ -17,7 +17,9 @@ MVAEInjectorSAFE::MVAEInjectorSAFE() { // Missing variable assignment using an e
 
 bool MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     if (current.isStmt) {
-        SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
+        SourceLocation start = current.stmt->getLocStart(),
+            end = current.stmt->getLocEnd();
+        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.RemoveText(range);
     } else {
         VarDecl temp(*((const VarDecl *)current.decl));
@@ -25,7 +27,9 @@ bool MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::R
         const VarDecl *tempP = &temp;
         std::string withoutInit = stmtToString(tempP, Context.getLangOpts());
 
-        SourceRange range(current.decl->getLocStart(), current.decl->getLocEnd());
+        SourceLocation start = current.decl->getLocStart(),
+            end = current.decl->getLocEnd();
+        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.ReplaceText(range, withoutInit);
     }
 
