@@ -8,4 +8,4 @@ OUTPUT_FILE=$3/output.txt
 REFERENCE_FILE=$2/reference.txt
 
 $1 $2/source.cpp --config=$2/config.json --dir=$3/injections -- > $OUTPUT_FILE
-ls injections/* | wc -l | diff $REFERENCE_FILE - >> $OUTPUT_FILE || (echo "Test failed, reference output not given" && exit 1)
+ls $3/injections/* | wc -l | diff $REFERENCE_FILE - >> $OUTPUT_FILE || (echo "Test failed, reference output not given" && exit 1)

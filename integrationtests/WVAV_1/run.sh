@@ -8,4 +8,4 @@ OUTPUT_FILE=$3/output.txt
 REFERENCE_FILE=$2/reference.txt
 
 $1 $2/source.cpp --config=$2/config.json --dir=$3/injections -- > $OUTPUT_FILE
-tail -n +3 injections/WVAV_0.patch | diff $REFERENCE_FILE - >> $OUTPUT_FILE || (echo "Test failed, reference output not given" && exit 1)
+tail -n +3 $3/injections/WVAV_0.patch | diff $REFERENCE_FILE - >> $OUTPUT_FILE || (echo "Test failed, reference output not given" && exit 1)
