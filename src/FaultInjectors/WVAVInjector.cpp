@@ -117,20 +117,24 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten) { // Wrong value assigned to va
 }
 // clang-format on
 
-bool WVAVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
+bool WVAVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
     if (binding.compare("overwritten") == 0) {
-        const CXXOperatorCallExpr *opCall = cast<CXXOperatorCallExpr>(stmt);
-        if (!opCall->isInfixBinaryOp()) {
+        const CXXOperatorCallExpr opCall = cast<CXXOperatorCallExpr>(stmt);
+        if (!opCall.isInfixBinaryOp()) {
             return false;
         }
-        if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
+        if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
+            assert(forstmt->getCond() != NULL);
+            assert(forstmt->getInc() != NULL);
             if (isParentOf(forstmt->getCond(), stmt) || isParentOf(forstmt->getInc(), stmt)) {
                 return false;
             }
         }
         return true;
     }
-    if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
+    if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
+        assert(forstmt->getCond() != NULL);
+            assert(forstmt->getInc() != NULL);
         return !isParentOf(forstmt->getCond(), stmt) && !isParentOf(forstmt->getInc(), stmt);
     } else {
         return true;

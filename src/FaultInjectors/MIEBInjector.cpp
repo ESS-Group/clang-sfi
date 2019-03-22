@@ -19,14 +19,14 @@ bool MIEBInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     R.RemoveText(range);
     return true;
 }
-bool MIEBInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    const IfStmt *ifS = cast<IfStmt>(stmt);
+bool MIEBInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
+    const IfStmt ifS = cast<IfStmt>(stmt);
     // IF block should contain less than 5 statements.
-    return C9(ifS->getThen(), &Context);
+    return C9(ifS.getThen(), &Context);
     // ELSE block may contain more than 5 statements.
 }
 
-bool SMIEBInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    const IfStmt *ifS = cast<IfStmt>(stmt);
-    return C9(ifS->getThen(), &Context, false, 5, true);
+bool SMIEBInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
+    const IfStmt ifS = cast<IfStmt>(stmt);
+    return C9(ifS.getThen(), &Context, false, 5, true);
 }

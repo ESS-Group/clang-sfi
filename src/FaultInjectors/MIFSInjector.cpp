@@ -18,19 +18,19 @@ bool MIFSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     R.RemoveText(range);
     return true;
 }
-bool MIFSInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    const IfStmt *ifS = cast<IfStmt>(stmt);
+bool MIFSInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
+    const IfStmt ifS = cast<IfStmt>(stmt);
     // THEN block should contain less than 5 statements.
-    if (!C9(ifS->getThen(), &Context)) {
+    if (!C9(ifS.getThen(), &Context)) {
         return false;
     }
     // IF statement should not be the only statement in the block.
     return C2(stmt, Context);
 }
 
-bool SMIFSInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    const IfStmt *ifS = cast<IfStmt>(stmt);
-    if (!C9(ifS->getThen(), &Context, false, 5, true)) {
+bool SMIFSInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
+    const IfStmt ifS = cast<IfStmt>(stmt);
+    if (!C9(ifS.getThen(), &Context, false, 5, true)) {
         return false;
     }
     return C2(stmt, Context);

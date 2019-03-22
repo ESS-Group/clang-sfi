@@ -16,13 +16,13 @@ bool MIESInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     R.RemoveText(range);
     return true;
 }
-bool MIESInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    const IfStmt *ifS = cast<IfStmt>(stmt);
+bool MIESInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
+    const IfStmt ifS = cast<IfStmt>(stmt);
     // IF and ELSE block should not contain more than 5 statements.
-    if (!C9(ifS->getThen())) {
+    if (!C9(ifS.getThen())) {
         return false;
     }
-    if (!C9(ifS->getElse())) {
+    if (!C9(ifS.getElse())) {
         return false;
     }
     // IF statement should not be the only statement in the block.

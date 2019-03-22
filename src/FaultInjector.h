@@ -51,21 +51,21 @@ class FaultInjector {
           private:
             bool valid;
         };
-        StmtBinding(std::string binding, const Decl *decl, bool left = false, bool isMacroExpansion = false)
+        StmtBinding(std::string binding, const Decl &decl, bool left = false, bool isMacroExpansion = false)
             : binding(binding) {
             this->isMacroExpansion = isMacroExpansion;
             this->left = left;
-            this->decl = decl;
-            decllist.push_back(decl);
+            this->decl = &decl;
+            decllist.push_back(&decl);
             isStmt = false;
             isList = false;
         }
-        StmtBinding(std::string binding, const Stmt *stmt, bool left = false, bool isMacroExpansion = false)
+        StmtBinding(std::string binding, const Stmt &stmt, bool left = false, bool isMacroExpansion = false)
             : binding(binding) {
             this->isMacroExpansion = isMacroExpansion;
             this->left = left;
-            this->stmt = stmt;
-            stmtlist.push_back(stmt);
+            this->stmt = &stmt;
+            stmtlist.push_back(&stmt);
             isStmt = true;
             isList = false;
         }
@@ -167,12 +167,12 @@ class FaultInjector {
     FaultInjector(const FaultInjector &that) = delete;
 
     template<class T>
-    static std::string getFileName(const T *stmtOrDecl, SourceManager &SM);
+    static std::string getFileName(const T &stmtOrDecl, SourceManager &SM);
 
     template<class T>
-    void pushMacroDef(std::string binding, const T *stmtOrDecl, SourceManager &SM, bool left = false);
+    void pushMacroDef(std::string binding, const T &stmtOrDecl, SourceManager &SM, bool left = false);
     template<class T>
-    void push(std::string binding, const T *stmtOrDecl, bool left = false, bool isMacroExpansion = false);
+    void push(std::string binding, const T &stmtOrDecl, bool left = false, bool isMacroExpansion = false);
     template<class T>
     void push(std::string binding, std::vector<const T *> list);
     /// Perform injections for a list of StmtBindings.
@@ -183,14 +183,14 @@ class FaultInjector {
     /// Generate a patch for a single StmtBinding.
     virtual void generatePatchFile(StmtBinding current, ASTContext &Context, int i = 0, bool isMacroDefinition = false);
     // default false
-    virtual bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context);
-    virtual bool checkStmt(const Decl *stmt, std::string binding, ASTContext &Context);
+    virtual bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context);
+    virtual bool checkStmt(const Decl &stmt, std::string binding, ASTContext &Context);
     // default behavior of checkMacroExpansion => checkStmt
-    virtual bool checkMacroExpansion(const Stmt *stmt, std::string binding, ASTContext &Context);
-    virtual bool checkMacroExpansion(const Decl *stmt, std::string binding, ASTContext &Context);
+    virtual bool checkMacroExpansion(const Stmt &stmt, std::string binding, ASTContext &Context);
+    virtual bool checkMacroExpansion(const Decl &stmt, std::string binding, ASTContext &Context);
     // default false
-    virtual bool checkMacroDefinition(const Stmt *stmt, std::string binding, ASTContext &Context);
-    virtual bool checkMacroDefinition(const Decl *stmt, std::string binding, ASTContext &Context);
+    virtual bool checkMacroDefinition(const Stmt &stmt, std::string binding, ASTContext &Context);
+    virtual bool checkMacroDefinition(const Decl &stmt, std::string binding, ASTContext &Context);
     bool isMacroDefinitionAdded(SourceLocation locStart, SourceManager &SM);
     void matchAST(ASTContext &Context);
     virtual std::string toString() = 0;
@@ -201,12 +201,12 @@ class FaultInjector {
     bool matchMacroDefinition, matchMacroExpansion;
     void setMatchMacro(bool match);
     void setMatchMacro(bool matchDef, bool matchExp);
-    void nodeCallbackMacroDef(std::string binding, const Stmt *stmt, SourceManager &SM, bool left = false);
-    void nodeCallbackMacroDef(std::string binding, const Decl *decl, SourceManager &SM, bool left = false);
-    void nodeCallbackMacroExpansion(std::string binding, const Stmt *stmt, bool left = false);
-    void nodeCallbackMacroExpansion(std::string binding, const Decl *decl, bool left = false);
-    void nodeCallback(std::string binding, const Stmt *stmt, bool left = false);
-    void nodeCallback(std::string binding, const Decl *decl, bool left = false);
+    void nodeCallbackMacroDef(std::string binding, const Stmt &stmt, SourceManager &SM, bool left = false);
+    void nodeCallbackMacroDef(std::string binding, const Decl &decl, SourceManager &SM, bool left = false);
+    void nodeCallbackMacroExpansion(std::string binding, const Stmt &stmt, bool left = false);
+    void nodeCallbackMacroExpansion(std::string binding, const Decl &decl, bool left = false);
+    void nodeCallback(std::string binding, const Stmt &stmt, bool left = false);
+    void nodeCallback(std::string binding, const Decl &decl, bool left = false);
     void nodeCallback(std::string binding, std::vector<const Stmt *> list);
     void nodeCallback(std::string binding, std::vector<const Decl *> list);
     std::string getFileName();
@@ -229,7 +229,6 @@ class FaultInjector {
     static std::string sourceRangeToString(const Decl *decl, const SourceManager &sourceManager);
     static std::string rewriteBufferToString(RewriteBuffer &buffer);
     std::string getEditedString(Rewriter &rewrite, ASTContext &Context);
-    void writeDown(std::string data, int i);
     void printStep(StmtBinding current, const SourceManager &sourceManager, const LangOptions &langOpts, int i = 0,
                    int size = 0); // with printing statements
     void printStep(StmtBinding current, const SourceManager &sourceManager, int i = 0, int size = 0); // only position

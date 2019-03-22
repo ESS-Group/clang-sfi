@@ -7,12 +7,12 @@ std::string MLPAInjector::toString() {
     return "MLPA";
 };
 
-std::vector<std::vector<const Stmt *>> getStmtLists(const CompoundStmt *block, ASTContext &Context,
+std::vector<std::vector<const Stmt *>> getStmtLists(const CompoundStmt &block, ASTContext &Context,
                                                     bool returnIsAJump = RETURNISAJUMP,
                                                     bool noDeclStmt = DONOTDELETEDECLSTMTINCONSTRAINT) {
     std::vector<std::vector<const Stmt *>> ret;
     int index = -1;
-    for (Stmt::child_iterator i = cast_away_const(block->child_begin()), e = cast_away_const(block->child_end());
+    for (Stmt::child_iterator i = cast_away_const(block.child_begin()), e = cast_away_const(block.child_end());
          i != e; ++i) {
         if ((*i != NULL) && isa<Stmt>(*i)) {
             if (index == -1) {
@@ -63,7 +63,10 @@ std::vector<std::vector<const Stmt *>> getStmtLists(const CompoundStmt *block, A
 
             std::vector<const DeclRefExpr *> ref;
             for (auto decl : declstmt->decls()) {
-                const DeclRefExpr *latest = getLatestRef(block, (const VarDecl *)decl);
+                if (!isa<VarDecl>(decl)) {
+                    continue;
+                }
+                const DeclRefExpr *latest = getLatestRef(block, cast<VarDecl>(*decl));
 
                 if (ref.size()) {
                     ref.clear();
@@ -119,7 +122,7 @@ std::vector<std::vector<const Stmt *>> getStmtLists(const CompoundStmt *block, A
     return ret;
 }
 
-bool isMLPAListPossible(std::vector<const Stmt *> stmtlist, const CompoundStmt *block) {
+bool isMLPAListPossible(std::vector<const Stmt *> stmtlist, const CompoundStmt &block) {
     std::vector<const DeclStmt *> declstmts = getStmtsOfType<DeclStmt>(stmtlist);
     std::vector<const DeclStmt *> notPossible;
 
@@ -127,7 +130,10 @@ bool isMLPAListPossible(std::vector<const Stmt *> stmtlist, const CompoundStmt *
                                                  // because its latest reference is outside this list
         std::vector<const DeclRefExpr *> ref;
         for (auto decl : declstmt->decls()) {
-            const DeclRefExpr *latest = getLatestRef(block, (const VarDecl *)decl);
+            if (!isa<VarDecl>(decl)) {
+                continue;
+            }
+            const DeclRefExpr *latest = getLatestRef(block, cast<VarDecl>(*decl));
             if (ref.size()) {
                 for (const DeclRefExpr *x : ref) {
                     if (x->getLocStart() < latest->getLocStart()) {
@@ -152,7 +158,7 @@ bool isMLPAListPossible(std::vector<const Stmt *> stmtlist, const CompoundStmt *
 }
 
 std::vector<std::vector<const Stmt *>> getMLPAListOfSize(std::vector<const Stmt *> stmtlist, int size,
-                                                         const CompoundStmt *block) {
+                                                         const CompoundStmt &block) {
     std::vector<std::vector<const Stmt *>> ret;
     int listsize = stmtlist.size();
     for (int begin = 0; begin + size <= listsize; begin++) {
@@ -197,13 +203,13 @@ bool MLPAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     return true;
 }
 
-bool MLPAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    const CompoundStmt *compoundStmt = cast<CompoundStmt>(stmt);
+bool MLPAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
+    const CompoundStmt compoundStmt = cast<CompoundStmt>(stmt);
     std::vector<std::vector<const Stmt *>> stmtlists = getStmtLists(compoundStmt, Context);
     for (std::vector<const Stmt *> it : stmtlists) {
         if (it.size() >= 2) {
             int size = it.size();
-            if (size == compoundStmt->size()) { // because 1 statement must remain
+            if (size == compoundStmt.size()) { // because 1 statement must remain
                                                 // within the compoundStmt
                 size--;
             }
@@ -226,14 +232,14 @@ bool MLPAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
     return false;
 }
 
-bool SMLPAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    const CompoundStmt *compoundStmt = cast<CompoundStmt>(stmt);
+bool SMLPAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
+    const CompoundStmt compoundStmt = cast<CompoundStmt>(stmt);
     std::vector<std::vector<const Stmt *>> stmtlists = getStmtLists(compoundStmt, Context);
 
     for (std::vector<const Stmt *> it : stmtlists) {
         if (it.size() >= 2) {
             int size = it.size();
-            if (size == compoundStmt->size()) // because 1 statement must remain
+            if (size == compoundStmt.size()) // because 1 statement must remain
                                               // within the compoundStmt
                 size--;
             if (size > 5) {

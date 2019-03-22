@@ -2,7 +2,8 @@
 
 using namespace clang;
 
-template <class T> void deleteFromList(std::vector<T> &src, std::vector<T> &toDelete) {
+template <class T>
+void deleteFromList(std::vector<T> &src, std::vector<T> &toDelete) {
     bool deleted = false;
     for (std::vector<const BinaryOperator *>::iterator i = src.begin(); i != src.end(); deleted ? i : i++) {
         deleted = false;
@@ -15,31 +16,39 @@ template <class T> void deleteFromList(std::vector<T> &src, std::vector<T> &toDe
         }
     }
 }
+
 const CompoundStmt *getParentCompoundStmt(const Stmt *stmt, ASTContext &Context);
+
 const CompoundStmt *getParentCompoundStmt(const Decl *decl, ASTContext &Context);
 
-template <class T> void concatVector(std::vector<T> &dst, std::vector<T> &src) {
+template <class T>
+void concatVector(std::vector<T> &dst, std::vector<T> &src) {
     dst.insert(dst.end(), src.begin(), src.end());
 }
+
 bool isIncDecUO(const UnaryOperator *op);
+
 bool isAssignment(const BinaryOperator *op, bool anyAssign = true);
+
 const Stmt *IgnoreCast(const Stmt *stmt, bool ignoreImplicit = true);
+
 bool isAssignmentOrFC(const Stmt *stmt);
+
 bool isValue(const Stmt *stmt);
+
 bool isValueAssignment(const BinaryOperator *op);
 
 bool isExprAssignment(const BinaryOperator *op);
 
-template <class T> const T *getFirstChild(const Stmt *parent) {
+template <class T>
+const T *getFirstChild(const Stmt *parent) {
     for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
          i != e; ++i) {
         if (*i != NULL) {
             if (isa<T>(*i)) {
                 return cast<const T>(*i);
-            } else {
-                if (const T *ret = getFirstChild<T>(*i)) {
-                    return ret;
-                }
+            } else if (const T *ret = getFirstChild<T>(*i)) {
+                return ret;
             }
         }
     }
@@ -58,8 +67,8 @@ const T *getParentOfType(const SD *stmt, ASTContext &Context, int maxDepth = 3) 
     if (stmt != NULL && maxDepth != 0) {
         ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
         for (auto p : list) {
-            if ((p.get<Stmt>() != NULL) && isa<T>(p.get<Stmt>())) {
-                return p.get<T>();
+            if (auto ret = dyn_cast_or_null<T>(p.get<Stmt>())) {
+                return ret;
             } else {
                 return getParentOfType<T>(p.get<T>(), Context, maxDepth - 1);
             }
@@ -68,18 +77,26 @@ const T *getParentOfType(const SD *stmt, ASTContext &Context, int maxDepth = 3) 
     return NULL;
 }
 
-template <class T> bool hasParentOfType(const Stmt *stmt, ASTContext &Context) {
+template <class T>
+bool hasParentOfType(const Stmt &stmt, ASTContext &Context) {
     return getParentOfType<T>(stmt, Context, -1) != NULL;
 }
-template <class T> bool hasParentOfType(const Decl *decl, ASTContext &Context) {
+
+template <class T>
+bool hasParentOfType(const Decl &decl, ASTContext &Context) {
     return getParentOfType<T>(decl, Context, -1) != NULL;
 }
 
 const FunctionDecl *getParentFunctionDecl(const Stmt *stmt, ASTContext &Context);
-bool isPartOfFunction(const Stmt *stmt, ASTContext &Context);
-bool isLocal(const Stmt *stmt, ASTContext &Context);
-bool isLocal(const Decl *decl, ASTContext &Context);
-template <class T> bool hasChildOfType(const Stmt *stmt) {
+
+bool isPartOfFunction(const Stmt &stmt, ASTContext &Context);
+
+bool isLocal(const Stmt &stmt, ASTContext &Context);
+
+bool isLocal(const Decl &decl, ASTContext &Context);
+
+template <class T>
+bool hasChildOfType(const Stmt *stmt) {
     if (stmt == NULL) {
         return false;
     }
@@ -94,25 +111,28 @@ template <class T> bool hasChildOfType(const Stmt *stmt) {
     return false;
 }
 
-bool isParentOf(const Stmt *parent, const Stmt *stmt);
-bool isParentOf(const Stmt *parent, const Decl *decl, ASTContext &Context);
+bool isParentOf(const Stmt *parent, const Stmt &stmt);
 
-bool isInitializedBefore(const DeclRefExpr *ref, ASTContext &Context);
+bool isParentOf(const Stmt &parent, const Stmt &stmt);
 
-template <class T> std::vector<const T *> getChildrenOfType(const Stmt *parent, bool first = true) {
+bool isParentOf(const Stmt *parent, const Decl &decl, ASTContext &Context);
+
+bool isParentOf(const Stmt &parent, const Decl &decl, ASTContext &Context);
+
+bool isInitializedBefore(const DeclRefExpr &ref, ASTContext &Context);
+
+template <class T>
+std::vector<const T *> getChildrenOfType(const Stmt &parent, bool first = true) {
     std::vector<const BinaryOperator *> ret;
-    if (parent == NULL) {
-        return ret;
-    }
     if (isa<T>(parent) && first) {
-        ret.push_back(cast<const T>(parent));
+        ret.push_back(cast<const T>(&parent));
     }
-    for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
+    for (Stmt::child_iterator i = cast_away_const(parent.child_begin()), e = cast_away_const(parent.child_end());
          i != e; ++i) {
         if (isa<T>(*i)) {
             ret.push_back(cast<T>(*i));
         }
-        std::vector<const T *> children = getChildrenOfType<T>(*i, false);
+        std::vector<const T *> children = getChildrenOfType<T>(**i, false);
         if (children.size() != 0) {
             concatVector<const T *>(ret, children);
         }
@@ -120,11 +140,12 @@ template <class T> std::vector<const T *> getChildrenOfType(const Stmt *parent, 
     return ret;
 }
 
-std::vector<const DeclRefExpr *> getAllRefs(const Stmt *parent, const VarDecl *var);
+std::vector<const DeclRefExpr *> getAllRefs(const Stmt &parent, const VarDecl &var);
 
-const DeclRefExpr *getLatestRef(const Stmt *parent, const VarDecl *var);
+const DeclRefExpr *getLatestRef(const Stmt &parent, const VarDecl &var);
 
-template <class T> bool hasStmtOfType(std::vector<const Stmt *> list) {
+template <class T>
+bool hasStmtOfType(std::vector<const Stmt *> list) {
     for (const Stmt *stmt : list) {
         if (isa<T>(stmt)) {
             return true;
@@ -132,7 +153,9 @@ template <class T> bool hasStmtOfType(std::vector<const Stmt *> list) {
     }
     return false;
 }
-template <class T> std::vector<const T *> getStmtsOfType(std::vector<const Stmt *> &list) {
+
+template <class T>
+std::vector<const T *> getStmtsOfType(std::vector<const Stmt *> &list) {
     std::vector<const T *> ret;
     if (list.empty()) {
         return ret;
@@ -146,13 +169,17 @@ template <class T> std::vector<const T *> getStmtsOfType(std::vector<const Stmt 
     return ret;
 }
 
-template <class T> bool _comparefunc(const T *st1, const T *st2) {
+template <class T>
+bool _comparefunc(const T *st1, const T *st2) {
     return st1->getLocStart() < st2->getLocStart();
 }
 
-bool isArithmetic(const BinaryOperator *op);
-const BinaryOperator *getBinaryOperatorWithRightedtRHS(const BinaryOperator *op);
-template <class T> std::vector<const T *> getChildrenFlat(const Stmt *parent) {
+bool isArithmetic(const BinaryOperator &op);
+
+const BinaryOperator &getBinaryOperatorWithRightedtRHS(const BinaryOperator &op);
+
+template <class T>
+std::vector<const T *> getChildrenFlat(const Stmt *parent) {
     std::vector<const T *> ret;
     for (Stmt::child_iterator i = cast_away_const(parent->child_begin()), e = cast_away_const(parent->child_end());
          i != e; ++i) {
@@ -171,7 +198,9 @@ template <class T> std::vector<const T *> getChildrenFlat(const Stmt *parent) {
 }
 
 const DeclRefExpr *getDeclRefExprOfImplicitConstructExpr(const MaterializeTemporaryExpr *matexpr);
-template <class T> std::vector<const T *> getArgumentsOfType(const CallExpr *call) {
+
+template <class T>
+std::vector<const T *> getArgumentsOfType(const CallExpr *call) {
     std::vector<const T *> ret;
     const Expr *const *args = call->getArgs();
     for (int i = 0; i < call->getNumArgs(); i++) {
@@ -191,4 +220,4 @@ template <class T> std::vector<const T *> getArgumentsOfType(const CallExpr *cal
     return ret;
 }
 
-bool isVisible(const Decl *decl, const Stmt *position, ASTContext &Context);
+bool isVisible(const Decl &decl, const Stmt &position, ASTContext &Context);

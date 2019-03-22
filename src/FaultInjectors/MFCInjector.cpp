@@ -104,20 +104,24 @@ std::vector<const Stmt *> getFunctionCallExprListInCommaOp(const BinaryOperator 
 
     return ret;
 }
-bool MFCInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
+bool MFCInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
     if (binding.compare("FunctionCall") == 0) {
         return C2(stmt, Context);
     } else if (binding.compare("CommaOperator") == 0) {
         const Stmt *parent = getParentIgnoringParenCasts(stmt, Context);
 
-        std::vector<const Stmt *> stmts = getFunctionCallExprListInCommaOp(cast<const BinaryOperator>(stmt), true,
+        std::vector<const Stmt *> stmts = getFunctionCallExprListInCommaOp(cast<const BinaryOperator>(&stmt), true,
                                                                            parent != NULL && !isa<CallExpr>(parent));
         if (stmts.size() != 0) {
             for (const Stmt *stmt : stmts) {
                 const BinaryOperator *op = getParentOfType<BinaryOperator>(stmt, Context);
-                bool left = op->getLHS() == stmt || isParentOf(op->getLHS(), stmt);
-                if (left || op->getRHS() == stmt || isParentOf(op->getRHS(), stmt))
-                    nodeCallback("CommaOperator", op, left);
+                if (op) {
+                    bool left = op->getLHS() == stmt || isParentOf(op->getLHS(), *stmt);
+                    if (left || op->getRHS() == stmt || isParentOf(op->getRHS(), *stmt)) {
+                        assert(op != NULL);
+                        nodeCallback("CommaOperator", *op, left);
+                    }
+                }
             }
         }
     }

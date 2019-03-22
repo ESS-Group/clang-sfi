@@ -125,23 +125,27 @@ bool MVAEInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     return true;
 }
 
-bool MVAEInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
+bool MVAEInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
     if (binding.compare("overwritten") == 0) {
-        const CXXOperatorCallExpr *opCall = cast<const CXXOperatorCallExpr>(stmt);
-        if (!opCall->isInfixBinaryOp()) {
+        const CXXOperatorCallExpr opCall = cast<const CXXOperatorCallExpr>(stmt);
+        if (!opCall.isInfixBinaryOp()) {
             return false;
         }
         if (!C2(stmt, Context)) {
             return false;
         }
-        if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
+        if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
+            assert(forstmt->getCond() != NULL);
+            assert(forstmt->getInc() != NULL);
             if (isParentOf(forstmt->getCond(), stmt) || isParentOf(forstmt->getInc(), stmt)) {
                 return false;
             }
         }
         return true;
     }
-    if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
+    if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
+        assert(forstmt->getCond() != NULL);
+        assert(forstmt->getInc() != NULL);
         return !isParentOf(forstmt->getCond(), stmt) && !isParentOf(forstmt->getInc(), stmt) && C2(stmt, Context);
     } else {
         return (C2(stmt, Context));

@@ -16,7 +16,7 @@ class MatchHandler : public MatchFinder::MatchCallback {
     MatchHandler(FaultInjector *pFaultInjector, std::string fileName, std::vector<std::string> bindings);
     virtual void run(const MatchFinder::MatchResult &Result);
     template <typename SD>
-    void run_stmt_or_decl(const MatchFinder::MatchResult &Result, SourceManager &SM, std::string binding, SD *stmtOrDecl);
+    void run_stmt_or_decl(const MatchFinder::MatchResult &Result, SourceManager &SM, std::string binding, SD &stmtOrDecl);
 
   private:
     std::string fileName;

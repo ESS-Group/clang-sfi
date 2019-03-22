@@ -18,12 +18,12 @@ bool MIAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewrit
     R.RemoveText(range);
     return true;
 }
-bool MIAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    const IfStmt *ifS = cast<IfStmt>(stmt);
-    return C9(ifS->getThen(), &Context);
+bool MIAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
+    const IfStmt ifS = cast<IfStmt>(stmt);
+    return C9(ifS.getThen(), &Context);
 }
 
-bool SMIAInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    const IfStmt *ifS = cast<IfStmt>(stmt);
-    return C9(ifS->getThen(), &Context, false, 5, true); // && C2(ifS,Context);
+bool SMIAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
+    const IfStmt ifS = cast<IfStmt>(stmt);
+    return C9(ifS.getThen(), &Context, false, 5, true); // && C2(ifS,Context);
 }

@@ -35,6 +35,7 @@ WPFVInjector::WPFVInjector() { // Wrong variable used in parameter of function c
 
 bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     const DeclRefExpr *stmt = cast<DeclRefExpr>(current.stmt);
+    assert(stmt != NULL);
 
     const VarDecl *arg = cast<VarDecl>(stmt->getDecl());
     const DeclContext *declContext = arg->getDeclContext();
@@ -59,7 +60,8 @@ bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     if (!isParam || localVariables.size() == 0) {
         for (DeclContext::decl_iterator it = declContext->decls_begin(), e = declContext->decls_end(); it != e; ++it) {
             const VarDecl *vardecl = cast<VarDecl>(*it);
-            if (isVisible(vardecl, stmt, Context) && vardecl != arg &&
+            assert(vardecl != NULL);
+            if (isVisible(*vardecl, *stmt, Context) && vardecl != arg &&
                 arg->getType().getNonReferenceType().getDesugaredType(Context) ==
                     vardecl->getType().getNonReferenceType().getDesugaredType(Context)) {
                 if (!isParam) {
@@ -76,12 +78,16 @@ bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     return true;
 }
 
-bool WPFVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    for (auto i : getArgumentsOfType<DeclRefExpr>(cast<CallExpr>(stmt))) {
+bool WPFVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
+    for (auto i : getArgumentsOfType<DeclRefExpr>(cast<CallExpr>(&stmt))) {
         const VarDecl *arg = cast<VarDecl>(i->getDecl());
         const DeclContext *declContext = arg->getDeclContext();
         int varcount = 0;
-        const FunctionDecl *fkt = getParentFunctionDecl(getParentOfType<DeclStmt>(arg, Context), Context);
+        auto parent = getParentOfType<DeclStmt>(arg, Context);
+        const FunctionDecl *fkt;
+        if (parent != NULL) {
+            fkt = getParentFunctionDecl(parent, Context);
+        }
         if (fkt == NULL) {
             const FunctionDecl *_fkt = cast<FunctionDecl>(declContext->getNonClosureAncestor());
             if (_fkt != NULL) {
@@ -102,7 +108,8 @@ bool WPFVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
                     if (vardecl != arg &&
                         vardecl->getType().getNonReferenceType().getDesugaredType(Context) ==
                             arg->getType().getNonReferenceType().getDesugaredType(Context)) {
-                        if (isVisible(vardecl, i, Context)) {
+                        assert(vardecl != NULL);
+                        if (isVisible(*vardecl, *i, Context)) {
                             varcount++;
                             break;
                         }
@@ -110,7 +117,8 @@ bool WPFVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
                 }
 
                 if (varcount >= 1) {
-                    nodeCallback(binding, i);
+                    assert(i != NULL);
+                    nodeCallback(binding, *i);
                 }
             }
         } else if (fkt != NULL) {
@@ -129,7 +137,8 @@ bool WPFVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
                 if (vardecl != arg &&
                     vardecl->getType().getNonReferenceType().getDesugaredType(Context) ==
                         arg->getType().getNonReferenceType().getDesugaredType(Context)) {
-                    if (isVisible(vardecl, i, Context)) {
+                    assert(vardecl != NULL);
+                    if (isVisible(*vardecl, *i, Context)) {
                         varcount++;
                         break;
                     }
@@ -137,7 +146,8 @@ bool WPFVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &
             }
 
             if (varcount >= 1) {
-                nodeCallback(binding, i);
+                assert(i != NULL);
+                nodeCallback(binding, *i);
             }
         } else { // variable is not local
         }

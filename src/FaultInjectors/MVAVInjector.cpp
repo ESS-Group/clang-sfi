@@ -123,23 +123,23 @@ bool MVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     return true;
 }
 
-bool MVAVInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
+bool MVAVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
     if (binding.compare("overwritten") == 0) {
-        const CXXOperatorCallExpr *opCall = cast<CXXOperatorCallExpr>(stmt);
-        if (!opCall->isInfixBinaryOp()) {
+        const CXXOperatorCallExpr opCall = cast<CXXOperatorCallExpr>(stmt);
+        if (!opCall.isInfixBinaryOp()) {
             return false;
         }
         if (!C2(stmt, Context)) {
             return false;
         }
-        if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
+        if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
             if (isParentOf(forstmt->getCond(), stmt) || isParentOf(forstmt->getInc(), stmt)) {
                 return false;
             }
         }
         return true;
     }
-    if (const ForStmt *forstmt = getParentOfType<ForStmt>(stmt, Context, 3)) {
+    if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
         return !isParentOf(forstmt->getCond(), stmt) && !isParentOf(forstmt->getInc(), stmt) && C2(stmt, Context);
     } else {
         return (C2(stmt, Context));

@@ -16,6 +16,6 @@ bool MRSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewrit
     R.RemoveText(range);
     return true;
 }
-bool MRSInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
+bool MRSInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
     return true;
 }

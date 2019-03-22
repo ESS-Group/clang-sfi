@@ -49,36 +49,37 @@ bool MLACInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     R.RemoveText(range);
     return true;
 }
-bool MLACInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) { // no else
+bool MLACInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) { // no else
     std::vector<const BinaryOperator *> binaryOperators;
     if (binding.compare("if") == 0) {
-        const Expr *condition = cast<IfStmt>(stmt)->getCond();
-        binaryOperators = getChildrenOfType<BinaryOperator>(condition);
+        const Expr *condition = cast<IfStmt>(stmt).getCond();
+        binaryOperators = getChildrenOfType<BinaryOperator>(*condition);
     } else if (binding.compare("do") == 0) {
-        const Stmt *condition = cast<IfStmt>(stmt)->getCond();
-        binaryOperators = getChildrenOfType<BinaryOperator>(condition);
+        const Stmt *condition = cast<IfStmt>(stmt).getCond();
+        binaryOperators = getChildrenOfType<BinaryOperator>(*condition);
     } else if (binding.compare("switch") == 0) {
-        const Stmt *condition = cast<IfStmt>(stmt)->getCond();
-        binaryOperators = getChildrenOfType<BinaryOperator>(condition);
+        const Stmt *condition = cast<IfStmt>(stmt).getCond();
+        binaryOperators = getChildrenOfType<BinaryOperator>(*condition);
     } else if (binding.compare("while") == 0) {
-        const Stmt *condition = cast<IfStmt>(stmt)->getCond();
-        binaryOperators = getChildrenOfType<BinaryOperator>(condition);
+        const Stmt *condition = cast<IfStmt>(stmt).getCond();
+        binaryOperators = getChildrenOfType<BinaryOperator>(*condition);
     } else if (binding.compare("for") == 0) {
-        const Stmt *condition = cast<IfStmt>(stmt)->getCond();
-        binaryOperators = getChildrenOfType<BinaryOperator>(condition);
+        const Stmt *condition = cast<IfStmt>(stmt).getCond();
+        binaryOperators = getChildrenOfType<BinaryOperator>(*condition);
     } else {
         return false;
     }
     for (const BinaryOperator *op : binaryOperators) {
+        assert(op != NULL);
         if (op->getOpcode() == BinaryOperatorKind::BO_LAnd) {
             const Expr *left = op->getLHS()->IgnoreImplicit();
             const Expr *right = op->getRHS()->IgnoreImplicit();
             if (!isa<BinaryOperator>(left) || cast<BinaryOperator>(left)->getOpcode() != BinaryOperatorKind::BO_LAnd) {
-                nodeCallback("MLOC", op, true);
+                nodeCallback("MLOC", *op, true);
             }
             if (!isa<BinaryOperator>(right) ||
                 cast<BinaryOperator>(right)->getOpcode() != BinaryOperatorKind::BO_LAnd) {
-                nodeCallback("MLOC", op, false);
+                nodeCallback("MLOC", *op, false);
             }
         }
     }

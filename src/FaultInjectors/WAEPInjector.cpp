@@ -35,12 +35,13 @@ bool WAEPInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     R.RemoveText(range);
     return true;
 }
-bool WAEPInjector::checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) {
-    if (hasChildOfType<BinaryOperator>(stmt)) {
-        std::vector<const BinaryOperator *> arguments = getChildrenFlat<BinaryOperator>(stmt);
+bool WAEPInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
+    if (hasChildOfType<BinaryOperator>(&stmt)) {
+        std::vector<const BinaryOperator *> arguments = getChildrenFlat<BinaryOperator>(&stmt);
         for (const BinaryOperator *op : arguments) {
-            if (isArithmetic(op)) {
-                const BinaryOperator *rightest = getBinaryOperatorWithRightedtRHS(op);
+            assert(op != NULL);
+            if (isArithmetic(*op)) {
+                const BinaryOperator rightest = getBinaryOperatorWithRightedtRHS(*op);
                 nodeCallback(binding, rightest);
             }
         }

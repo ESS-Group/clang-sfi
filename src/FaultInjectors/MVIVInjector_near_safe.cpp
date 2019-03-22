@@ -43,13 +43,14 @@ bool MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::R
     }
     return true;
 }
-bool MVIVInjectorSAFE::checkStmt(const Decl *decl, std::string binding, ASTContext &Context) {
+bool MVIVInjectorSAFE::checkStmt(const Decl &decl, std::string binding, ASTContext &Context) {
     if (binding.compare("notInitialized") == 0 && isa<VarDecl>(decl)) {
         std::vector<const BinaryOperator *> list =
-            getChildForFindInitForVar(getParentCompoundStmt(decl, Context), cast<const VarDecl>(decl));
+            getChildForFindInitForVar(getParentCompoundStmt(&decl, Context), cast<const VarDecl>(&decl));
         for (const BinaryOperator *op : list) {
-            if (isValueAssignment(op) && C2(op, Context)) {
-                nodeCallback(binding, op);
+            assert(op != NULL);
+            if (isValueAssignment(op) && C2(*op, Context)) {
+                nodeCallback(binding, *op);
             }
         }
 
@@ -58,7 +59,7 @@ bool MVIVInjectorSAFE::checkStmt(const Decl *decl, std::string binding, ASTConte
         if (C2(decl, Context)) {
             return true;
         } else {
-            const DeclStmt *declsstmt = getParentOfType<DeclStmt>(decl, Context, 2);
+            const DeclStmt *declsstmt = getParentOfType<DeclStmt>(&decl, Context, 2);
             const ForStmt *stmt = getParentOfType<ForStmt>(declsstmt, Context, 5);
 
             return stmt != NULL && (isParentOf(stmt->getInit(), decl, Context) || stmt->getInit(), declsstmt);

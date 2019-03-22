@@ -27,22 +27,22 @@ bool considerFile(FaultInjector *injector, std::string fileName) {
 void MatchHandler::run(const MatchFinder::MatchResult &Result) {
     SourceManager &SM = Result.Context->getSourceManager();
     for (std::string binding : bindings) {
-        if (const Stmt *stmt = dyn_cast<Stmt>(Result.Nodes.getNodeAs<Stmt>(binding))) {
-            run_stmt_or_decl(Result, SM, binding, stmt);
-        } else if (const Decl *decl = dyn_cast<Decl>(Result.Nodes.getNodeAs<Decl>(binding))) {
-            run_stmt_or_decl(Result, SM, binding, decl);
+        if (const Stmt *stmt = dyn_cast_or_null<Stmt>(Result.Nodes.getNodeAs<Stmt>(binding))) {
+            run_stmt_or_decl(Result, SM, binding, *stmt);
+        } else if (const Decl *decl = dyn_cast_or_null<Decl>(Result.Nodes.getNodeAs<Decl>(binding))) {
+            run_stmt_or_decl(Result, SM, binding, *decl);
         }
     }
 }
 
 template <typename SD>
 void MatchHandler::run_stmt_or_decl(const MatchFinder::MatchResult &Result, SourceManager &SM, std::string binding,
-                                   SD *stmtOrDecl) {
-    if (stmtOrDecl != NULL && !SM.isInSystemHeader(stmtOrDecl->getLocStart()) && // do not match on system headers or system macros
-        !SM.isInSystemMacro(stmtOrDecl->getLocStart())) {
-        SourceLocation start = stmtOrDecl->getLocStart();
+                                   SD &stmtOrDecl) {
+    if (!SM.isInSystemHeader(stmtOrDecl.getLocStart()) && // do not match on system headers or system macros
+        !SM.isInSystemMacro(stmtOrDecl.getLocStart())) {
+        SourceLocation start = stmtOrDecl.getLocStart();
         bool isMacro = start.isMacroID();
-        std::string name = FaultInjector::getFileName<SD>(stmtOrDecl, SM);
+        std::string name = FaultInjector::getFileName(stmtOrDecl, SM);
         if (!isMacro) {
             // Only consider nodes of the currently parsed file.
             if (considerFile(faultInjector, name)) {

@@ -15,13 +15,13 @@ class MIFSInjector : public FaultInjector {
     MIFSInjector();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class SMIFSInjector : public MIFSInjector {
   public:
     std::string toString() override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class MIAInjector : public FaultInjector {
@@ -29,13 +29,13 @@ class MIAInjector : public FaultInjector {
     MIAInjector();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class SMIAInjector : public MIAInjector {
   public:
     std::string toString() override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class MIEBInjector : public FaultInjector {
@@ -43,13 +43,13 @@ class MIEBInjector : public FaultInjector {
     MIEBInjector();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class SMIEBInjector : public MIEBInjector {
   public:
     std::string toString() override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class WAEPInjector : public FaultInjector {
@@ -57,7 +57,7 @@ class WAEPInjector : public FaultInjector {
     WAEPInjector();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class WPFVInjector : public FaultInjector {
@@ -65,7 +65,7 @@ class WPFVInjector : public FaultInjector {
     WPFVInjector();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class MFCInjector : public FaultInjector {
@@ -73,7 +73,7 @@ class MFCInjector : public FaultInjector {
     MFCInjector();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class MLOCInjector : public FaultInjector {
@@ -84,7 +84,7 @@ class MLOCInjector : public FaultInjector {
     // override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
     // clang::Rewriter inject(StmtBinding current, ASTContext &Context, bool left);
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class MLACInjector : public FaultInjector {
@@ -95,7 +95,7 @@ class MLACInjector : public FaultInjector {
     // override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
     // clang::Rewriter inject(StmtBinding current, ASTContext &Context, bool left);
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class MVIVInjector : public FaultInjector {
@@ -103,14 +103,14 @@ class MVIVInjector : public FaultInjector {
     MVIVInjector();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Decl *decl, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Decl &decl, std::string binding, ASTContext &Context) override;
 };
 class MVIVInjectorSAFE : public FaultInjector {
   public:
     MVIVInjectorSAFE();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Decl *decl, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Decl &decl, std::string binding, ASTContext &Context) override;
 };
 
 class MVAVInjector : public FaultInjector {
@@ -118,7 +118,7 @@ class MVAVInjector : public FaultInjector {
     MVAVInjector(bool alsoOverwritten = false);
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 
   protected:
     bool alsoOverwritten;
@@ -128,7 +128,7 @@ class MVAVInjectorSAFE : public FaultInjector {
     MVAVInjectorSAFE(bool alsoOverwritten = false);
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Decl *decl, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Decl &decl, std::string binding, ASTContext &Context) override;
 
   protected:
     bool alsoOverwritten;
@@ -144,7 +144,7 @@ class WVAVInjector : public FaultInjector {
     WVAVInjector(bool alsoOverwritten = false);
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 
   protected:
     bool alsoOverwritten;
@@ -154,7 +154,7 @@ class WVAVInjectorSAFE : public FaultInjector {
     WVAVInjectorSAFE(bool alsoOverwritten = false);
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Decl *decl, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Decl &decl, std::string binding, ASTContext &Context) override;
 
   protected:
     bool alsoOverwritten;
@@ -170,7 +170,7 @@ class MVAEInjector : public FaultInjector {
     MVAEInjector(bool alsoOverwritten = false);
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 
   protected:
     bool alsoOverwritten;
@@ -180,7 +180,7 @@ class MVAEInjectorSAFE : public FaultInjector {
     MVAEInjectorSAFE();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Decl *decl, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Decl &decl, std::string binding, ASTContext &Context) override;
 
   protected:
     bool alsoOverwritten;
@@ -196,13 +196,13 @@ class MLPAInjector : public FaultInjector {
     MLPAInjector();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class SMLPAInjector : public MLPAInjector {
   public:
     std::string toString() override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class MIESInjector : public FaultInjector {
@@ -210,7 +210,7 @@ class MIESInjector : public FaultInjector {
     MIESInjector();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 class MRSInjector : public FaultInjector {
@@ -218,7 +218,7 @@ class MRSInjector : public FaultInjector {
     MRSInjector();
     std::string toString() override;
     bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) override;
-    bool checkStmt(const Stmt *stmt, std::string binding, ASTContext &Context) override;
+    bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) override;
 };
 
 #endif
