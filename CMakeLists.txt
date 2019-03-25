@@ -3,6 +3,10 @@ set(PROJECT_NAME "clang-sfi")
 project(${PROJECT_NAME})
 
 ###
+# Some integration tests use compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+###
 # Setup LLVM+Clang includes and options.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(LLVM REQUIRED CONFIG)
