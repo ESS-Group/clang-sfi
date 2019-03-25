@@ -2,6 +2,10 @@
 
 #include "FaultInjector.h"
 
+#include "llvm/Support/Debug.h"
+#define DEBUG_TYPE "clang-sfi-matchhandler"
+using namespace llvm;
+
 MatchHandler::MatchHandler(FaultInjector *pFaultInjector, std::string fileName, std::vector<std::string> bindings)
     : bindings(bindings), fileName(fileName) {
     faultInjector = pFaultInjector;
@@ -25,6 +29,7 @@ bool considerFile(FaultInjector *injector, std::string fileName) {
 }
 
 void MatchHandler::run(const MatchFinder::MatchResult &Result) {
+    LLVM_DEBUG(dbgs() << "Run MatchHandler\n");
     SourceManager &SM = Result.Context->getSourceManager();
     for (std::string binding : bindings) {
         if (const Stmt *stmt = dyn_cast_or_null<Stmt>(Result.Nodes.getNodeAs<Stmt>(binding))) {
