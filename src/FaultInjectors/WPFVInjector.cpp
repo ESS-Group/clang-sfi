@@ -35,51 +35,60 @@ WPFVInjector::WPFVInjector() { // Wrong variable used in parameter of function c
 // clang-format on
 
 bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
-    const DeclRefExpr *stmt = cast<DeclRefExpr>(current.stmt);
-    assert(stmt != NULL);
+    if (current.binding.compare("functionCall") == 0) {
+        const DeclRefExpr *stmt = cast<DeclRefExpr>(current.stmt);
+        assert(stmt != NULL);
 
-    const VarDecl *arg = cast<VarDecl>(stmt->getDecl());
-    const DeclContext *declContext = arg->getDeclContext();
-    const FunctionDecl *fkt = cast<FunctionDecl>(declContext->getNonClosureAncestor());
+        const VarDecl *arg = cast<VarDecl>(stmt->getDecl());
+        const DeclContext *declContext = arg->getDeclContext();
+        const FunctionDecl *fkt = cast<FunctionDecl>(declContext->getNonClosureAncestor());
 
-    bool isParam = true;
+        bool isParam = true;
 
-    std::vector<const VarDecl *> localVariables;
-    int paramCount = fkt->getNumParams();
-    for (int i = 0; i < paramCount; i++) {
-        const VarDecl *param = fkt->getParamDecl(i);
-        if (param != arg &&
-            param->getType().getNonReferenceType().getDesugaredType(Context) ==
-                arg->getType().getNonReferenceType().getDesugaredType(Context) &&
-            localVariables.size() == 0) {
-            localVariables.push_back(param);
-        } else if (param == arg) {
-            isParam = true;
-        }
-    }
-
-    if (!isParam || localVariables.size() == 0) {
-        for (DeclContext::decl_iterator it = declContext->decls_begin(), e = declContext->decls_end(); it != e; ++it) {
-            const VarDecl *vardecl = cast<VarDecl>(*it);
-            assert(vardecl != NULL);
-            if (isVisible(*vardecl, *stmt, Context) && vardecl != arg &&
-                arg->getType().getNonReferenceType().getDesugaredType(Context) ==
-                    vardecl->getType().getNonReferenceType().getDesugaredType(Context)) {
-                if (!isParam) {
-                    localVariables.clear();
-                }
-                localVariables.push_back(vardecl);
-                break;
+        std::vector<const VarDecl *> localVariables;
+        int paramCount = fkt->getNumParams();
+        for (int i = 0; i < paramCount; i++) {
+            const VarDecl *param = fkt->getParamDecl(i);
+            if (param != arg &&
+                param->getType().getNonReferenceType().getDesugaredType(Context) ==
+                    arg->getType().getNonReferenceType().getDesugaredType(Context) &&
+                localVariables.size() == 0) {
+                localVariables.push_back(param);
+            } else if (param == arg) {
+                isParam = true;
             }
         }
-    }
-    std::string variableName(localVariables[0]->getName().data());
 
-    SourceRange range = stmt->getSourceRange();
-    SourceLocation start = range.getBegin(),
-        end = range.getEnd();
-    SourceRange expandedRange(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
-    R.ReplaceText(expandedRange, variableName);
+        if (!isParam || localVariables.size() == 0) {
+            for (DeclContext::decl_iterator it = declContext->decls_begin(), e = declContext->decls_end(); it != e;
+                 ++it) {
+                const VarDecl *vardecl = cast<VarDecl>(*it);
+                assert(vardecl != NULL);
+                if (isVisible(*vardecl, *stmt, Context) && vardecl != arg &&
+                    arg->getType().getNonReferenceType().getDesugaredType(Context) ==
+                        vardecl->getType().getNonReferenceType().getDesugaredType(Context)) {
+                    if (!isParam) {
+                        localVariables.clear();
+                    }
+                    localVariables.push_back(vardecl);
+                    break;
+                }
+            }
+        }
+        std::string variableName(localVariables[0]->getName().data());
+
+        SourceRange range = stmt->getSourceRange();
+        SourceLocation start = range.getBegin(), end = range.getEnd();
+        SourceRange expandedRange(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        R.ReplaceText(expandedRange, variableName);
+        LLVM_DEBUG(dbgs() << "WPFV: Replaced range for functionCall"
+                          << "\n"
+                          << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                          << range.getEnd().printToString(R.getSourceMgr()) << " with " << variableName << "\n");
+    } else {
+        assert(false && "Unknown binding in WPFV injector");
+        std::cerr << "Unknown binding in WPFV injector" << std::endl;
+    }
     return true;
 }
 

@@ -13,8 +13,8 @@ std::vector<std::vector<const Stmt *>> getStmtLists(const CompoundStmt &block, A
                                                     bool noDeclStmt = DONOTDELETEDECLSTMTINCONSTRAINT) {
     std::vector<std::vector<const Stmt *>> ret;
     int index = -1;
-    for (Stmt::child_iterator i = cast_away_const(block.child_begin()), e = cast_away_const(block.child_end());
-         i != e; ++i) {
+    for (Stmt::child_iterator i = cast_away_const(block.child_begin()), e = cast_away_const(block.child_end()); i != e;
+         ++i) {
         if ((*i != NULL) && isa<Stmt>(*i)) {
             if (index == -1) {
                 std::vector<const Stmt *> list;
@@ -187,20 +187,29 @@ MLPAInjector::MLPAInjector() { // Missing small and localized part of the algori
 // clang-format on
 
 bool MLPAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
-    std::vector<const Stmt *> list = current.stmtlist;
-    SourceLocation start = list[0]->getLocStart(), end = list[0]->getLocEnd();
+    if (current.binding.compare("compoundStmt") == 0) {
+        std::vector<const Stmt *> list = current.stmtlist;
+        SourceLocation start = list[0]->getLocStart(), end = list[0]->getLocEnd();
 
-    for (const Stmt *stmt : list) {
-        if (stmt->getLocStart() < start) {
-            start = stmt->getLocStart();
+        for (const Stmt *stmt : list) {
+            if (stmt->getLocStart() < start) {
+                start = stmt->getLocStart();
+            }
+            if (end < stmt->getLocEnd()) {
+                end = stmt->getLocEnd();
+            }
         }
-        if (end < stmt->getLocEnd()) {
-            end = stmt->getLocEnd();
-        }
+
+        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        R.RemoveText(range);
+        LLVM_DEBUG(dbgs() << "MLPA: Removed range for compoundStmt"
+                          << "\n"
+                          << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                          << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+    } else {
+        assert(false && "Unknown binding in MLPA injector");
+        std::cerr << "Unknown binding in MLPA injector" << std::endl;
     }
-
-    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
-    R.RemoveText(range);
     return true;
 }
 
@@ -211,7 +220,7 @@ bool MLPAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
         if (it.size() >= 2) {
             int size = it.size();
             if (size == compoundStmt.size()) { // because 1 statement must remain
-                                                // within the compoundStmt
+                                               // within the compoundStmt
                 size--;
             }
 
@@ -241,7 +250,7 @@ bool SMLPAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext 
         if (it.size() >= 2) {
             int size = it.size();
             if (size == compoundStmt.size()) // because 1 statement must remain
-                                              // within the compoundStmt
+                                             // within the compoundStmt
                 size--;
             if (size > 5) {
                 size = 5;

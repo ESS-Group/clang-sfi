@@ -13,12 +13,20 @@ MIAInjector::MIAInjector() { // Missing if construct around statements
 }
 
 bool MIAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
-    const IfStmt *ifS = cast<IfStmt>(current.stmt);
+    if (current.binding.compare("ifStmt") == 0) {
+        const IfStmt *ifS = cast<IfStmt>(current.stmt);
 
-    SourceLocation start = ifS->getLocStart(),
-        end = ifS->getThen()->getLocStart().getLocWithOffset(-1);
-    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
-    R.RemoveText(range);
+        SourceLocation start = ifS->getLocStart(), end = ifS->getThen()->getLocStart().getLocWithOffset(-1);
+        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        R.RemoveText(range);
+        LLVM_DEBUG(dbgs() << "MIA: Removed range for ifStmt"
+                          << "\n"
+                          << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                          << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+    } else {
+        assert(false && "Unknown binding in MIA injector");
+        std::cerr << "Unknown binding in MIA injector" << std::endl;
+    }
     return true;
 }
 bool MIAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {

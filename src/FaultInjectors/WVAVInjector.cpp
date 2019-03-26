@@ -154,19 +154,36 @@ bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
         type = cast<BinaryOperator>(current.stmt)->getLHS()->getType();
     }
 
-    SourceLocation start = val->getLocStart(),
-        end = val->getLocEnd();
+    SourceLocation start = val->getLocStart(), end = val->getLocEnd();
     SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     if (isa<CXXBoolLiteralExpr>(val)) {
         bool value = cast<CXXBoolLiteralExpr>(val)->getValue();
         if (value) {
             R.ReplaceText(range, "false");
+            LLVM_DEBUG(dbgs() << "WVAV: Replaced range for varDecl"
+                              << "\n"
+                              << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                              << range.getEnd().printToString(R.getSourceMgr()) << " with "
+                              << "false"
+                              << "\n");
         } else {
             R.ReplaceText(range, "true");
+            LLVM_DEBUG(dbgs() << "WVAV: Replaced range for varDecl"
+                              << "\n"
+                              << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                              << range.getEnd().printToString(R.getSourceMgr()) << " with "
+                              << "true"
+                              << "\n");
         }
     } else {
         std::string text = R.getRewrittenText(range);
         R.ReplaceText(range, "(" + type.getAsString() + ")" + text + "^0xFF");
+        LLVM_DEBUG(dbgs() << "WVAV: Replaced range for varDecl"
+                          << "\n"
+                          << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                          << range.getEnd().printToString(R.getSourceMgr()) << " with "
+                          << "(" + type.getAsString() + ")" + text + "^0xFF"
+                          << "\n");
     }
 
     return true;

@@ -10,20 +10,42 @@ WVAVInjectorSAFE::WVAVInjectorSAFE(bool alsoOverwritten) { // Wrong value assign
 }
 
 bool WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
-    Expr *val = cast<BinaryOperator>(current.stmt)->getRHS();
-    SourceLocation start = val->getLocStart(),
-        end = val->getLocEnd();
-    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
-    if (isa<CXXBoolLiteralExpr>(val)) {
-        bool value = cast<CXXBoolLiteralExpr>(val)->getValue();
-        if (value) {
-            R.ReplaceText(range, "false");
+    if (current.binding.compare("varDecl") == 0) {
+        Expr *val = cast<BinaryOperator>(current.stmt)->getRHS();
+        SourceLocation start = val->getLocStart(), end = val->getLocEnd();
+        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        if (isa<CXXBoolLiteralExpr>(val)) {
+            bool value = cast<CXXBoolLiteralExpr>(val)->getValue();
+            if (value) {
+                R.ReplaceText(range, "false");
+                LLVM_DEBUG(dbgs() << "WVAV-safe: Replaced range for varDecl"
+                                  << "\n"
+                                  << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                                  << range.getEnd().printToString(R.getSourceMgr()) << " with "
+                                  << "false"
+                                  << "\n");
+            } else {
+                R.ReplaceText(range, "true");
+                LLVM_DEBUG(dbgs() << "WVAV-safe: Replaced range for varDecl"
+                                  << "\n"
+                                  << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                                  << range.getEnd().printToString(R.getSourceMgr()) << " with "
+                                  << "true"
+                                  << "\n");
+            }
         } else {
-            R.ReplaceText(range, "true");
+            std::string text = R.getRewrittenText(range);
+            R.ReplaceText(range, text + "^0xFF");
+            LLVM_DEBUG(dbgs() << "WVAV-safe: Replaced range for varDecl"
+                              << "\n"
+                              << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                              << range.getEnd().printToString(R.getSourceMgr()) << " with "
+                              << "^0xFF"
+                              << "\n");
         }
     } else {
-        std::string text = R.getRewrittenText(range);
-        R.ReplaceText(range, text + "^0xFF");
+        assert(false && "Unknown binding in WVAV-safe injector");
+        std::cerr << "Unknown binding in WVAV-safe injector" << std::endl;
     }
 
     return true;

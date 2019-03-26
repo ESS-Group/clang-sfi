@@ -48,8 +48,13 @@ bool MLACInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
 
     SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     R.RemoveText(range);
+    LLVM_DEBUG(dbgs() << "MLAC: Removed range"
+                      << "\n"
+                      << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                      << range.getEnd().printToString(R.getSourceMgr()) << "\n");
     return true;
 }
+
 bool MLACInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) { // no else
     std::vector<const BinaryOperator *> binaryOperators;
     if (binding.compare("if") == 0) {
@@ -68,7 +73,8 @@ bool MLACInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
         const Stmt *condition = cast<IfStmt>(stmt).getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(*condition);
     } else {
-        return false;
+        assert(false && "Unknown binding in MLAC injector");
+        std::cerr << "Unknown binding in MLAC injector" << std::endl;
     }
     for (const BinaryOperator *op : binaryOperators) {
         assert(op != NULL);

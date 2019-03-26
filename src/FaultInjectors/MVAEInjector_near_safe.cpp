@@ -16,21 +16,33 @@ MVAEInjectorSAFE::MVAEInjectorSAFE() { // Missing variable assignment using an e
 // clang-format on
 
 bool MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
-    if (current.isStmt) {
-        SourceLocation start = current.stmt->getLocStart(),
-            end = current.stmt->getLocEnd();
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
-        R.RemoveText(range);
-    } else {
-        VarDecl temp(*((const VarDecl *)current.decl));
-        temp.setInit(NULL);
-        const VarDecl *tempP = &temp;
-        std::string withoutInit = stmtToString(tempP, Context.getLangOpts());
+    if (current.binding.compare("varDecl") == 0) {
+        if (current.isStmt) {
+            SourceLocation start = current.stmt->getLocStart(), end = current.stmt->getLocEnd();
+            SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+            R.RemoveText(range);
+            LLVM_DEBUG(dbgs() << "MVAE-safe: Removed range for varDecl"
+                              << "\n"
+                              << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                              << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+        } else {
+            VarDecl temp(*((const VarDecl *)current.decl));
+            temp.setInit(NULL);
+            const VarDecl *tempP = &temp;
+            std::string withoutInit = stmtToString(tempP, Context.getLangOpts());
 
-        SourceLocation start = current.decl->getLocStart(),
-            end = current.decl->getLocEnd();
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
-        R.ReplaceText(range, withoutInit);
+            SourceLocation start = current.decl->getLocStart(), end = current.decl->getLocEnd();
+            SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+            R.ReplaceText(range, withoutInit);
+            LLVM_DEBUG(dbgs() << "MVAE-safe: Replace range for varDecl"
+                              << "\n"
+                              << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                              << range.getEnd().printToString(R.getSourceMgr()) << "\n"
+                              << " with " << withoutInit << "\n");
+        }
+    } else {
+        assert(false && "Unknown binding in MVAE-safe injector");
+        std::cerr << "Unknown binding in MVAE-safe injector" << std::endl;
     }
 
     return true;

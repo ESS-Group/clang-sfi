@@ -120,10 +120,13 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten) { // Missing variable assignmen
 // clang-format on
 
 bool MVAEInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
-    SourceLocation start = current.stmt->getLocStart(),
-        end = current.stmt->getLocEnd();
+    SourceLocation start = current.stmt->getLocStart(), end = current.stmt->getLocEnd();
     SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     R.RemoveText(range);
+    LLVM_DEBUG(dbgs() << "MVAE: Removed range"
+                      << "\n"
+                      << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                      << range.getEnd().printToString(R.getSourceMgr()) << "\n");
 
     return true;
 }

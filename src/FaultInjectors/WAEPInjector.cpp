@@ -20,20 +20,28 @@ WAEPInjector::WAEPInjector() { // Wrong arithmetic expressino in parameter of fu
                     hasDescendant(binaryOperator())
                 )))
             )
-        ).bind("functionCall"),
-        createMatchHandler("functionCall")
+        ).bind("functionCall"), createMatchHandler("functionCall")
     );
 }
 // clang-format on
 
 bool WAEPInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
-    SourceLocation start, end;
+    if (current.binding.compare("functionCall")) {
+        SourceLocation start, end;
 
-    start = cast<const BinaryOperator>(current.stmt)->getOperatorLoc();
-    end = cast<const BinaryOperator>(current.stmt)->getRHS()->getLocEnd();
+        start = cast<const BinaryOperator>(current.stmt)->getOperatorLoc();
+        end = cast<const BinaryOperator>(current.stmt)->getRHS()->getLocEnd();
 
-    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
-    R.RemoveText(range);
+        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        R.RemoveText(range);
+        LLVM_DEBUG(dbgs() << "WAEP: Removed range for functionCall"
+                          << "\n"
+                          << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                          << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+    } else {
+        assert(false && "Unknown binding in WAEP injector");
+        std::cerr << "Unknown binding in WAEP injector" << std::endl;
+    }
     return true;
 }
 bool WAEPInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {

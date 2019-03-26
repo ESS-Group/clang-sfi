@@ -35,13 +35,21 @@ bool MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::R
     if (current.isStmt) {
         SourceRange range(current.stmt->getLocStart(), current.stmt->getLocEnd());
         R.RemoveText(range);
+        LLVM_DEBUG(dbgs() << "MVIV-safe: Removed range for stmt"
+                          << "\n"
+                          << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                          << range.getEnd().printToString(R.getSourceMgr()) << "\n");
     } else {
         const VarDecl *vardecl = cast<VarDecl>(current.decl);
         const DeclStmt *declstmt = getParentOfType<DeclStmt>(current.decl, Context, 3);
         SourceLocation start = vardecl->getLocation().getLocWithOffset(vardecl->getNameAsString().length()),
-            end = vardecl->getInit()->getLocEnd();
+                       end = vardecl->getInit()->getLocEnd();
         SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.RemoveText(range);
+        LLVM_DEBUG(dbgs() << "MVIV-safe: Removed range for varDecl"
+                          << "\n"
+                          << range.getBegin().printToString(R.getSourceMgr()) << "\n"
+                          << range.getEnd().printToString(R.getSourceMgr()) << "\n");
     }
     return true;
 }
