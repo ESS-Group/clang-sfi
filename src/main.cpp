@@ -259,6 +259,7 @@ int main(int argc, const char **argv) {
         inj->setDirectory(dir);
         inj->setRootDir(path);
         inj->setFileList(filesToConsider);
+        inj->setMatchMacro(true);
     }
 
     int ret = Tool.run(newSFIFrontendActionFactory(injectors).get());

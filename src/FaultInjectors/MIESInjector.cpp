@@ -11,7 +11,7 @@ MIESInjector::MIESInjector() { // Missing if construct plus statements plus else
 }
 
 bool MIESInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
-    if (current.binding.compare("ifStmt")) {
+    if (current.binding.compare("ifStmt") == 0) {
         const IfStmt *ifS = cast<IfStmt>(current.stmt);
 
         SourceLocation start = ifS->getLocStart(), end = ifS->getElse()->getLocEnd();
