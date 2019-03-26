@@ -5,6 +5,8 @@ project(${PROJECT_NAME})
 ###
 # Some integration tests use compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# LLVM 9.0 complains about this in older LLVM code, but it is fixed in newer versions, so we just ignore it.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-defaulted-function-deleted")
 
 ###
 # Setup LLVM+Clang includes and options.
