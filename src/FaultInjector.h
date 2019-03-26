@@ -92,10 +92,10 @@ class FaultInjector {
                 if (isStmt) {
                     for (int i = 0; i < stmtlist.size(); i++) {
                         if (i == 0) {
-                            begin = stmtlist[0]->getLocStart();
-                            end = stmtlist[0]->getLocEnd();
+                            begin = stmtlist[0]->getBeginLoc();
+                            end = stmtlist[0]->getEndLoc();
                         } else {
-                            SourceLocation _begin = stmtlist[i]->getLocStart(), _end = stmtlist[i]->getLocEnd();
+                            SourceLocation _begin = stmtlist[i]->getBeginLoc(), _end = stmtlist[i]->getEndLoc();
                             if (end < _end) {
                                 end = _end;
                             }
@@ -107,10 +107,10 @@ class FaultInjector {
                 } else {
                     for (int i = 0; i < decllist.size(); i++) {
                         if (i == 0) {
-                            begin = decllist[0]->getLocStart();
-                            end = decllist[0]->getLocEnd();
+                            begin = decllist[0]->getBeginLoc();
+                            end = decllist[0]->getEndLoc();
                         } else {
-                            SourceLocation _begin = decllist[i]->getLocStart(), _end = decllist[i]->getLocEnd();
+                            SourceLocation _begin = decllist[i]->getBeginLoc(), _end = decllist[i]->getEndLoc();
                             if (end < _end) {
                                 end = _end;
                             }
@@ -122,11 +122,11 @@ class FaultInjector {
                 }
             } else {
                 if (isStmt) {
-                    begin = stmt->getLocStart();
-                    end = stmt->getLocEnd();
+                    begin = stmt->getBeginLoc();
+                    end = stmt->getEndLoc();
                 } else {
-                    begin = decl->getLocStart();
-                    end = decl->getLocEnd();
+                    begin = decl->getBeginLoc();
+                    end = decl->getEndLoc();
                 }
             }
             if (begin.isValid() && end.isValid()) {

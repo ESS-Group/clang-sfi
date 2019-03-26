@@ -79,7 +79,7 @@ std::vector<std::vector<const Stmt *>> getStmtLists(const CompoundStmt &block, A
 
             if (ref.size()) {
                 for (const DeclRefExpr *reference : ref) {
-                    if (reference != NULL && list.back()->getLocEnd() < reference->getLocStart() &&
+                    if (reference != NULL && list.back()->getEndLoc() < reference->getBeginLoc() &&
                         std::find(list.begin(), list.end(), declstmt) != list.end()) {
                         const DeclStmt *statement = cast<DeclStmt>(declstmt);
 
@@ -137,7 +137,7 @@ bool isMLPAListPossible(std::vector<const Stmt *> stmtlist, const CompoundStmt &
             const DeclRefExpr *latest = getLatestRef(block, cast<VarDecl>(*decl));
             if (ref.size()) {
                 for (const DeclRefExpr *x : ref) {
-                    if (x->getLocStart() < latest->getLocStart()) {
+                    if (x->getBeginLoc() < latest->getBeginLoc()) {
                         ref.clear();
                         ref.push_back(latest);
                         break;
@@ -148,7 +148,7 @@ bool isMLPAListPossible(std::vector<const Stmt *> stmtlist, const CompoundStmt &
             }
         }
         for (const DeclRefExpr *reference : ref) {
-            if (reference != NULL && stmtlist.back()->getLocEnd() < reference->getLocStart() &&
+            if (reference != NULL && stmtlist.back()->getEndLoc() < reference->getBeginLoc() &&
                 std::find(stmtlist.begin(), stmtlist.end(), declstmt) != stmtlist.end()) {
                 const DeclStmt *statement = cast<const DeclStmt>(declstmt);
                 notPossible.push_back(statement);
@@ -189,14 +189,14 @@ MLPAInjector::MLPAInjector() { // Missing small and localized part of the algori
 bool MLPAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     if (current.binding.compare("compoundStmt") == 0) {
         std::vector<const Stmt *> list = current.stmtlist;
-        SourceLocation start = list[0]->getLocStart(), end = list[0]->getLocEnd();
+        SourceLocation start = list[0]->getBeginLoc(), end = list[0]->getEndLoc();
 
         for (const Stmt *stmt : list) {
-            if (stmt->getLocStart() < start) {
-                start = stmt->getLocStart();
+            if (stmt->getBeginLoc() < start) {
+                start = stmt->getBeginLoc();
             }
-            if (end < stmt->getLocEnd()) {
-                end = stmt->getLocEnd();
+            if (end < stmt->getEndLoc()) {
+                end = stmt->getEndLoc();
             }
         }
 

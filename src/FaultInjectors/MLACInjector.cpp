@@ -39,11 +39,11 @@ bool MLACInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
 
     SourceLocation start, end;
     if (left) {
-        start = cast<BinaryOperator>(current.stmt)->getLHS()->getLocStart();
-        end = cast<BinaryOperator>(current.stmt)->getRHS()->getLocStart().getLocWithOffset(-1);
+        start = cast<BinaryOperator>(current.stmt)->getLHS()->getBeginLoc();
+        end = cast<BinaryOperator>(current.stmt)->getRHS()->getBeginLoc().getLocWithOffset(-1);
     } else {
         start = cast<BinaryOperator>(current.stmt)->getOperatorLoc();
-        end = cast<BinaryOperator>(current.stmt)->getRHS()->getLocEnd();
+        end = cast<BinaryOperator>(current.stmt)->getRHS()->getEndLoc();
     }
 
     SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));

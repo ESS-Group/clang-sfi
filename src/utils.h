@@ -174,7 +174,7 @@ std::vector<const T *> getStmtsOfType(std::vector<const Stmt *> &list) {
 
 template <class T>
 bool _comparefunc(const T *st1, const T *st2) {
-    return st1->getLocStart() < st2->getLocStart();
+    return st1->getBeginLoc() < st2->getBeginLoc();
 }
 
 bool isArithmetic(const BinaryOperator &op);

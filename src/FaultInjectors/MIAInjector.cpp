@@ -16,7 +16,7 @@ bool MIAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewrit
     if (current.binding.compare("ifStmt") == 0) {
         const IfStmt *ifS = cast<IfStmt>(current.stmt);
 
-        SourceLocation start = ifS->getLocStart(), end = ifS->getThen()->getLocStart().getLocWithOffset(-1);
+        SourceLocation start = ifS->getBeginLoc(), end = ifS->getThen()->getBeginLoc().getLocWithOffset(-1);
         SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MIA: Removed range for ifStmt"

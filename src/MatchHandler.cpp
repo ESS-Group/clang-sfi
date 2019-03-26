@@ -43,9 +43,9 @@ void MatchHandler::run(const MatchFinder::MatchResult &Result) {
 template <typename SD>
 void MatchHandler::run_stmt_or_decl(const MatchFinder::MatchResult &Result, SourceManager &SM, std::string binding,
                                    SD &stmtOrDecl) {
-    if (!SM.isInSystemHeader(stmtOrDecl.getLocStart()) && // do not match on system headers or system macros
-        !SM.isInSystemMacro(stmtOrDecl.getLocStart())) {
-        SourceLocation start = stmtOrDecl.getLocStart();
+    if (!SM.isInSystemHeader(stmtOrDecl.getBeginLoc()) && // do not match on system headers or system macros
+        !SM.isInSystemMacro(stmtOrDecl.getBeginLoc())) {
+        SourceLocation start = stmtOrDecl.getBeginLoc();
         bool isMacro = start.isMacroID();
         std::string name = FaultInjector::getFileName(stmtOrDecl, SM);
         if (!isMacro) {

@@ -14,7 +14,7 @@ bool MRSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewrit
     if (current.binding.compare("returnStmt")) {
         const Stmt *stmt = current.stmt;
 
-        SourceLocation start = stmt->getLocStart(), end = stmt->getLocEnd();
+        SourceLocation start = stmt->getBeginLoc(), end = stmt->getEndLoc();
         SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MRS: Removed range for returnStmt"

@@ -47,7 +47,7 @@ MFCInjector::MFCInjector() { // Missing function call
 
 bool MFCInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     if (current.binding.compare("FunctionCall") == 0) {
-        SourceLocation start = current.stmt->getLocStart(), end = current.stmt->getLocEnd();
+        SourceLocation start = current.stmt->getBeginLoc(), end = current.stmt->getEndLoc();
         SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MFC: Removed range for FunctionCall"
@@ -57,11 +57,11 @@ bool MFCInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewrit
     } else if (current.binding.compare("CommaOperator") == 0) { // totest
         SourceLocation start, end;
         if (current.left) {
-            start = cast<const BinaryOperator>(current.stmt)->getLHS()->getLocStart();
-            end = cast<const BinaryOperator>(current.stmt)->getRHS()->getLocStart().getLocWithOffset(-1);
+            start = cast<const BinaryOperator>(current.stmt)->getLHS()->getBeginLoc();
+            end = cast<const BinaryOperator>(current.stmt)->getRHS()->getBeginLoc().getLocWithOffset(-1);
         } else {
             start = cast<const BinaryOperator>(current.stmt)->getOperatorLoc();
-            end = cast<const BinaryOperator>(current.stmt)->getRHS()->getLocEnd();
+            end = cast<const BinaryOperator>(current.stmt)->getRHS()->getEndLoc();
         }
         SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.RemoveText(range);

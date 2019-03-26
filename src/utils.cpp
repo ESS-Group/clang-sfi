@@ -466,7 +466,7 @@ const DeclRefExpr *getLatestRef(const Stmt &parent, const VarDecl &var) {
     for (const DeclRefExpr *ref : refs) {
         if (ret.size()) {
             for (const DeclRefExpr *reference : ret) {
-                if (reference->getLocEnd() < ref->getLocEnd()) {
+                if (reference->getEndLoc() < ref->getEndLoc()) {
                     ret.clear();
                     ret.push_back(ref);
                 }
@@ -528,7 +528,7 @@ bool isVisible(const Decl &decl, const Stmt &position, ASTContext &Context) {
             return false;
         }
 
-        if (isParentOf(*parent, position) && decl.getLocEnd() < position.getLocStart()) {
+        if (isParentOf(*parent, position) && decl.getEndLoc() < position.getBeginLoc()) {
             return true;
         }
     }

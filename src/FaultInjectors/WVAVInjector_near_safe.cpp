@@ -12,7 +12,7 @@ WVAVInjectorSAFE::WVAVInjectorSAFE(bool alsoOverwritten) { // Wrong value assign
 bool WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
     if (current.binding.compare("varDecl") == 0) {
         Expr *val = cast<BinaryOperator>(current.stmt)->getRHS();
-        SourceLocation start = val->getLocStart(), end = val->getLocEnd();
+        SourceLocation start = val->getBeginLoc(), end = val->getEndLoc();
         SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         if (isa<CXXBoolLiteralExpr>(val)) {
             bool value = cast<CXXBoolLiteralExpr>(val)->getValue();

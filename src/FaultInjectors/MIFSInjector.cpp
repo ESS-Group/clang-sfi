@@ -16,7 +16,7 @@ bool MIFSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     if (current.binding.compare("ifStmt") == 0) {
         const IfStmt *ifS = cast<IfStmt>(current.stmt);
 
-        SourceLocation start = ifS->getLocStart(), end = ifS->getLocEnd();
+        SourceLocation start = ifS->getBeginLoc(), end = ifS->getEndLoc();
         SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MIFS: Removed range for ifStmt"

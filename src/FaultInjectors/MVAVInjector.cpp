@@ -118,7 +118,7 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten) { // Missing variable assignmen
 // clang-format on
 
 bool MVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
-    SourceLocation start = current.stmt->getLocStart(), end = current.stmt->getLocEnd();
+    SourceLocation start = current.stmt->getBeginLoc(), end = current.stmt->getEndLoc();
     SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
     R.RemoveText(range);
     LLVM_DEBUG(dbgs() << "MVAV: Removed range"

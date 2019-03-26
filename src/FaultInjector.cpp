@@ -77,7 +77,7 @@ template<class T>
 void FaultInjector::pushMacroDef(std::string binding, const T &stmtOrDecl, SourceManager &SM, bool left) {
     StmtBinding sb(binding, stmtOrDecl, left);
     locations.push_back(sb);
-    addedMacroPositions.push_back(SM.getSpellingLoc(stmtOrDecl.getLocStart()));
+    addedMacroPositions.push_back(SM.getSpellingLoc(stmtOrDecl.getBeginLoc()));
     _sortMacro(SM);
 }
 
@@ -156,49 +156,49 @@ bool FaultInjector::comparefunc(StmtBinding st1, StmtBinding st2) {
     SourceLocation l1, l2;
     if (st1.isList) {
         if (st1.isStmt) {
-            l1 = st1.stmtlist[0]->getLocStart();
+            l1 = st1.stmtlist[0]->getBeginLoc();
             for (const Stmt *stmt : st1.stmtlist) {
-                if (stmt->getLocStart() < l1) {
-                    l1 = stmt->getLocStart();
+                if (stmt->getBeginLoc() < l1) {
+                    l1 = stmt->getBeginLoc();
                 }
             }
         } else {
-            l1 = st1.decllist[0]->getLocStart();
+            l1 = st1.decllist[0]->getBeginLoc();
             for (const Decl *decl : st1.decllist) {
-                if (decl->getLocStart() < l1) {
-                    l1 = decl->getLocStart();
+                if (decl->getBeginLoc() < l1) {
+                    l1 = decl->getBeginLoc();
                 }
             }
         }
     } else {
         if (st1.isStmt) {
-            l1 = st1.stmt->getLocStart();
+            l1 = st1.stmt->getBeginLoc();
         } else {
-            l1 = st1.decl->getLocStart();
+            l1 = st1.decl->getBeginLoc();
         }
     }
 
     if (st2.isList) {
         if (st2.isStmt) {
-            l2 = st2.stmtlist[0]->getLocStart();
+            l2 = st2.stmtlist[0]->getBeginLoc();
             for (const Stmt *stmt : st2.stmtlist) {
-                if (stmt->getLocStart() < l2) {
-                    l2 = stmt->getLocStart();
+                if (stmt->getBeginLoc() < l2) {
+                    l2 = stmt->getBeginLoc();
                 }
             }
         } else {
-            l2 = st2.decllist[0]->getLocStart();
+            l2 = st2.decllist[0]->getBeginLoc();
             for (const Decl *decl : st2.decllist) {
-                if (decl->getLocStart() < l2) {
-                    l2 = decl->getLocStart();
+                if (decl->getBeginLoc() < l2) {
+                    l2 = decl->getBeginLoc();
                 }
             }
         }
     } else {
         if (st2.isStmt) {
-            l2 = st2.stmt->getLocStart();
+            l2 = st2.stmt->getBeginLoc();
         } else {
-            l2 = st2.decl->getLocStart();
+            l2 = st2.decl->getBeginLoc();
         }
     }
     return l1 < l2;
@@ -466,7 +466,7 @@ void FaultInjector::inject(std::vector<StmtBinding> target, ASTContext &Context,
 
 template<class T>
 std::string FaultInjector::getFileName(const T &stmtOrDecl, SourceManager &SM) {
-    SourceLocation start = stmtOrDecl.getLocStart();
+    SourceLocation start = stmtOrDecl.getBeginLoc();
     if (start.isMacroID()) {
         return std::string(SM.getFilename(SM.getExpansionLoc(start)));
     } else {
