@@ -8,12 +8,11 @@
 #include "clang/Rewrite/Core/Rewriter.h"
 
 class MatchHandler;
-// include "MatchHandler.h"
 
 using namespace clang;
 using namespace clang::ast_matchers;
 
-class FaultInjector {
+class FaultInjector : public MatchFinder::MatchCallback {
   public:
     class StmtBinding {
       public:
@@ -161,10 +160,14 @@ class FaultInjector {
         bool left;
         bool isMacroExpansion;
     };
-    MatchHandler *createMatchHandler(std::string binding);
+    FaultInjector *createMatchHandler(std::string binding);
     FaultInjector();
     ~FaultInjector();
     FaultInjector(const FaultInjector &that) = delete;
+
+    virtual void run(const MatchFinder::MatchResult &Result);
+    template <typename SD>
+    void run_stmt_or_decl(const MatchFinder::MatchResult &Result, SourceManager &SM, std::string binding, SD &stmtOrDecl);
 
     template<class T>
     static std::string getFileName(const T &stmtOrDecl, SourceManager &SM);

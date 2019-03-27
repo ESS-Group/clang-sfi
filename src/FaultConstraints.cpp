@@ -4,8 +4,6 @@
 
 #include "clang/ASTMatchers/ASTMatchers.h"
 
-#include "MatchHandler.h"
-
 bool isaJumpStmt(const Stmt &stmt, bool returnIsAJump) {
     if (isa<ForStmt>(stmt) || isa<WhileStmt>(stmt) || isa<DoStmt>(stmt)) { // loops
         return true;

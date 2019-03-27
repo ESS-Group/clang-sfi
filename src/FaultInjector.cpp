@@ -4,8 +4,6 @@
 
 #include <iterator>
 
-#include "MatchHandler.h"
-
 #include "libs/dtl/dtl/dtl.hpp"
 
 using namespace clang;
@@ -23,10 +21,74 @@ void FaultInjector::setFileList(std::vector<std::string> list) {
     fileList = list;
 }
 
-MatchHandler *FaultInjector::createMatchHandler(std::string binding) {
-    std::vector<std::string> bindings;
-    bindings.push_back(binding);
-    return new MatchHandler(this, fileName, bindings);
+FaultInjector *FaultInjector::createMatchHandler(std::string binding) {
+    return this;
+}
+
+bool considerFile(FaultInjector *injector, std::string fileName) {
+    if (injector->getFileName().compare(fileName) == 0) {
+        return true;
+    } else if (injector->rootDir.compare("") != 0 &&
+               fileName.rfind(injector->rootDir, 0) == 0) { // is in source tree and rootDir is defined
+        return true;
+    } else if (injector->fileList.size() != 0) {
+        for (std::string name : injector->fileList) {
+            if (fileName.compare(name) == 0 || fileName.compare(injector->rootDir + name) == 0) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void FaultInjector::run(const MatchFinder::MatchResult &Result) {
+    LLVM_DEBUG(dbgs() << "Run MatchHandler\n");
+    SourceManager &SM = Result.Context->getSourceManager();
+    auto bindings = Result.Nodes.getMap();
+    for (auto i : bindings) {
+        auto binding = i.first;
+        if (const Stmt *stmt = dyn_cast_or_null<Stmt>(Result.Nodes.getNodeAs<Stmt>(binding))) {
+            run_stmt_or_decl(Result, SM, binding, *stmt);
+        } else if (const Decl *decl = dyn_cast_or_null<Decl>(Result.Nodes.getNodeAs<Decl>(binding))) {
+            run_stmt_or_decl(Result, SM, binding, *decl);
+        }
+    }
+}
+
+template <typename SD>
+void FaultInjector::run_stmt_or_decl(const MatchFinder::MatchResult &Result, SourceManager &SM, std::string binding,
+                                   SD &stmtOrDecl) {
+    if (!SM.isInSystemHeader(stmtOrDecl.getBeginLoc()) && // do not match on system headers or system macros
+        !SM.isInSystemMacro(stmtOrDecl.getBeginLoc())) {
+        SourceLocation start = stmtOrDecl.getBeginLoc();
+        bool isMacro = start.isMacroID();
+        std::string name = FaultInjector::getFileName(stmtOrDecl, SM);
+        if (!isMacro) {
+            // Only consider nodes of the currently parsed file.
+            if (considerFile(this, name)) {
+                if (checkStmt(stmtOrDecl, binding, *Result.Context)) {
+                    nodeCallback(binding, stmtOrDecl);
+                }
+            }
+        } else {
+            // MacroExpansion is to consider
+            if (matchMacroExpansion && considerFile(this, name)) {
+                if (checkMacroExpansion(stmtOrDecl, binding, *Result.Context)) {
+                    nodeCallbackMacroExpansion(binding, stmtOrDecl);
+                }
+            }
+            // MacroDefinition is to consider
+            if (matchMacroDefinition &&
+                considerFile(this, std::string(SM.getFilename(SM.getSpellingLoc(start))))) {
+                if (checkMacroDefinition(stmtOrDecl, binding, *Result.Context)) {
+                    if (!isMacroDefinitionAdded(SM.getSpellingLoc(start), SM)) {
+                        nodeCallbackMacroDef(binding, stmtOrDecl, SM);
+                    }
+                }
+            }
+        }
+    }
 }
 
 bool FaultInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
@@ -478,9 +540,3 @@ std::string FaultInjector::getFileName(const T &stmtOrDecl, SourceManager &SM) {
         return std::string(SM.getFilename(start));
     }
 }
-
-template
-std::string FaultInjector::getFileName<>(const Stmt &stmtOrDecl, SourceManager &SM);
-
-template
-std::string FaultInjector::getFileName<>(const Decl &stmtOrDecl, SourceManager &SM);

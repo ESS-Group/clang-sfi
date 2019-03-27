@@ -1,11 +1,12 @@
 #ifndef _ALL_H
 #define _ALL_H
 
+#include <iostream>
+
 #include "clang/ASTMatchers/ASTMatchers.h"
 
 #include "FaultConstraints.h"
 #include "FaultInjector.h"
-#include "MatchHandler.h"
 #include "utils.h"
 
 using namespace clang::ast_matchers;
