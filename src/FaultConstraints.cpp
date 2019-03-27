@@ -4,6 +4,10 @@
 
 #include "clang/ASTMatchers/ASTMatchers.h"
 
+#include "llvm/Support/Debug.h"
+#define DEBUG_TYPE "clang-sfi-constraints"
+using namespace llvm;
+
 bool isaJumpStmt(const Stmt &stmt, bool returnIsAJump) {
     if (isa<ForStmt>(stmt) || isa<WhileStmt>(stmt) || isa<DoStmt>(stmt)) { // loops
         return true;
@@ -26,6 +30,7 @@ bool C9(const Stmt *stmt, ASTContext *Context, bool returnIsAJump, int maxNum, b
         /**
          * @TODO Should it not return false in that case?
          */
+        LLVM_DEBUG(dbgs() << "C9: stmt is NULL\n");
         return true;
     } else if (isa<CompoundStmt>(stmt)) {
         StmtIterator it = cast_away_const(stmt->child_begin());
@@ -37,8 +42,12 @@ bool C9(const Stmt *stmt, ASTContext *Context, bool returnIsAJump, int maxNum, b
             num++;
             it++;
         }
+        LLVM_DEBUG(dbgs() << "C9: (num <= maxNum) = )" << (num <= maxNum) << "\n");
         return (num <= maxNum);
     } else {
+        LLVM_DEBUG(dbgs() << "C9: isaJumpStmt = " << (isaJumpStmt(*stmt, returnIsAJump)) << "\n");
+        LLVM_DEBUG(dbgs() << "C9: noDeclStmt = " << (noDeclStmt) << "\n");
+        LLVM_DEBUG(dbgs() << "C9: isa<DeclStmt>(stmt) = " << (isa<DeclStmt>(stmt)) << "\n");
         return !isaJumpStmt(*stmt, returnIsAJump) && !(noDeclStmt && isa<DeclStmt>(stmt));
     }
 }
