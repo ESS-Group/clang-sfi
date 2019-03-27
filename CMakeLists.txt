@@ -34,7 +34,7 @@ IF(CMAKE_BUILD_TYPE MATCHES "Release")
 ELSEIF(CMAKE_BUILD_TYPE MATCHES "Debug")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 ENDIF()
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 find_package(ZLIB REQUIRED)
 
@@ -57,6 +57,10 @@ else()
 	add_executable(${PROJECT_NAME} src/main.cpp)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)
+# Still experimental filesystem library needs flags.
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	target_link_libraries(${PROJECT_NAME} PRIVATE stdc++fs)
+endif()
 
 ###
 # Link clang libraries

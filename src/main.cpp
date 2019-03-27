@@ -1,4 +1,5 @@
 #include <fstream>
+#include <filesystem>
 #include <stdio.h>
 #ifdef _WIN32
 #include <direct.h>
@@ -165,24 +166,23 @@ int main(int argc, const char **argv) {
             injectors.push_back(injector);
         }
     }
+
     std::cout << "Injecting: ";
     for (FaultInjector *injector : injectors) {
         std::cout << (injector == injectors[0] ? "" : ", ") << injector->toString();
     }
     std::cout << std::endl;
-    if (dir.compare("") != 0) {
-        std::cout << "Changing destination directory to '" << dir << "'" << std::endl;
-#ifdef _WIN32
-        int mkdirSuccess = _mkdir(dir.c_str());
-#else
-        int mkdirSuccess = mkdir(dir.c_str(), ACCESSPERMS);
-#endif
 
-        if (mkdirSuccess != 0 && errno != EEXIST) {
-            std::cerr << "-Failed" << std::endl;
+    dir = std::filesystem::absolute(dir);
+    std::cout << "Injection patches should be saved in directory '" << dir << "'" << std::endl;
+    if (!std::filesystem::exists(dir)) {
+        if (!std::filesystem::create_directories(dir)) {
+            std::cerr << "Could not create directory " << dir << std::endl;
             return 1;
         }
     }
+    dir += std::filesystem::path::preferred_separator;
+
     std::vector<std::string> filesToConsider;
     char cwd[_MAX_DIR];
     getCWD(cwd, _MAX_DIR);
@@ -324,12 +324,16 @@ int main(int argc, const char **argv) {
         summary["directory"] = dir;
         summary["verbose"] = verbose;
 
-        std::ofstream o((dir.compare("") ? dir + "/" : "") + "summary.json");
-        o << summary;
-        o.flush();
-        o.close();
-        std::cout << "Saved summary at \"" << (dir.compare("") ? dir + "/" : "") + "summary.json"
-                  << "\"" << std::endl;
+        std::ofstream o(dir + "summary.json");
+        if (!o.good()) {
+            std::cerr << "File " << dir + "summary.json" << " could not be opened for write" << std::endl;
+        } else {
+            o << summary;
+            o.flush();
+            o.close();
+            std::cout << "Saved summary at \"" << dir + "summary.json"
+                    << "\"" << std::endl;
+        }
     }
 
     std::cout << "Operation succeeded." << std::endl;
