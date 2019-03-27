@@ -73,7 +73,7 @@ bool MVIVInjector::checkStmt(const Decl &decl, std::string binding, ASTContext &
         assert(declstmt != NULL);
         return isParentOf(forstmt->getBody(), *declstmt) && !cast<VarDecl>(decl).isStaticLocal() && C2(decl, Context);
     } else if (declstmt != NULL) {
-        const VarDecl vardecl = cast<VarDecl>(decl);
+        const VarDecl &vardecl = cast<VarDecl>(decl);
         return !vardecl.getType().isConstant(Context) && !vardecl.isStaticLocal() && C2(decl, Context);
     } else
         return false;

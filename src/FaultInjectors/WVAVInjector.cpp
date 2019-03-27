@@ -120,7 +120,7 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten) { // Wrong value assigned to va
 
 bool WVAVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
     if (binding.compare("overwritten") == 0) {
-        const CXXOperatorCallExpr opCall = cast<CXXOperatorCallExpr>(stmt);
+        const CXXOperatorCallExpr &opCall = cast<CXXOperatorCallExpr>(stmt);
         if (!opCall.isInfixBinaryOp()) {
             return false;
         }

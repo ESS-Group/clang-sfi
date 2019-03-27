@@ -31,7 +31,7 @@ bool MIFSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
 }
 
 bool MIFSInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
-    const IfStmt ifS = cast<IfStmt>(stmt);
+    const IfStmt &ifS = cast<IfStmt>(stmt);
     // THEN block should contain less than 5 statements.
     if (!C9(ifS.getThen(), &Context)) {
         return false;
@@ -41,7 +41,7 @@ bool MIFSInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
 }
 
 bool SMIFSInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
-    const IfStmt ifS = cast<IfStmt>(stmt);
+    const IfStmt &ifS = cast<IfStmt>(stmt);
     if (!C9(ifS.getThen(), &Context, false, 5, true)) {
         return false;
     }

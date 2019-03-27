@@ -214,7 +214,7 @@ bool MLPAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
 }
 
 bool MLPAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
-    const CompoundStmt compoundStmt = cast<CompoundStmt>(stmt);
+    const CompoundStmt &compoundStmt = cast<CompoundStmt>(stmt);
     std::vector<std::vector<const Stmt *>> stmtlists = getStmtLists(compoundStmt, Context);
     for (std::vector<const Stmt *> it : stmtlists) {
         if (it.size() >= 2) {
@@ -243,7 +243,7 @@ bool MLPAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
 }
 
 bool SMLPAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
-    const CompoundStmt compoundStmt = cast<CompoundStmt>(stmt);
+    const CompoundStmt &compoundStmt = cast<CompoundStmt>(stmt);
     std::vector<std::vector<const Stmt *>> stmtlists = getStmtLists(compoundStmt, Context);
 
     for (std::vector<const Stmt *> it : stmtlists) {

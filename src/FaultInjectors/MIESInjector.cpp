@@ -29,7 +29,7 @@ bool MIESInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
 }
 
 bool MIESInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
-    const IfStmt ifS = cast<IfStmt>(stmt);
+    const IfStmt &ifS = cast<IfStmt>(stmt);
     // IF and ELSE block should not contain more than 5 statements.
     if (!C9(ifS.getThen())) {
         return false;

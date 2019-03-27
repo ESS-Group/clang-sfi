@@ -133,7 +133,7 @@ bool MVAEInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
 
 bool MVAEInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
     if (binding.compare("overwritten") == 0) {
-        const CXXOperatorCallExpr opCall = cast<const CXXOperatorCallExpr>(stmt);
+        const CXXOperatorCallExpr &opCall = cast<const CXXOperatorCallExpr>(stmt);
         if (!opCall.isInfixBinaryOp()) {
             return false;
         }
