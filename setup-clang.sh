@@ -12,7 +12,7 @@ echo "Switched into $(pwd)"
 echo "Checking out clang into llvm/tools"
 cd llvm/tools
 git clone https://llvm.org/git/clang.git || true
-(cd clang && git reset --hard 0513b409d5e34b2d2a28ae21b6d620cc52de0e57)
+(cd clang && git reset --hard 1acf70e7f7cbcbc25089bbd0a780e272ffacbd3a)
 
 if [ ! -z ${WINDOWS+x} ]; then
     cd "$TOP_LEVEL_DIRECTORY"
