@@ -19,6 +19,10 @@ add_definitions(${LLVM_DEFINITIONS})
 include_directories("${LLVM_DIR}/../../../tools/clang/include")
 include_directories("${LLVM_SRC_DIR}/tools/clang/include")
 
+# Our Clang tool instance will not automatically determine the clang system includes like a system Clang installation would, so we pass it depending on our LLVM directory for integration tests that make use of the compile_commands.json.
+file(GLOB CLANG_SYSTEM_LIBS "${LLVM_DIR}/../../clang/*/include/")
+include_directories(SYSTEM "${CLANG_SYSTEM_LIBS}")
+
 # Clang is compiled with -fvisibility=hidden. Compilers may generate weak symbols for template instantiations, which it does for the used clang templates inside of main.cc. This leads to weak symbols in main.o, which are visible by default (-fvisibility=default). Directly linking them to the library, which is the goal, triggers the warning that those weak symbols cannot be overridden at runtime, what might be desirable in other use-cases. Using -fvisibility=hidden hides the weak symbols and thus does not trigger the warning. (Maybe the reasoning is wrong... information are a bit sparse on this topic.)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 # Set flag -fno-rtti if LLVM was compiled with it (this is the default).
