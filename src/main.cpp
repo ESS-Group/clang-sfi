@@ -42,7 +42,8 @@ void replaceFileContent(std::string dest, std::string src) { // helper function 
 
 // define commandline options for commonoptionparser
 static llvm::cl::OptionCategory oCategory("clang-sfi");
-static llvm::cl::opt<bool> VerboseOption("verbose", llvm::cl::cat(oCategory), llvm::cl::desc("verbose execution"));
+static llvm::cl::opt<bool> VerboseOption("v", llvm::cl::cat(oCategory), llvm::cl::desc("verbose execution"));
+static llvm::cl::opt<bool> VerboseVerboseOption("vv", llvm::cl::cat(oCategory), llvm::cl::desc("pass verbose to Clang"));
 static llvm::cl::opt<std::string> DirectoryOption("dir", llvm::cl::cat(oCategory), llvm::cl::init("injections"),
                                                   llvm::cl::desc("Directory where to store the patch files"));
 static llvm::cl::opt<std::string> RootDirectoryOption(
@@ -93,6 +94,11 @@ int main(int argc, const char **argv) {
     std::string fileforInjection = "";
     auto sourcePathList = op.getSourcePathList();
     ClangTool Tool(op.getCompilations(), sourcePathList);
+    bool verbose = VerboseOption.getValue() || VerboseVerboseOption.getValue();
+    if (VerboseVerboseOption.getValue()) {
+        ArgumentsAdjuster ardj = getInsertArgumentAdjuster("-v");
+        Tool.appendArgumentsAdjuster(ardj);
+    }
     if (sourcePathList.size() != 1) {
         std::cout << "Please select exactly one main file" << std::endl;
         return 1;
@@ -102,8 +108,6 @@ int main(int argc, const char **argv) {
     std::string mainFileName = sourcePathList.at(0);
     std::vector<FaultInjector *> available;
     std::vector<FaultInjector *> injectors;
-
-    bool verbose = VerboseOption.getValue();
 
     // Add an instance of every available FaultInjector to list.
     // Only these instances can be added by the config.
