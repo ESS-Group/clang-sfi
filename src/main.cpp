@@ -26,20 +26,6 @@ using json = nlohmann::json;
 using namespace clang;
 using namespace clang::tooling;
 
-std::string backupfile = "";
-std::string backedupfile = "";
-
-void replaceFileContent(std::string dest, std::string src) { // helper function to write to file
-                                                             // and replace it given the path of a
-                                                             // destination and a source file
-    std::ifstream i(src.c_str());
-    std::ofstream o(dest.c_str(), std::ofstream::trunc);
-    o << i.rdbuf();
-    o.flush();
-    o.close();
-    i.close();
-}
-
 // define commandline options for commonoptionparser
 static llvm::cl::OptionCategory oCategory("clang-sfi");
 static llvm::cl::opt<bool> VerboseOption("v", llvm::cl::cat(oCategory), llvm::cl::desc("verbose execution"));
