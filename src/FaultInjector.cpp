@@ -423,19 +423,24 @@ void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, 
                     // diff.print();
                 }
 
-                std::string name = (dir.compare("") ? dir + "/" : "") + toString() + "_" + std::to_string(i);
+                std::string name = (dir.compare("") ? dir + "/" : "") + toString() + "_" + std::to_string(i) + ".patch";
+                LLVM_DEBUG(dbgs() << "New Patch File: " << name << "\n");
                 if (verbose) {
                     std::cerr << "New Patch File: " << name << std::endl;
                 }
-                std::ofstream file(name + ".patch");
-                file << data.str();
-                file.flush();
-                file.close();
+                std::ofstream file(name);
+                if (!file.good()) {
+                    std::cerr << "Could not open file " << name << " for write" << std::endl;
+                } else {
+                    file << data.str();
+                    file.flush();
+                    file.close();
 
-                if (verbose) {
-                    std::cout << " -Success" << std::endl;
+                    if (verbose) {
+                        std::cout << " -Success" << std::endl;
+                    }
+                    LLVM_DEBUG(dbgs() << "Generated patch file successfully\n");
                 }
-                LLVM_DEBUG(dbgs() << "Generated patch file successfully\n");
             } else {
                 std::cerr << "Injection did not generate hunks" << std::endl;
             }
