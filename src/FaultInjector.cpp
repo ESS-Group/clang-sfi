@@ -48,24 +48,32 @@ void FaultInjector::run_stmt_or_decl(const MatchFinder::MatchResult &Result, Sou
         if (considerFile(name)) {
             if (checkStmt(stmtOrDecl, binding, *Result.Context)) {
                 nodeCallback(binding, stmtOrDecl);
+            } else {
+                LLVM_DEBUG(dbgs() << "checkStmt returned false\n");
             }
         }
     }
 }
 
 bool FaultInjector::considerFile(std::string fileName) {
+    LLVM_DEBUG(dbgs() << "Checking if " << fileName << " should be considered: ");
     if (getFileName().compare(fileName) == 0) {
+        LLVM_DEBUG(dbgs() << "Yes, main file\n");
         return true;
     } else if (rootDir.compare("") != 0 && fileName.find_first_of(rootDir, 0) == 0) {
         // is in source tree and rootDir is defined
+        LLVM_DEBUG(dbgs() << "Yes, is in source tree file\n");
         return true;
     } else if (fileList.size() != 0) {
+        LLVM_DEBUG(dbgs() << "checking if in fileList... ");
         for (std::string name : fileList) {
             if (fileName.compare(name) == 0 || fileName.compare(rootDir + name) == 0) {
+                LLVM_DEBUG(dbgs() << "Yes\n");
                 return true;
             }
         }
     }
+    LLVM_DEBUG(dbgs() << "No\n");
 
     return false;
 }
