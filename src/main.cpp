@@ -197,11 +197,13 @@ int main(int argc, const char **argv) {
 
     std::string rootDir = RootDirectoryOption.getValue();
     if (rootDir.compare("") != 0) {
-        if (rootDir.compare(".") == 0 || rootDir.compare("cwd") == 0)
+        if (rootDir.compare(".") == 0 || rootDir.compare("cwd") == 0) {
             rootDir = path;
-        if (verbose)
+        }
+        if (verbose) {
             std::cout << "Sourcetree directory defined, files in this directory are also considered for matches."
                       << std::endl;
+        }
         for (FaultInjector *injector : injectors) {
             injector->setRootDir(rootDir);
         }
