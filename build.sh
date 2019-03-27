@@ -2,7 +2,7 @@
 set -ue
 cd "$(dirname "$0")"
 
-BUILD_TYPE=Release # or Debug
+BUILD_TYPE=Debug # or Release
 if [[ $(uname -s) == CYGWIN* ]] || [[ $(uname -s) == MINGW* ]]; then
     WINDOWS=true
 fi
