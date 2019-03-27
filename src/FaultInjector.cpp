@@ -25,23 +25,6 @@ FaultInjector *FaultInjector::createMatchHandler(std::string binding) {
     return this;
 }
 
-bool considerFile(FaultInjector *injector, std::string fileName) {
-    if (injector->getFileName().compare(fileName) == 0) {
-        return true;
-    } else if (injector->rootDir.compare("") != 0 &&
-               fileName.rfind(injector->rootDir, 0) == 0) { // is in source tree and rootDir is defined
-        return true;
-    } else if (injector->fileList.size() != 0) {
-        for (std::string name : injector->fileList) {
-            if (fileName.compare(name) == 0 || fileName.compare(injector->rootDir + name) == 0) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
 void FaultInjector::run(const MatchFinder::MatchResult &Result) {
     LLVM_DEBUG(dbgs() << "Run MatchHandler\n");
     SourceManager &SM = Result.Context->getSourceManager();
@@ -61,34 +44,30 @@ void FaultInjector::run_stmt_or_decl(const MatchFinder::MatchResult &Result, Sou
                                    SD &stmtOrDecl) {
     if (!SM.isInSystemHeader(stmtOrDecl.getBeginLoc()) && // do not match on system headers or system macros
         !SM.isInSystemMacro(stmtOrDecl.getBeginLoc())) {
-        SourceLocation start = stmtOrDecl.getBeginLoc();
-        bool isMacro = start.isMacroID();
         std::string name = FaultInjector::getFileName(stmtOrDecl, SM);
-        if (!isMacro) {
-            // Only consider nodes of the currently parsed file.
-            if (considerFile(this, name)) {
-                if (checkStmt(stmtOrDecl, binding, *Result.Context)) {
-                    nodeCallback(binding, stmtOrDecl);
-                }
-            }
-        } else {
-            // MacroExpansion is to consider
-            if (matchMacroExpansion && considerFile(this, name)) {
-                if (checkMacroExpansion(stmtOrDecl, binding, *Result.Context)) {
-                    nodeCallbackMacroExpansion(binding, stmtOrDecl);
-                }
-            }
-            // MacroDefinition is to consider
-            if (matchMacroDefinition &&
-                considerFile(this, std::string(SM.getFilename(SM.getSpellingLoc(start))))) {
-                if (checkMacroDefinition(stmtOrDecl, binding, *Result.Context)) {
-                    if (!isMacroDefinitionAdded(SM.getSpellingLoc(start), SM)) {
-                        nodeCallbackMacroDef(binding, stmtOrDecl, SM);
-                    }
-                }
+        if (considerFile(name)) {
+            if (checkStmt(stmtOrDecl, binding, *Result.Context)) {
+                nodeCallback(binding, stmtOrDecl);
             }
         }
     }
+}
+
+bool FaultInjector::considerFile(std::string fileName) {
+    if (getFileName().compare(fileName) == 0) {
+        return true;
+    } else if (rootDir.compare("") != 0 && fileName.find_first_of(rootDir, 0) == 0) {
+        // is in source tree and rootDir is defined
+        return true;
+    } else if (fileList.size() != 0) {
+        for (std::string name : fileList) {
+            if (fileName.compare(name) == 0 || fileName.compare(rootDir + name) == 0) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 bool FaultInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
@@ -96,22 +75,6 @@ bool FaultInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext 
 }
 
 bool FaultInjector::checkStmt(const Decl &stmt, std::string binding, ASTContext &Context) {
-    return false;
-}
-
-bool FaultInjector::checkMacroExpansion(const Stmt &stmt, std::string binding, ASTContext &Context) {
-    return checkStmt(stmt, binding, Context);
-}
-
-bool FaultInjector::checkMacroExpansion(const Decl &stmt, std::string binding, ASTContext &Context) {
-    return checkStmt(stmt, binding, Context);
-}
-
-bool FaultInjector::checkMacroDefinition(const Stmt &stmt, std::string binding, ASTContext &Context) {
-    return false;
-}
-
-bool FaultInjector::checkMacroDefinition(const Decl &stmt, std::string binding, ASTContext &Context) {
     return false;
 }
 
@@ -133,14 +96,6 @@ void FaultInjector::push(std::string binding, std::vector<const T *> list) {
     StmtBinding sb(binding, list);
     locations.push_back(sb);
     _sort();
-}
-
-template<class T>
-void FaultInjector::pushMacroDef(std::string binding, const T &stmtOrDecl, SourceManager &SM, bool left) {
-    StmtBinding sb(binding, stmtOrDecl, left);
-    locations.push_back(sb);
-    addedMacroPositions.push_back(SM.getSpellingLoc(stmtOrDecl.getBeginLoc()));
-    _sortMacro(SM);
 }
 
 void FaultInjector::matchAST(ASTContext &Context) {
@@ -166,31 +121,6 @@ void FaultInjector::setMatchMacro(bool matchDef, bool matchExp) {
     matchMacroExpansion = matchExp;
 }
 
-void FaultInjector::nodeCallbackMacroDef(std::string binding, const Stmt &stmt, SourceManager &SM, bool left) {
-    pushMacroDef(binding, stmt, SM, left);
-}
-void FaultInjector::nodeCallbackMacroDef(std::string binding, const Decl &decl, SourceManager &SM, bool left) {
-    pushMacroDef(binding, decl, SM, left);
-}
-bool FaultInjector::isMacroDefinitionAdded(SourceLocation locStart, SourceManager &SM) {
-    BeforeThanCompare<SourceLocation> isBefore(SM);
-    for (SourceLocation loc : addedMacroPositions) {
-        if ((std::string(SM.getFilename(SM.getExpansionLoc(loc)))).compare(std::string(SM.getFilename(locStart))) ==
-            0) {
-            if (!isBefore(loc, locStart) && !isBefore(locStart, loc)) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-void FaultInjector::nodeCallbackMacroExpansion(std::string binding, const Stmt &stmt, bool left) {
-    push(binding, stmt, left, true);
-}
-void FaultInjector::nodeCallbackMacroExpansion(std::string binding, const Decl &decl, bool left) {
-    push(binding, decl, left, true);
-}
-
 void FaultInjector::nodeCallback(std::string binding, const Stmt &stmt, bool left) {
     push(binding, stmt, left);
 }
@@ -202,16 +132,13 @@ void FaultInjector::nodeCallback(std::string binding, const Decl &decl, bool lef
 void FaultInjector::nodeCallback(std::string binding, std::vector<const Stmt *> list) {
     push(binding, std::vector<const Stmt *>(list.begin(), list.end()));
 }
+
 void FaultInjector::nodeCallback(std::string binding, std::vector<const Decl *> list) {
     push(binding, std::vector<const Decl *>(list.begin(), list.end()));
 }
+
 void FaultInjector::_sort() {
     std::sort(locations.begin(), locations.end(), comparefunc);
-}
-void FaultInjector::_sortMacro(SourceManager &SM) {
-    BeforeThanCompare<SourceLocation> isBefore(SM);
-    std::sort(addedMacroPositions.begin(), addedMacroPositions.end(), isBefore);
-    std::sort(macroLocations.begin(), macroLocations.end(), comparefunc);
 }
 
 bool FaultInjector::comparefunc(StmtBinding st1, StmtBinding st2) {

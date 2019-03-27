@@ -169,11 +169,12 @@ class FaultInjector : public MatchFinder::MatchCallback {
     template <typename SD>
     void run_stmt_or_decl(const MatchFinder::MatchResult &Result, SourceManager &SM, std::string binding, SD &stmtOrDecl);
 
+    /// Check if the file given by fileName is in the "project", i.e. is the main file or lies in the source tree.
+    bool considerFile(std::string fileName);
+
     template<class T>
     static std::string getFileName(const T &stmtOrDecl, SourceManager &SM);
 
-    template<class T>
-    void pushMacroDef(std::string binding, const T &stmtOrDecl, SourceManager &SM, bool left = false);
     template<class T>
     void push(std::string binding, const T &stmtOrDecl, bool left = false, bool isMacroExpansion = false);
     template<class T>
@@ -188,26 +189,13 @@ class FaultInjector : public MatchFinder::MatchCallback {
     // default false
     virtual bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context);
     virtual bool checkStmt(const Decl &stmt, std::string binding, ASTContext &Context);
-    // default behavior of checkMacroExpansion => checkStmt
-    virtual bool checkMacroExpansion(const Stmt &stmt, std::string binding, ASTContext &Context);
-    virtual bool checkMacroExpansion(const Decl &stmt, std::string binding, ASTContext &Context);
-    // default false
-    virtual bool checkMacroDefinition(const Stmt &stmt, std::string binding, ASTContext &Context);
-    virtual bool checkMacroDefinition(const Decl &stmt, std::string binding, ASTContext &Context);
-    bool isMacroDefinitionAdded(SourceLocation locStart, SourceManager &SM);
     void matchAST(ASTContext &Context);
     virtual std::string toString() = 0;
 
     std::vector<StmtBinding> locations;
-    std::vector<StmtBinding> macroLocations;
-    std::vector<SourceLocation> addedMacroPositions;
     bool matchMacroDefinition, matchMacroExpansion;
     void setMatchMacro(bool match);
     void setMatchMacro(bool matchDef, bool matchExp);
-    void nodeCallbackMacroDef(std::string binding, const Stmt &stmt, SourceManager &SM, bool left = false);
-    void nodeCallbackMacroDef(std::string binding, const Decl &decl, SourceManager &SM, bool left = false);
-    void nodeCallbackMacroExpansion(std::string binding, const Stmt &stmt, bool left = false);
-    void nodeCallbackMacroExpansion(std::string binding, const Decl &decl, bool left = false);
     void nodeCallback(std::string binding, const Stmt &stmt, bool left = false);
     void nodeCallback(std::string binding, const Decl &decl, bool left = false);
     void nodeCallback(std::string binding, std::vector<const Stmt *> list);
@@ -239,7 +227,6 @@ class FaultInjector : public MatchFinder::MatchCallback {
     std::vector<std::string> bindings;
     MatchFinder Matcher; // child classes have to add Matchers
     void _sort();
-    void _sortMacro(SourceManager &SM);
     static bool comparefunc(StmtBinding st1, StmtBinding st2);
     bool verbose;
     std::string dir;
