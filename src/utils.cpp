@@ -86,22 +86,18 @@ const Stmt *IgnoreCast(const Stmt *stmt, bool ignoreImplicit) {
     }
 
     if (ignoreImplicit) {
-        const Stmt *temp = stmt->IgnoreImplicit();
-        if (auto castExpr = dyn_cast_or_null<CastExpr>(temp)) {
-            if (const Stmt *_stmt = IgnoreCast(castExpr->getSubExpr())) {
-                return _stmt->IgnoreImplicit();
+        if (auto castExpr = dyn_cast_or_null<CastExpr>(stmt)) {
+            const Expr *plainExpr = castExpr->IgnoreImplicit();
+            if (auto castExpr = dyn_cast_or_null<CastExpr>(plainExpr)) {
+                return IgnoreCast(castExpr->getSubExpr(), ignoreImplicit);
             } else {
-                return NULL;
+                return plainExpr;
             }
         } else {
             return stmt;
         }
     } else if (auto castExpr = dyn_cast<CastExpr>(stmt)) {
-        if (const Stmt *_stmt = IgnoreCast(castExpr->getSubExpr())) {
-            return _stmt;
-        } else {
-            return NULL;
-        }
+        return IgnoreCast(castExpr->getSubExpr(), ignoreImplicit);
     } else {
         return stmt;
     }
