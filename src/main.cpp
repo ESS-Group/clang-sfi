@@ -145,21 +145,21 @@ int main(int argc, const char **argv) {
             for (json::iterator it = cfgFile.find("injectors")->begin(); it != cfgFile.find("injectors")->end(); ++it) {
                 for (FaultInjector *injector : available) {
                     if (injector->toString().compare(it->get<std::string>()) == 0) {
-                        // std::cout<<injector->toString()<<endl;
+                        LLVM_DEBUG(dbgs() << "Adding " << injector->toString() << "\n");
                         injectors.push_back(injector);
                         break;
                     }
                 }
             }
         } else {
+            LLVM_DEBUG(dbgs() << "Adding all injectors\n");
             for (FaultInjector *injector : available) {
                 injectors.push_back(injector);
             }
         }
     } else {
         // no config file => add all available injectors
-        // std::cout<<"Config not find config: default action - inject all
-        // errors"<<endl;
+        LLVM_DEBUG(dbgs() << "Adding all injectors\n");
 
         for (FaultInjector *injector : available) {
             injectors.push_back(injector);
