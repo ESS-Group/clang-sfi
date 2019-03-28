@@ -45,6 +45,16 @@ fi
 
 cd "$TOP_LEVEL_DIRECTORY"
 echo "Switched into $(pwd)"
+
+if [ ! -z ${WINDOWS+x} ]; then
+    mkdir zlib-build || true
+    cd zlib-build
+    cmake -G "Visual Studio 15 2017" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE=$BUILD_TYPE ../zlib
+    echo "Building zlib"
+    cmake --build . --target ALL_BUILD --config $BUILD_TYPE
+    cd ..
+fi
+
 if [ -d "llvm-build" ]; then
     DELETE="n"
     read -p "llvm-build already exists. Delete? [$DELETE]: " userInput
