@@ -9,27 +9,53 @@ fi
 
 cd "$TOP_LEVEL_DIRECTORY"
 echo "Switched into $(pwd)"
-echo "Checking out clang into llvm/tools"
 cd llvm/tools
-git clone https://llvm.org/git/clang.git || true
-(cd clang && git reset --hard 1acf70e7f7cbcbc25089bbd0a780e272ffacbd3a)
+if [ ! -d "clang/.git" ]; then
+    echo "Checking out clang into llvm/tools"
+    git clone https://git.llvm.org/git/clang.git/
+else
+    echo "Fetching clang into llvm/tools"
+    (cd clang && git fetch)
+fi
+(cd clang && git reset --hard aef981ef412f9b527292b2e911453d56d327e883)
 
 if [ ! -z ${WINDOWS+x} ]; then
     cd "$TOP_LEVEL_DIRECTORY"
-    echo "Checking out zlib"
-    git clone https://github.com/madler/zlib.git || true
+    if [ ! -d "zlib/.git" ]; then
+        echo "Checking out zlib"
+        git clone https://github.com/madler/zlib.git
+    else
+    	echo "Fetching zlib into zlib"
+    	(cd zlib && git fetch)
+    fi
     (cd zlib && git reset --hard cacf7f1d4e3d44d871b605da3b647f07d718623f)
 fi
 
 cd "$TOP_LEVEL_DIRECTORY"
-echo "Checking out dtl"
-git clone https://github.com/cubicdaiya/dtl.git src/libs/dtl || true
+if [ ! -d "src/libs/dtl/.git" ]; then
+    echo "Checking out dtl"
+    git clone https://github.com/cubicdaiya/dtl.git src/libs/dtl
+else
+    echo "Fetching dtl into src/libs/dtl"
+    (cd src/libs/dtl && git fetch)
+fi
 (cd src/libs/dtl && git reset --hard 9cf6da72798e714307f63f416990dfc753fc94df)
 
 
 
 cd "$TOP_LEVEL_DIRECTORY"
 echo "Switched into $(pwd)"
+if [ -d "llvm-build" ]; then
+    DELETE="n"
+    read -p "llvm-build already exists. Delete? [$DELETE]: " userInput
+    if [[ -n "$userInput" ]]
+    then
+        DELETE=$userInput
+    fi
+    if [[ $DELETE =~ ^(yes|y|Y) ]]; then
+        rm -Rf llvm-build
+    fi
+fi
 mkdir -p llvm-build
 cd llvm-build
 echo "Created llvm-build"
