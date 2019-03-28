@@ -12,12 +12,12 @@ MIAInjector::MIAInjector() { // Missing if construct around statements
     Matcher.addMatcher(ifStmt(unless(hasElse(stmt()))).bind("ifStmt"), createMatchHandler("ifStmt"));
 }
 
-bool MIAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool MIAInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("ifStmt") == 0) {
         const IfStmt *ifS = cast<IfStmt>(current.stmt);
 
         SourceLocation start = ifS->getBeginLoc(), end = ifS->getThen()->getBeginLoc().getLocWithOffset(-1);
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange range(start, end);
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MIA: Removed range for ifStmt"
                           << "\n"

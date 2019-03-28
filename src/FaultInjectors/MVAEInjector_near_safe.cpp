@@ -15,11 +15,11 @@ MVAEInjectorSAFE::MVAEInjectorSAFE() { // Missing variable assignment using an e
 }
 // clang-format on
 
-bool MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("varDecl") == 0) {
         if (current.isStmt) {
             SourceLocation start = current.stmt->getBeginLoc(), end = current.stmt->getEndLoc();
-            SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+            SourceRange range(start, end);
             R.RemoveText(range);
             LLVM_DEBUG(dbgs() << "MVAE-safe: Removed range for varDecl"
                               << "\n"
@@ -32,7 +32,7 @@ bool MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::R
             std::string withoutInit = stmtToString(tempP, Context.getLangOpts());
 
             SourceLocation start = current.decl->getBeginLoc(), end = current.decl->getEndLoc();
-            SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+            SourceRange range(start, end);
             R.ReplaceText(range, withoutInit);
             LLVM_DEBUG(dbgs() << "MVAE-safe: Replace range for varDecl"
                               << "\n"

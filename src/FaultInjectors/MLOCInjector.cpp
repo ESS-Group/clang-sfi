@@ -35,7 +35,7 @@ MLOCInjector::MLOCInjector() { // Missing OR clause in branch condition
 }
 // clang-format on
 
-bool MLOCInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool MLOCInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     bool left = current.left;
 
     SourceLocation start, end;
@@ -47,7 +47,7 @@ bool MLOCInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
         end = cast<BinaryOperator>(current.stmt)->getRHS()->getEndLoc();
     }
 
-    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+    SourceRange range(start, end);
     R.RemoveText(range);
     LLVM_DEBUG(dbgs() << "MLOC: Removed range"
                       << "\n"

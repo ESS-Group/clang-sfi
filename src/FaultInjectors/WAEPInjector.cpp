@@ -25,14 +25,14 @@ WAEPInjector::WAEPInjector() { // Wrong arithmetic expressino in parameter of fu
 }
 // clang-format on
 
-bool WAEPInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool WAEPInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("functionCall")) {
         SourceLocation start, end;
 
         start = cast<const BinaryOperator>(current.stmt)->getOperatorLoc();
         end = cast<const BinaryOperator>(current.stmt)->getRHS()->getEndLoc();
 
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange range(start, end);
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "WAEP: Removed range for functionCall"
                           << "\n"

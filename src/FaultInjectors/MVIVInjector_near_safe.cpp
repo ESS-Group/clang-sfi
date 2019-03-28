@@ -31,7 +31,7 @@ MVIVInjectorSAFE::MVIVInjectorSAFE() { // Missing variable initialization using 
 }
 // clang-format on
 
-bool MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.isStmt) {
         SourceRange range(current.stmt->getBeginLoc(), current.stmt->getEndLoc());
         R.RemoveText(range);
@@ -44,7 +44,7 @@ bool MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::R
         const DeclStmt *declstmt = getParentOfType<DeclStmt>(current.decl, Context, 3);
         SourceLocation start = vardecl->getLocation().getLocWithOffset(vardecl->getNameAsString().length()),
                        end = vardecl->getInit()->getEndLoc();
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange range(start, end);
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MVIV-safe: Removed range for varDecl"
                           << "\n"

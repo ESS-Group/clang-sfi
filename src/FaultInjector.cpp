@@ -5,6 +5,7 @@
 #include <iterator>
 
 #include "libs/dtl/dtl/dtl.hpp"
+#include "GenericRewriter.h"
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -298,7 +299,7 @@ void getLines(std::string str, std::vector<std::string> &lines) {
 
 void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, int i, bool isMacroDefinition) {
     LLVM_DEBUG(dbgs() << "Entering generatePatchFile\n");
-    Rewriter R;
+    GenericRewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
     if (inject(current, Context, R)) { // default case - no match in macro definitions
         LLVM_DEBUG(dbgs() << "Injection in Rewriter was successful\n");

@@ -10,12 +10,12 @@ MIESInjector::MIESInjector() { // Missing if construct plus statements plus else
     Matcher.addMatcher(ifStmt(hasElse(stmt())).bind("ifStmt"), createMatchHandler("ifStmt"));
 }
 
-bool MIESInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool MIESInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("ifStmt") == 0) {
         const IfStmt *ifS = cast<IfStmt>(current.stmt);
 
         SourceLocation start = ifS->getBeginLoc(), end = ifS->getElse()->getEndLoc();
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange range(start, end);
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MIES: Removed range for ifStmt"
                           << "\n"

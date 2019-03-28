@@ -186,7 +186,7 @@ MLPAInjector::MLPAInjector() { // Missing small and localized part of the algori
 }
 // clang-format on
 
-bool MLPAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool MLPAInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("compoundStmt") == 0) {
         std::vector<const Stmt *> list = current.stmtlist;
         SourceLocation start = list[0]->getBeginLoc(), end = list[0]->getEndLoc();
@@ -200,7 +200,7 @@ bool MLPAInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
             }
         }
 
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange range(start, end);
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MLPA: Removed range for compoundStmt"
                           << "\n"

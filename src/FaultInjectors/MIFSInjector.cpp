@@ -12,12 +12,12 @@ MIFSInjector::MIFSInjector() { // Missing if construct plus statements
     Matcher.addMatcher(ifStmt(unless(hasElse(stmt()))).bind("ifStmt"), createMatchHandler("ifStmt"));
 }
 
-bool MIFSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool MIFSInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("ifStmt") == 0) {
         const IfStmt *ifS = cast<IfStmt>(current.stmt);
 
         SourceLocation start = ifS->getBeginLoc(), end = ifS->getEndLoc();
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange range(start, end);
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MIFS: Removed range for ifStmt"
                           << "\n"

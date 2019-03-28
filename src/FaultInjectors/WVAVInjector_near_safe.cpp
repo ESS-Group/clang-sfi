@@ -9,11 +9,11 @@ WVAVInjectorSAFE::WVAVInjectorSAFE(bool alsoOverwritten) { // Wrong value assign
     Matcher.addMatcher(varDecl(hasAncestor(compoundStmt())).bind("varDecl"), createMatchHandler("varDecl"));
 }
 
-bool WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("varDecl") == 0) {
         Expr *val = cast<BinaryOperator>(current.stmt)->getRHS();
         SourceLocation start = val->getBeginLoc(), end = val->getEndLoc();
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange range(start, end);
         if (isa<CXXBoolLiteralExpr>(val)) {
             bool value = cast<CXXBoolLiteralExpr>(val)->getValue();
             if (value) {

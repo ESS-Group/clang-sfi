@@ -7,6 +7,8 @@
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Rewrite/Core/Rewriter.h"
 
+#include "GenericRewriter.h"
+
 class MatchHandler;
 
 using namespace clang;
@@ -183,7 +185,7 @@ class FaultInjector : public MatchFinder::MatchCallback {
     virtual void inject(std::vector<StmtBinding> target, ASTContext &Context, bool isMacroDefinition = false);
     /// Perform an injection for a specific StmtBinding in the provided Rewriter.
     /// \return True if the rewriting was successful.
-    virtual bool inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) = 0;
+    virtual bool inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) = 0;
     /// Generate a patch for a single StmtBinding.
     virtual void generatePatchFile(StmtBinding current, ASTContext &Context, int i = 0, bool isMacroDefinition = false);
     // default false

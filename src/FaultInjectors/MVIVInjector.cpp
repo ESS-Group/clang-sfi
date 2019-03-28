@@ -44,10 +44,10 @@ MVIVInjector::MVIVInjector() { // Missing variable initialization using a value
 }
 // clang-format on
 
-bool MVIVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool MVIVInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.isStmt) {
         SourceLocation start = current.stmt->getBeginLoc(), end = current.stmt->getEndLoc();
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange range(start, end);
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MVIV: Removed range for stmt"
                           << "\n"
@@ -58,7 +58,7 @@ bool MVIVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
         const DeclStmt *declstmt = getParentOfType<DeclStmt>(current.decl, Context, 3);
         SourceLocation start = vardecl->getLocation().getLocWithOffset(vardecl->getNameAsString().length()),
                        end = vardecl->getInit()->getEndLoc();
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange range(start, end);
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MVIV: Removed range for varDecl"
                           << "\n"

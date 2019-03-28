@@ -34,7 +34,7 @@ MLACInjector::MLACInjector() { // Missing AND clause in branch condition
 }
 // clang-format on
 
-bool MLACInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool MLACInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     bool left = current.left;
 
     SourceLocation start, end;
@@ -46,7 +46,7 @@ bool MLACInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
         end = cast<BinaryOperator>(current.stmt)->getRHS()->getEndLoc();
     }
 
-    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+    SourceRange range(start, end);
     R.RemoveText(range);
     LLVM_DEBUG(dbgs() << "MLAC: Removed range"
                       << "\n"

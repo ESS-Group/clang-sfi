@@ -10,12 +10,12 @@ MRSInjector::MRSInjector() { // Missing if construct plus statements plus else
     Matcher.addMatcher(returnStmt().bind("returnStmt"), createMatchHandler("returnStmt"));
 }
 
-bool MRSInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool MRSInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("returnStmt")) {
         const Stmt *stmt = current.stmt;
 
         SourceLocation start = stmt->getBeginLoc(), end = stmt->getEndLoc();
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange range(start, end);
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MRS: Removed range for returnStmt"
                           << "\n"

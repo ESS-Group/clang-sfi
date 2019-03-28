@@ -142,7 +142,7 @@ bool WVAVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
     }
 }
 
-bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     const Expr *val = NULL;
     clang::QualType type;
     if (current.binding.compare("overwritten") == 0) {
@@ -155,7 +155,7 @@ bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
     }
 
     SourceLocation start = val->getBeginLoc(), end = val->getEndLoc();
-    SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+    SourceRange range(start, end);
     if (isa<CXXBoolLiteralExpr>(val)) {
         bool value = cast<CXXBoolLiteralExpr>(val)->getValue();
         if (value) {

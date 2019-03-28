@@ -56,7 +56,7 @@ find_package(ZLIB REQUIRED)
 ###
 # Setup project specific things.
 include_directories(src)
-set(SOURCE_FILES src/FaultInjector.cpp src/SFIASTConsumer.cpp src/SFIAction.cpp src/utils.cpp src/FaultConstraints.cpp)
+set(SOURCE_FILES src/FaultInjector.cpp src/SFIASTConsumer.cpp src/SFIAction.cpp src/utils.cpp src/FaultConstraints.cpp src/GenericRewriter.cpp)
 file(GLOB HEADER_FILES src/*.h)
 file(GLOB ALL_FAULTINJECTORS src/FaultInjectors/*.cpp)
 file(GLOB DTL_ALL src/libs/dtl/dtl/*.hpp)

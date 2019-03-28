@@ -34,7 +34,7 @@ WPFVInjector::WPFVInjector() { // Wrong variable used in parameter of function c
 }
 // clang-format on
 
-bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("functionCall") == 0) {
         const DeclRefExpr *stmt = cast<DeclRefExpr>(current.stmt);
         assert(stmt != NULL);
@@ -79,7 +79,7 @@ bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, clang::Rewri
 
         SourceRange range = stmt->getSourceRange();
         SourceLocation start = range.getBegin(), end = range.getEnd();
-        SourceRange expandedRange(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange expandedRange(start, end);
         R.ReplaceText(expandedRange, variableName);
         LLVM_DEBUG(dbgs() << "WPFV: Replaced range for functionCall"
                           << "\n"

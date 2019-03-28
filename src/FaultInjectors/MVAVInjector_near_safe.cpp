@@ -9,10 +9,10 @@ MVAVInjectorSAFE::MVAVInjectorSAFE(bool alsoOverwritten) { // Missing variable a
     Matcher.addMatcher(varDecl(hasAncestor(compoundStmt())).bind("varDecl"), createMatchHandler("varDecl"));
 }
 
-bool MVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, clang::Rewriter &R) {
+bool MVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("varDecl")) {
         SourceLocation start = current.stmt->getBeginLoc(), end = current.stmt->getEndLoc();
-        SourceRange range(R.getSourceMgr().getExpansionLoc(start), R.getSourceMgr().getExpansionLoc(end));
+        SourceRange range(start, end);
         R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MVAV-safe: Removed range for varDecl"
                           << "\n"
