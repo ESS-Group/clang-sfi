@@ -6,7 +6,9 @@ project(${PROJECT_NAME})
 # Some integration tests use compile_commands.json, so generate it.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # LLVM 9.0 complains about this in older LLVM code, but it is fixed in newer versions, so we just ignore it.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-defaulted-function-deleted")
+if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-defaulted-function-deleted")
+endif()
 
 ###
 # Setup LLVM+Clang includes and options.
@@ -19,9 +21,14 @@ add_definitions(${LLVM_DEFINITIONS})
 include_directories("${LLVM_DIR}/../../../tools/clang/include")
 include_directories("${LLVM_SRC_DIR}/tools/clang/include")
 
-# Our Clang tool instance will not automatically determine the clang system includes like a system Clang installation would, so we pass it depending on our LLVM directory for integration tests that make use of the compile_commands.json.
-file(GLOB CLANG_SYSTEM_LIBS "${LLVM_DIR}/../../clang/*/include/")
-include_directories(SYSTEM "${CLANG_SYSTEM_LIBS}")
+# Default system includes are not stored in compile_commands.json, but we need them for the integration tests as libclang will not use them automatically, so add them manually, then they are saved in compile_commands.json.
+execute_process(
+		COMMAND bash -c "echo | c++ -v -x c++ - -fsyntax-only 2>&1 | tac | sed -e '/\\#include <...> search starts here:/q' | tac | sed -n 's/^ \\([^[:space:]]*\\).*/\\1/p' | xargs"
+		OUTPUT_VARIABLE SYSTEM_LIBS
+		)
+string(STRIP "${SYSTEM_LIBS}" SYSTEM_LIBS)
+message(STATUS "Using the following system libs ${SYSTEM_LIBS}")
+include_directories(SYSTEM "${SYSTEM_LIBS}")
 
 # Clang is compiled with -fvisibility=hidden. Compilers may generate weak symbols for template instantiations, which it does for the used clang templates inside of main.cc. This leads to weak symbols in main.o, which are visible by default (-fvisibility=default). Directly linking them to the library, which is the goal, triggers the warning that those weak symbols cannot be overridden at runtime, what might be desirable in other use-cases. Using -fvisibility=hidden hides the weak symbols and thus does not trigger the warning. (Maybe the reasoning is wrong... information are a bit sparse on this topic.)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
@@ -48,7 +55,7 @@ file(GLOB DTL_ALL src/libs/dtl/dtl/*.hpp)
 
 source_group("FaultInjectors" FILES ${ALL_FAULTINJECTORS} src/FaultInjectors/_all.h)
 source_group("clang-sfi" FILES ${SOURCE_FILES} src/main.cpp )
-source_group("libs" FILES src/libs/json.hpp ${DTL_ALL})
+source_group("libs" FILES src/libs/json.hpp ${DTL_ALL} ${FILESYSTEM_ALL})
 if(WIN32)
 	add_library(${PROJECT_NAME}_lib ${SOURCE_FILES} ${ALL_FAULTINJECTORS} ${HEADER_FILES} src/FaultInjectors/_all.h)
 	add_executable(${PROJECT_NAME} src/main.cpp src/libs/json.hpp)
@@ -61,6 +68,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	target_link_libraries(${PROJECT_NAME} PRIVATE stdc++fs)
 endif()
+# And sometimes it is not available...
+target_include_directories(${PROJECT_NAME} PRIVATE src/libs/filesystem/include/)
 
 ###
 # Link clang libraries
@@ -74,7 +83,11 @@ if (NOT CLANG_LIBS)
 	message(FATAL_ERROR "Did not find any library files for \$CLANG_LIBS")
 endif(NOT CLANG_LIBS)
 # message(STATUS "Using the following Clang libs: ${CLANG_LIBS}")
-target_link_libraries(${PROJECT_NAME} PRIVATE -Wl,--start-group ${CLANG_LIBS} -Wl,--end-group)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+	target_link_libraries(${PROJECT_NAME} PRIVATE ${CLANG_LIBS})
+else()
+	target_link_libraries(${PROJECT_NAME} PRIVATE -Wl,--start-group ${CLANG_LIBS} -Wl,--end-group)
+endif()
 # target_link_libraries(${PROJECT_NAME} PRIVATE clangBasic clangFrontend clangTooling clangToolingASTDiff clangToolingRefactor clangCrossTU clangIndex clangAST clangLex clangSerialization clangSema clangAnalysis clangARCMigrate clangEdit clangDriver clangParse)
 
 # Find the libraries that correspond to the LLVM components that we wish to use

@@ -1,3 +1,6 @@
 [submodule "llvm"]
 	path = llvm
 	url = https://llvm.org/git/llvm.git
+[submodule "src/libs/filesystem"]
+	path = src/libs/filesystem
+	url = https://github.com/gulrak/filesystem.git

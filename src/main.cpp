@@ -1,5 +1,4 @@
 #include <fstream>
-#include <filesystem>
 #include <stdio.h>
 #ifdef _WIN32
 #include <direct.h>
@@ -9,6 +8,13 @@
 #include <unistd.h>
 #define _MAX_DIR PATH_MAX
 #define getCWD getcwd
+#endif
+#if defined(__cplusplus) && __cplusplus >= 201703L && defined(__has_include) && __has_include(<filesystem>)
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
+#include <ghc/filesystem.hpp>
+namespace fs = ghc::filesystem;
 #endif
 
 #include "llvm/Support/raw_ostream.h"
@@ -173,15 +179,15 @@ int main(int argc, const char **argv) {
     }
     std::cout << std::endl;
 
-    dir = std::filesystem::absolute(dir);
+    dir = fs::absolute(dir);
     std::cout << "Injection patches should be saved in directory '" << dir << "'" << std::endl;
-    if (!std::filesystem::exists(dir)) {
-        if (!std::filesystem::create_directories(dir)) {
+    if (!fs::exists(dir)) {
+        if (!fs::create_directories(dir)) {
             std::cerr << "Could not create directory " << dir << std::endl;
             return 1;
         }
     }
-    dir += std::filesystem::path::preferred_separator;
+    dir += fs::path::preferred_separator;
 
     std::vector<std::string> filesToConsider;
     char cwd[_MAX_DIR];
