@@ -5,4 +5,4 @@ zlib/
 zlib-build/
 VSProject/
 integrationtests/*/injections/
-integrationtests/*/output.txt
+integrationtests/*/output*.txt
