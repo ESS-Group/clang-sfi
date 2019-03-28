@@ -1,14 +1,5 @@
 #include <fstream>
 #include <stdio.h>
-#ifdef _WIN32
-#include <direct.h>
-#define getCWD _getcwd
-#else
-#include <sys/stat.h>
-#include <unistd.h>
-#define _MAX_DIR PATH_MAX
-#define getCWD getcwd
-#endif
 #if defined(__cplusplus) && __cplusplus >= 201703L && defined(__has_include) && __has_include(<filesystem>)
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -129,8 +120,6 @@ int main(int argc, const char **argv) {
     available.push_back(new MRSInjector);
     available.push_back(new MIESInjector);
 
-    struct stat buf;
-
     std::string cfgFileName = ConfigOption.getValue();
     std::string dir = DirectoryOption.getValue();
     if (cfgFileName.compare("") == 0) {
@@ -138,7 +127,7 @@ int main(int argc, const char **argv) {
     }
 
     json cfgFile;
-    if (stat(cfgFileName.c_str(), &buf) != -1) { // config file exists
+    if (fs::exists(cfgFileName)) {
         std::cout << "Using config (" << cfgFileName << ")." << std::endl;
         std::ifstream cfgFileInStream(cfgFileName.c_str());
         cfgFileInStream >> cfgFile;
@@ -190,15 +179,8 @@ int main(int argc, const char **argv) {
     dir += fs::path::preferred_separator;
 
     std::vector<std::string> filesToConsider;
-    char cwd[_MAX_DIR];
-    getCWD(cwd, _MAX_DIR);
-    std::string path(cwd);
-#ifdef _WIN32
-    char pathSep = '\\';
-#else
-    char pathSep = '/';
-#endif
-    path = path + pathSep;
+    auto cwd = fs::current_path();
+    std::string path = cwd.native() + fs::path::preferred_separator;
     size_t pos = mainFileName.find_last_of('/');
 
     std::string rootDir = RootDirectoryOption.getValue();
@@ -220,12 +202,12 @@ int main(int argc, const char **argv) {
         if (verbose) {
             std::cout << "Searching for files to consider based on \"" << path << "\"" << std::endl;
         }
-        if (stat(fileList.c_str(), &buf) != -1) {
+        if (fs::exists(fileList)) {
             std::ifstream list(fileList);
             for (std::string file; std::getline(list, file);) {
                 if (file.compare("") != 0 && file.compare("\n") != 0 && file.compare("\r\n") != 0 &&
                     file.compare("\r") != 0) {
-                    if (stat((path + file).c_str(), &buf) != -1) {
+                    if (fs::exists(path + file)) {
                         filesToConsider.push_back(file);
                         if (verbose) {
                             std::cout << "Considering File: " << file << std::endl;
@@ -245,7 +227,7 @@ int main(int argc, const char **argv) {
     if (cfgFile.find("consideredFiles") != cfgFile.end()) {
         for (json::iterator it = cfgFile.find("consideredFiles")->begin(); it != cfgFile.find("consideredFiles")->end(); ++it) {
             std::string file = it->get<std::string>();
-            if (stat(file.c_str(), &buf) != -1) {
+            if (fs::exists(file)) {
                 filesToConsider.push_back(file);
             }
         }
