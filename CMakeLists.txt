@@ -28,6 +28,7 @@ execute_process(
 		)
 string(STRIP "${SYSTEM_LIBS}" SYSTEM_LIBS)
 message(STATUS "Using the following system libs ${SYSTEM_LIBS}")
+separate_arguments(SYSTEM_LIBS)
 include_directories(SYSTEM "${SYSTEM_LIBS}")
 
 # Clang is compiled with -fvisibility=hidden. Compilers may generate weak symbols for template instantiations, which it does for the used clang templates inside of main.cc. This leads to weak symbols in main.o, which are visible by default (-fvisibility=default). Directly linking them to the library, which is the goal, triggers the warning that those weak symbols cannot be overridden at runtime, what might be desirable in other use-cases. Using -fvisibility=hidden hides the weak symbols and thus does not trigger the warning. (Maybe the reasoning is wrong... information are a bit sparse on this topic.)
