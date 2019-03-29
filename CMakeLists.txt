@@ -83,7 +83,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE src/libs/filesystem/include/)
 # Link clang libraries
 # llvm_map_components_to_libnames does not work for clang libs, so we just link them all...
 if(WIN32)
-	file(GLOB CLANG_LIBS "${LLVM_DIR}/../../../Release/lib/libclang*.lib")
+	file(GLOB CLANG_LIBS "${LLVM_DIR}/../../../${CMAKE_BUILD_TYPE}/lib/libclang*.lib")
 else()
 	file(GLOB CLANG_LIBS "${LLVM_DIR}/../../libclang*.a")
 endif()
