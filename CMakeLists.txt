@@ -22,21 +22,10 @@ include_directories("${LLVM_DIR}/../../../tools/clang/include")
 include_directories("${LLVM_SRC_DIR}/tools/clang/include")
 
 # Default system includes are not stored in compile_commands.json, but we need them for the integration tests as libclang will not use them automatically, so add them manually, then they are saved in compile_commands.json.
-# Get a list from the compiler verbose output.
-execute_process(
-	COMMAND bash -c "echo | c++ -v -x c++ - -fsyntax-only 2>&1 | tac | sed -e '/\\#include <...> search starts here:/q' | tac | sed -n 's/^ \\([^[:space:]]*\\).*/\\1/p' | xargs"
-	OUTPUT_VARIABLE SYSTEM_LIBS
-	)
-# Stip newline at the end.
-string(STRIP "${SYSTEM_LIBS}" SYSTEM_LIBS)
-message(STATUS "Using the following system libs ${SYSTEM_LIBS}")
-# System directories are normally ignored to be added manually, because it can problems. Since we solve a problem with it, we ignore that.
-set(CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES "")
-set(CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES "")
-# Replace spaces with ; (i.e. convert a string to a CMake list)
-separate_arguments(SYSTEM_LIBS)
-# Include them as system libs.
-include_directories(SYSTEM "${SYSTEM_LIBS}")
+file(GLOB CMAKE_INCLUDE ${LLVM_DIR}/../../clang/*/include)
+# Select only one directory. There should be only one.
+list (GET CMAKE_INCLUDE 0 CMAKE_INCLUDE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -idirafter ${CMAKE_INCLUDE}")
 
 # Clang is compiled with -fvisibility=hidden. Compilers may generate weak symbols for template instantiations, which it does for the used clang templates inside of main.cc. This leads to weak symbols in main.o, which are visible by default (-fvisibility=default). Directly linking them to the library, which is the goal, triggers the warning that those weak symbols cannot be overridden at runtime, what might be desirable in other use-cases. Using -fvisibility=hidden hides the weak symbols and thus does not trigger the warning. (Maybe the reasoning is wrong... information are a bit sparse on this topic.)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
