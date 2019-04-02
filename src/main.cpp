@@ -12,6 +12,8 @@ namespace fs = ghc::filesystem;
 
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
+#include "clang/Frontend/CompilerInvocation.h"
+#include "clang/Lex/PreprocessorOptions.h"
 #include "llvm/Support/Debug.h"
 #define DEBUG_TYPE "clang-sfi"
 using namespace llvm;
@@ -49,6 +51,13 @@ newSFIFrontendActionFactory(std::vector<FaultInjector *> injectors) { // factory
         FrontendAction *create() override {
             return new SFIAction(injectors);
         }
+        bool runInvocation(std::shared_ptr<CompilerInvocation> Invocation,
+                           FileManager *Files,
+                           std::shared_ptr<PCHContainerOperations> PCHContainerOps,
+                           DiagnosticConsumer *DiagConsumer) override {
+            Invocation->getPreprocessorOpts().DetailedRecord = true;
+            return FrontendActionFactory::runInvocation(Invocation, Files, PCHContainerOps, DiagConsumer);
+        };
 
       private:
         std::vector<FaultInjector *> injectors;
