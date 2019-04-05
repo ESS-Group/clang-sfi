@@ -22,7 +22,7 @@ class FaultInjector : public MatchFinder::MatchCallback {
           public:
             unsigned int line;
             unsigned int column;
-            Location(unsigned int pLine, unsigned int pColumn) : line(pLine), column(pColumn){};
+            Location(unsigned int pLine, unsigned int pColumn) : line(pLine), column(pColumn) {};
             Location(){};
             std::string toString() {
                 std::stringstream ss;
@@ -34,7 +34,7 @@ class FaultInjector : public MatchFinder::MatchCallback {
           public:
             Location begin;
             Location end;
-            Range(Location pBegin, Location pEnd) : begin(pBegin), end(pEnd), valid(true){};
+            Range(Location pBegin, Location pEnd) : begin(pBegin), end(pEnd), valid(true) {};
             Range() : valid(false){};
             bool isValid() {
                 return valid;
