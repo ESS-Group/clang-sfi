@@ -80,16 +80,16 @@ bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, GenericRewri
         SourceRange range = stmt->getSourceRange();
         SourceLocation start = range.getBegin(), end = range.getEnd();
         SourceRange expandedRange(start, end);
-        R.ReplaceText(expandedRange, variableName);
         LLVM_DEBUG(dbgs() << "WPFV: Replaced range for functionCall"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << " with " << variableName << "\n");
+        return R.ReplaceText(expandedRange, variableName);
     } else {
         assert(false && "Unknown binding in WPFV injector");
         std::cerr << "Unknown binding in WPFV injector" << std::endl;
     }
-    return true;
+    return false;
 }
 
 bool WPFVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {

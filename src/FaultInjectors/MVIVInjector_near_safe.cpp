@@ -34,24 +34,24 @@ MVIVInjectorSAFE::MVIVInjectorSAFE() { // Missing variable initialization using 
 bool MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.isStmt) {
         SourceRange range(current.stmt->getBeginLoc(), current.stmt->getEndLoc());
-        R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MVIV-safe: Removed range for stmt"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+        return R.RemoveText(range);
     } else {
         const VarDecl *vardecl = cast<VarDecl>(current.decl);
         const DeclStmt *declstmt = getParentOfType<DeclStmt>(current.decl, Context, 3);
         SourceLocation start = vardecl->getLocation().getLocWithOffset(vardecl->getNameAsString().length()),
                        end = vardecl->getInit()->getEndLoc();
         SourceRange range(start, end);
-        R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MVIV-safe: Removed range for varDecl"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+        return R.RemoveText(range);
     }
-    return true;
+    return false;
 }
 bool MVIVInjectorSAFE::checkStmt(const Decl &decl, std::string binding, ASTContext &Context) {
     if (binding.compare("notInitialized") == 0 && isa<VarDecl>(decl)) {

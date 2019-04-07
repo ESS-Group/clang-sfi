@@ -47,12 +47,11 @@ bool MLACInjector::inject(StmtBinding current, ASTContext &Context, GenericRewri
     }
 
     SourceRange range(start, end);
-    R.RemoveText(range);
     LLVM_DEBUG(dbgs() << "MLAC: Removed range"
                       << "\n"
                       << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                       << range.getEnd().printToString(R.getSourceMgr()) << "\n");
-    return true;
+    return R.RemoveText(range);
 }
 
 bool MLACInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) { // no else

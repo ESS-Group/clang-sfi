@@ -18,16 +18,16 @@ bool MIFSInjector::inject(StmtBinding current, ASTContext &Context, GenericRewri
 
         SourceLocation start = ifS->getBeginLoc(), end = ifS->getEndLoc();
         SourceRange range(start, end);
-        R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MIFS: Removed range for ifStmt"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+        return R.RemoveText(range);
     } else {
         assert(false && "Unknown binding in MIFS injector");
         std::cerr << "Unknown binding in MIFS injector" << std::endl;
     }
-    return true;
+    return false;
 }
 
 bool MIFSInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {

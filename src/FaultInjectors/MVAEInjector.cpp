@@ -122,13 +122,12 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten) { // Missing variable assignmen
 bool MVAEInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     SourceLocation start = current.stmt->getBeginLoc(), end = current.stmt->getEndLoc();
     SourceRange range(start, end);
-    R.RemoveText(range);
     LLVM_DEBUG(dbgs() << "MVAE: Removed range"
                       << "\n"
                       << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                       << range.getEnd().printToString(R.getSourceMgr()) << "\n");
 
-    return true;
+    return R.RemoveText(range);
 }
 
 bool MVAEInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
@@ -159,6 +158,6 @@ bool MVAEInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
 }
 
 OMVAEInjector::OMVAEInjector()
-    : MVAEInjector(true){
+    : MVAEInjector(true) {
 
       };

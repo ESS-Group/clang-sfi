@@ -201,16 +201,16 @@ bool MLPAInjector::inject(StmtBinding current, ASTContext &Context, GenericRewri
         }
 
         SourceRange range(start, end);
-        R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MLPA: Removed range for compoundStmt"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+        return R.RemoveText(range);
     } else {
         assert(false && "Unknown binding in MLPA injector");
         std::cerr << "Unknown binding in MLPA injector" << std::endl;
     }
-    return true;
+    return false;
 }
 
 bool MLPAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {

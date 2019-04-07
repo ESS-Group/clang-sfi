@@ -16,16 +16,16 @@ bool MRSInjector::inject(StmtBinding current, ASTContext &Context, GenericRewrit
 
         SourceLocation start = stmt->getBeginLoc(), end = stmt->getEndLoc();
         SourceRange range(start, end);
-        R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MRS: Removed range for returnStmt"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+        return R.RemoveText(range);
     } else {
         assert(false && "Unknown binding in MRS injector");
         std::cerr << "Unknown binding in MRS injector" << std::endl;
     }
-    return true;
+    return false;
 }
 bool MRSInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
     return true;

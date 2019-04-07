@@ -48,24 +48,24 @@ bool MVIVInjector::inject(StmtBinding current, ASTContext &Context, GenericRewri
     if (current.isStmt) {
         SourceLocation start = current.stmt->getBeginLoc(), end = current.stmt->getEndLoc();
         SourceRange range(start, end);
-        R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MVIV: Removed range for stmt"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+        return R.RemoveText(range);
     } else {
         const VarDecl *vardecl = cast<VarDecl>(current.decl);
         const DeclStmt *declstmt = getParentOfType<DeclStmt>(current.decl, Context, 3);
         SourceLocation start = vardecl->getLocation().getLocWithOffset(vardecl->getNameAsString().length()),
                        end = vardecl->getInit()->getEndLoc();
         SourceRange range(start, end);
-        R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MVIV: Removed range for varDecl"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+        return R.RemoveText(range);
     }
-    return true;
+    return false;
 }
 bool MVIVInjector::checkStmt(const Decl &decl, std::string binding, ASTContext &Context) {
     const DeclStmt *declstmt = getParentOfType<DeclStmt>(&decl, Context, 3);

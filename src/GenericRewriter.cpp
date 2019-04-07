@@ -13,9 +13,26 @@ using namespace llvm;
 
 bool GenericRewriter::RemoveText(SourceRange range, RewriteOptions opts) {
     LLVM_DEBUG(dbgs() << "Start of RemoveText()\n");
+    SourceManager &SM = getSourceMgr();
     if (rangeIsFreeOfMacroExpansions(range)) {
         LLVM_DEBUG(dbgs() << "It is free of macros, we call the rewriter.\n");
-        return Rewriter::RemoveText(range, opts);
+        if (!considerFile(range.getBegin())) {
+            return false;
+        }
+        Rewriter::RemoveText(range, opts);
+        return true;
+    }
+    if (range.getBegin().isFileID() && SM.getFileID(range.getBegin()) == SM.getFileID(range.getEnd())) {
+        LLVM_DEBUG(dbgs() << "It may contain an expansion, but we just remove, so we remove it.\n");
+        if (!considerFile(range.getBegin())) {
+            return false;
+        }
+        Rewriter::RemoveText(range, opts);
+        return true;
+    }
+    if (SM.isInSystemMacro(range.getBegin())) {
+        LLVM_DEBUG(dbgs() << "It is a system macro, we do not modify it.\n");
+        return false;
     }
     if (isCompletelyPartOfOneMacroExpansion(range) || isFunctionLikeMacroWithoutArguments(range)) {
         if (isCompletelyPartOfOneMacroExpansion(range)) {
@@ -24,9 +41,13 @@ bool GenericRewriter::RemoveText(SourceRange range, RewriteOptions opts) {
         if (isFunctionLikeMacroWithoutArguments(range)) {
             LLVM_DEBUG(dbgs() << "It isFunctionLikeMacroWithoutArguments, we modify the macro.\n");
         }
-        /// TODO: Must be done.
-        std::cout << "We could handle the macro\n";
-        return false;
+        LLVM_DEBUG(dbgs() << "We try to handle the macro.\n");
+        SourceRange spellingRange(getSourceMgr().getSpellingLoc(range.getBegin()), getSourceMgr().getSpellingLoc(range.getEnd()));
+        if (!considerFile(spellingRange.getBegin())) {
+            return false;
+        }
+        Rewriter::RemoveText(spellingRange, opts);
+        return true;
     } else {
         LLVM_DEBUG(dbgs() << "It is not completely part of one expansion nor a function-like macro without arguments. We do not know how to handle. returning false\n");
         return false;
@@ -35,13 +56,72 @@ bool GenericRewriter::RemoveText(SourceRange range, RewriteOptions opts) {
 }
 
 bool GenericRewriter::ReplaceText(SourceRange range, StringRef NewStr) {
-    SourceRange expandedRange = SourceRange(getSourceMgr().getExpansionLoc(range.getBegin()), getSourceMgr().getExpansionLoc(range.getEnd()));
-    return Rewriter::ReplaceText(expandedRange.getBegin(), getRangeSize(expandedRange), NewStr);
+    LLVM_DEBUG(dbgs() << "Start of ReplaceText()\n");
+    SourceManager &SM = getSourceMgr();
+    if (rangeIsFreeOfMacroExpansions(range)) {
+        LLVM_DEBUG(dbgs() << "It is free of macros, we call the rewriter.\n");
+        if (!considerFile(range.getBegin())) {
+            return false;
+        }
+        Rewriter::ReplaceText(range, NewStr);
+        return true;
+    }
+    if (range.getBegin().isFileID() && SM.getFileID(range.getBegin()) == SM.getFileID(range.getEnd())) {
+        LLVM_DEBUG(dbgs() << "It may contain an expansion, but we just replace, so we replace it.\n");
+        if (!considerFile(range.getBegin())) {
+            return false;
+        }
+        Rewriter::ReplaceText(range, NewStr);
+        return true;
+    }
+    if (SM.isInSystemMacro(range.getBegin())) {
+        LLVM_DEBUG(dbgs() << "It is a system macro, we do not modify it.\n");
+        return false;
+    }
+    if (isCompletelyPartOfOneMacroExpansion(range) || isFunctionLikeMacroWithoutArguments(range)) {
+        if (isCompletelyPartOfOneMacroExpansion(range)) {
+            LLVM_DEBUG(dbgs() << "It isCompletelyPartOfOneMacroExpansion, we modify the macro.\n");
+        }
+        if (isFunctionLikeMacroWithoutArguments(range)) {
+            LLVM_DEBUG(dbgs() << "It isFunctionLikeMacroWithoutArguments, we modify the macro.\n");
+        }
+        LLVM_DEBUG(dbgs() << "We try to handle the macro.\n");
+        SourceRange spellingRange(getSourceMgr().getSpellingLoc(range.getBegin()), getSourceMgr().getSpellingLoc(range.getEnd()));
+        if (!considerFile(spellingRange.getBegin())) {
+            return false;
+        }
+        Rewriter::ReplaceText(spellingRange, NewStr);
+        return true;
+    } else {
+        LLVM_DEBUG(dbgs() << "It is not completely part of one expansion nor a function-like macro without arguments. We do not know how to handle. returning false\n");
+        return false;
+    }
+    return false;
 }
 
 bool GenericRewriter::InsertText(SourceLocation Loc, StringRef Str, bool InsertAfter, bool indentNewLines) {
-    SourceLocation expandedLoc = getSourceMgr().getExpansionLoc(Loc);
-    return Rewriter::InsertText(expandedLoc, Str, InsertAfter, indentNewLines);
+    LLVM_DEBUG(dbgs() << "Start of InsertText()\n");
+    SourceManager &SM = getSourceMgr();
+    if (!Loc.isMacroID()) {
+        LLVM_DEBUG(dbgs() << "It is free of macros, we call the rewriter.\n");
+        if (!considerFile(Loc)) {
+            return false;
+        }
+        Rewriter::InsertText(Loc, Str, InsertAfter, indentNewLines);
+        return true;
+    } else if (Loc.isMacroID()) {
+        LLVM_DEBUG(dbgs() << "Loc is in a macro, we call it with spelling location.\n");
+        if (SM.isInSystemMacro(Loc)) {
+            LLVM_DEBUG(dbgs() << "It is a system macro, we do not modify it.\n");
+            return false;
+        }
+        if (!considerFile(SM.getSpellingLoc(Loc))) {
+            return false;
+        }
+        Rewriter::InsertText(SM.getSpellingLoc(Loc), Str, InsertAfter, indentNewLines);
+        return true;
+    }
+    return false;
 }
 
 bool GenericRewriter::containsMacroExpansion(SourceRange range) {
@@ -156,6 +236,45 @@ bool GenericRewriter::rangeIsFreeOfMacroExpansions(SourceRange range) {
     return !range.getBegin().isMacroID() && pprecordsInRange.begin() == pprecordsInRange.end();
 }
 
+bool GenericRewriter::considerFile(SourceLocation loc) {
+    SourceManager &SM = getSourceMgr();
+    std::string patchingFileName = SM.getFilename(loc);
+    LLVM_DEBUG(dbgs() << "Checking if " << fileName << " should be considered: ");
+    if (getSourceMgr().isInSystemHeader(loc)) {
+        LLVM_DEBUG(dbgs() << "No, it is a systemHeader.\n");
+        return false;
+    }
+    if (fileName.compare(patchingFileName) == 0) {
+        LLVM_DEBUG(dbgs() << "Yes, main file\n");
+        return true;
+    } else if (rootDir.compare("") != 0 && patchingFileName.find_first_of(rootDir, 0) == 0) {
+        // is in source tree and rootDir is defined
+        LLVM_DEBUG(dbgs() << "Yes, is in source tree file\n");
+        return true;
+    } else if (fileList.size() != 0) {
+        LLVM_DEBUG(dbgs() << "checking if in fileList... ");
+        for (std::string name : fileList) {
+            if (patchingFileName.compare(name) == 0 || patchingFileName.compare(rootDir + name) == 0) {
+                LLVM_DEBUG(dbgs() << "Yes\n");
+                return true;
+            }
+        }
+    }
+    LLVM_DEBUG(dbgs() << "No\n");
+
+    return false;
+}
+
 void GenericRewriter::setCI(CompilerInstance *CI) {
     this->CI = CI;
+}
+
+void GenericRewriter::setFileName(std::string fileName) {
+    this->fileName = fileName;
+}
+void GenericRewriter::setRootDir(std::string rootDir) {
+    this->rootDir = rootDir;
+}
+void GenericRewriter::setFileList(std::vector<std::string> fileList) {
+    this->fileList = fileList;
 }

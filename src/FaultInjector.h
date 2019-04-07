@@ -53,36 +53,30 @@ class FaultInjector : public MatchFinder::MatchCallback {
           private:
             bool valid;
         };
-        StmtBinding(std::string binding, const Decl &decl, bool left = false, bool isMacroExpansion = false)
+        StmtBinding(std::string binding, const Decl &decl, bool left = false)
             : binding(binding) {
-            this->isMacroExpansion = isMacroExpansion;
             this->left = left;
             this->decl = &decl;
             decllist.push_back(&decl);
             isStmt = false;
             isList = false;
         }
-        StmtBinding(std::string binding, const Stmt &stmt, bool left = false, bool isMacroExpansion = false)
+        StmtBinding(std::string binding, const Stmt &stmt, bool left = false)
             : binding(binding) {
-            this->isMacroExpansion = isMacroExpansion;
             this->left = left;
             this->stmt = &stmt;
             stmtlist.push_back(&stmt);
             isStmt = true;
             isList = false;
         }
-        StmtBinding(std::string binding, std::vector<const Decl *> list, bool left = false,
-                    bool isMacroExpansion = false)
+        StmtBinding(std::string binding, std::vector<const Decl *> list, bool left = false)
             : binding(binding), decllist(list.begin(), list.end()) {
-            this->isMacroExpansion = isMacroExpansion;
             this->left = left;
             isStmt = false;
             isList = true;
         }
-        StmtBinding(std::string binding, std::vector<const Stmt *> list, bool left = false,
-                    bool isMacroExpansion = false)
+        StmtBinding(std::string binding, std::vector<const Stmt *> list, bool left = false)
             : binding(binding), stmtlist(list.begin(), list.end()) {
-            this->isMacroExpansion = isMacroExpansion;
             this->left = left;
             isStmt = true;
             isList = true;
@@ -161,7 +155,6 @@ class FaultInjector : public MatchFinder::MatchCallback {
         std::vector<const Decl *> decllist;
         Range location;
         bool left;
-        bool isMacroExpansion;
     };
     FaultInjector *createMatchHandler(std::string binding);
     FaultInjector();
@@ -172,23 +165,17 @@ class FaultInjector : public MatchFinder::MatchCallback {
     template <typename SD>
     void run_stmt_or_decl(const MatchFinder::MatchResult &Result, SourceManager &SM, std::string binding, SD &stmtOrDecl);
 
-    /// Check if the file given by fileName is in the "project", i.e. is the main file or lies in the source tree.
-    bool considerFile(std::string fileName);
-
     template<class T>
-    static std::string getFileName(const T &stmtOrDecl, SourceManager &SM);
-
-    template<class T>
-    void push(std::string binding, const T &stmtOrDecl, bool left = false, bool isMacroExpansion = false);
+    void push(std::string binding, const T &stmtOrDecl, bool left = false);
     template<class T>
     void push(std::string binding, std::vector<const T *> list);
     /// Perform injections for a list of StmtBindings.
-    virtual void inject(std::vector<StmtBinding> target, ASTContext &Context, bool isMacroDefinition = false);
+    virtual void inject(std::vector<StmtBinding> target, ASTContext &Context);
     /// Perform an injection for a specific StmtBinding in the provided Rewriter.
     /// \return True if the rewriting was successful.
     virtual bool inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) = 0;
     /// Generate a patch for a single StmtBinding.
-    virtual void generatePatchFile(StmtBinding current, ASTContext &Context, int i = 0, bool isMacroDefinition = false);
+    virtual void generatePatchFile(StmtBinding current, ASTContext &Context, GenericRewriter &R, int i = 0);
     // default false
     virtual bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context);
     virtual bool checkStmt(const Decl &stmt, std::string binding, ASTContext &Context);
@@ -203,15 +190,13 @@ class FaultInjector : public MatchFinder::MatchCallback {
     void nodeCallback(std::string binding, const Decl &decl, bool left = false);
     void nodeCallback(std::string binding, std::vector<const Stmt *> list);
     void nodeCallback(std::string binding, std::vector<const Decl *> list);
-    std::string getFileName();
-    void setFileName(std::string name);
+
     void setCI(CompilerInstance *CI);
     void setVerbose(bool v);
     void setDirectory(std::string directory);
+    void setFileName(std::string name);
     void setRootDir(std::string);
     void setFileList(std::vector<std::string> list);
-    std::string rootDir = "";
-    std::vector<std::string> fileList;
 
   protected:
     static void dumpStmt(const Stmt *stmt, ASTContext &Context);
@@ -227,14 +212,17 @@ class FaultInjector : public MatchFinder::MatchCallback {
     void printStep(StmtBinding current, const SourceManager &sourceManager, const LangOptions &langOpts, int i = 0,
                    int size = 0); // with printing statements
     void printStep(StmtBinding current, const SourceManager &sourceManager, int i = 0, int size = 0); // only position
-    std::string fileName;
-    std::vector<std::string> bindings;
     MatchFinder Matcher; // child classes have to add Matchers
     void _sort();
     static bool comparefunc(StmtBinding st1, StmtBinding st2);
+
     bool verbose;
     std::string dir;
     CompilerInstance *CI;
+    std::string fileName;
+    std::string rootDir = "";
+    std::vector<std::string> fileList;
+    std::vector<std::string> bindings;
 };
 
 #include "FaultInjectors/_all.h"

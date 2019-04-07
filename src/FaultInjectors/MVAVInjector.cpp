@@ -120,13 +120,12 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten) { // Missing variable assignmen
 bool MVAVInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     SourceLocation start = current.stmt->getBeginLoc(), end = current.stmt->getEndLoc();
     SourceRange range(start, end);
-    R.RemoveText(range);
     LLVM_DEBUG(dbgs() << "MVAV: Removed range"
                       << "\n"
                       << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                       << range.getEnd().printToString(R.getSourceMgr()) << "\n");
 
-    return true;
+    return R.RemoveText(range);
 }
 
 bool MVAVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
@@ -153,6 +152,6 @@ bool MVAVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
 }
 
 OMVAVInjector::OMVAVInjector()
-    : MVAVInjector(true){
+    : MVAVInjector(true) {
 
       };

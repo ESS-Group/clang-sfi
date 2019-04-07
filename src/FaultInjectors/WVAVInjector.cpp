@@ -159,37 +159,37 @@ bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, GenericRewri
     if (isa<CXXBoolLiteralExpr>(val)) {
         bool value = cast<CXXBoolLiteralExpr>(val)->getValue();
         if (value) {
-            R.ReplaceText(range, "false");
             LLVM_DEBUG(dbgs() << "WVAV: Replaced range for varDecl"
                               << "\n"
                               << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                               << range.getEnd().printToString(R.getSourceMgr()) << " with "
                               << "false"
                               << "\n");
+            return R.ReplaceText(range, "false");
         } else {
-            R.ReplaceText(range, "true");
             LLVM_DEBUG(dbgs() << "WVAV: Replaced range for varDecl"
                               << "\n"
                               << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                               << range.getEnd().printToString(R.getSourceMgr()) << " with "
                               << "true"
                               << "\n");
+            return R.ReplaceText(range, "true");
         }
     } else {
         std::string text = R.getRewrittenText(range);
-        R.ReplaceText(range, "(" + type.getAsString() + ")" + text + "^0xFF");
         LLVM_DEBUG(dbgs() << "WVAV: Replaced range for varDecl"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << " with "
                           << "(" + type.getAsString() + ")" + text + "^0xFF"
                           << "\n");
+        return R.ReplaceText(range, "(" + type.getAsString() + ")" + text + "^0xFF");
     }
 
-    return true;
+    return false;
 }
 
 OWVAVInjector::OWVAVInjector()
-    : WVAVInjector(true){
+    : WVAVInjector(true) {
 
       };

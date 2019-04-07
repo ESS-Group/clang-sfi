@@ -18,16 +18,16 @@ bool MIAInjector::inject(StmtBinding current, ASTContext &Context, GenericRewrit
 
         SourceLocation start = ifS->getBeginLoc(), end = ifS->getThen()->getBeginLoc().getLocWithOffset(-1);
         SourceRange range(start, end);
-        R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MIA: Removed range for ifStmt"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+        return R.RemoveText(range);
     } else {
         assert(false && "Unknown binding in MIA injector");
         std::cerr << "Unknown binding in MIA injector" << std::endl;
     }
-    return true;
+    return false;
 }
 bool MIAInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
     const IfStmt &ifS = cast<IfStmt>(stmt);

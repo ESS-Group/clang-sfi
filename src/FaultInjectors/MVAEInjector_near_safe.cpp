@@ -20,11 +20,11 @@ bool MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context, GenericR
         if (current.isStmt) {
             SourceLocation start = current.stmt->getBeginLoc(), end = current.stmt->getEndLoc();
             SourceRange range(start, end);
-            R.RemoveText(range);
             LLVM_DEBUG(dbgs() << "MVAE-safe: Removed range for varDecl"
                               << "\n"
                               << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                               << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+            return R.RemoveText(range);
         } else {
             VarDecl temp(*((const VarDecl *)current.decl));
             temp.setInit(NULL);
@@ -33,19 +33,19 @@ bool MVAEInjectorSAFE::inject(StmtBinding current, ASTContext &Context, GenericR
 
             SourceLocation start = current.decl->getBeginLoc(), end = current.decl->getEndLoc();
             SourceRange range(start, end);
-            R.ReplaceText(range, withoutInit);
             LLVM_DEBUG(dbgs() << "MVAE-safe: Replace range for varDecl"
                               << "\n"
                               << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                               << range.getEnd().printToString(R.getSourceMgr()) << "\n"
                               << " with " << withoutInit << "\n");
+            return R.ReplaceText(range, withoutInit);
         }
     } else {
         assert(false && "Unknown binding in MVAE-safe injector");
         std::cerr << "Unknown binding in MVAE-safe injector" << std::endl;
     }
 
-    return true;
+    return false;
 }
 
 bool MVAEInjectorSAFE::checkStmt(const Decl &decl, std::string binding, ASTContext &Context) {

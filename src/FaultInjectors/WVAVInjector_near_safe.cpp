@@ -17,38 +17,38 @@ bool WVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, GenericR
         if (isa<CXXBoolLiteralExpr>(val)) {
             bool value = cast<CXXBoolLiteralExpr>(val)->getValue();
             if (value) {
-                R.ReplaceText(range, "false");
                 LLVM_DEBUG(dbgs() << "WVAV-safe: Replaced range for varDecl"
                                   << "\n"
                                   << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                                   << range.getEnd().printToString(R.getSourceMgr()) << " with "
                                   << "false"
                                   << "\n");
+                return R.ReplaceText(range, "false");
             } else {
-                R.ReplaceText(range, "true");
                 LLVM_DEBUG(dbgs() << "WVAV-safe: Replaced range for varDecl"
                                   << "\n"
                                   << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                                   << range.getEnd().printToString(R.getSourceMgr()) << " with "
                                   << "true"
                                   << "\n");
+                return R.ReplaceText(range, "true");
             }
         } else {
             std::string text = R.getRewrittenText(range);
-            R.ReplaceText(range, text + "^0xFF");
             LLVM_DEBUG(dbgs() << "WVAV-safe: Replaced range for varDecl"
                               << "\n"
                               << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                               << range.getEnd().printToString(R.getSourceMgr()) << " with "
                               << "^0xFF"
                               << "\n");
+            return R.ReplaceText(range, text + "^0xFF");
         }
     } else {
         assert(false && "Unknown binding in WVAV-safe injector");
         std::cerr << "Unknown binding in WVAV-safe injector" << std::endl;
     }
 
-    return true;
+    return false;
 }
 
 bool WVAVInjectorSAFE::checkStmt(const Decl &decl, std::string binding, ASTContext &Context) {

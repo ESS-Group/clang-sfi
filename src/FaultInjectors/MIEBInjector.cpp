@@ -19,16 +19,16 @@ bool MIEBInjector::inject(StmtBinding current, ASTContext &Context, GenericRewri
 
         SourceLocation start = ifS->getBeginLoc(), end = ifS->getElse()->getBeginLoc().getLocWithOffset(-1);
         SourceRange range(start, end);
-        R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MIEB: Removed range for ifStmt"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+        return R.RemoveText(range);
     } else {
         assert(false && "Unknown binding in MIEB injector");
         std::cerr << "Unknown binding in MIEB injector" << std::endl;
     }
-    return true;
+    return false;
 }
 
 bool MIEBInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {

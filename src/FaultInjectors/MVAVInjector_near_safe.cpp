@@ -13,17 +13,17 @@ bool MVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, GenericR
     if (current.binding.compare("varDecl")) {
         SourceLocation start = current.stmt->getBeginLoc(), end = current.stmt->getEndLoc();
         SourceRange range(start, end);
-        R.RemoveText(range);
         LLVM_DEBUG(dbgs() << "MVAV-safe: Removed range for varDecl"
                           << "\n"
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << "\n");
+        return R.RemoveText(range);
     } else {
         assert(false && "Unknown binding in MVAV-safe injector");
         std::cerr << "Unknown binding in MVAV-safe injector" << std::endl;
     }
 
-    return true;
+    return false;
 }
 bool MVAVInjectorSAFE::checkStmt(const Decl &decl, std::string binding, ASTContext &Context) {
     if (binding.compare("varDecl") == 0 && isa<VarDecl>(decl)) {
