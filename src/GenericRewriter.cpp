@@ -17,3 +17,7 @@ bool GenericRewriter::InsertText(SourceLocation Loc, StringRef Str, bool InsertA
     SourceLocation expandedLoc = getSourceMgr().getExpansionLoc(Loc);
     return Rewriter::InsertText(expandedLoc, Str, InsertAfter, indentNewLines);
 }
+
+void GenericRewriter::setCI(CompilerInstance *CI) {
+    this->CI = CI;
+}

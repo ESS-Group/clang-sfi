@@ -3,6 +3,7 @@
 
 #include "clang/Rewrite/Core/Rewriter.h"
 #include "clang/Basic/SourceManager.h"
+#include "clang/Frontend/CompilerInstance.h"
 
 using namespace clang;
 
@@ -16,6 +17,10 @@ public:
     bool RemoveText(SourceRange range, RewriteOptions opts = RewriteOptions());
     bool ReplaceText(SourceRange range, StringRef NewStr);
     bool InsertText(SourceLocation Loc, StringRef Str, bool InsertAfter = true, bool indentNewLines = false);
+
+    void setCI(CompilerInstance *CI);
+private:
+    CompilerInstance *CI;
 };
 
 #endif

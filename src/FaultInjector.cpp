@@ -115,6 +115,10 @@ void FaultInjector::setFileName(std::string name) {
     fileName = std::string(name);
 }
 
+void FaultInjector::setCI(CompilerInstance *CI) {
+    this->CI = CI;
+}
+
 std::string FaultInjector::getFileName() {
     std::string ret(fileName.c_str());
     return ret;
@@ -301,6 +305,7 @@ void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, 
     LLVM_DEBUG(dbgs() << "Entering generatePatchFile\n");
     GenericRewriter R;
     R.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+    R.setCI(CI);
     if (inject(current, Context, R)) { // default case - no match in macro definitions
         LLVM_DEBUG(dbgs() << "Injection in Rewriter was successful\n");
         std::map<clang::FileID, clang::RewriteBuffer>::iterator buffit;

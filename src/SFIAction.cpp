@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "clang/Frontend/CompilerInstance.h"
+
 #include "SFIASTConsumer.h"
 
 using namespace clang;
@@ -22,5 +24,5 @@ std::unique_ptr<ASTConsumer> SFIAction::CreateASTConsumer(CompilerInstance &CI, 
     // CI.getDiagnostics().setClient(new IgnoringDiagConsumer());
 
     // Rewrite.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
-    return llvm::make_unique<SFIASTConsumer>(fileName, injectors);
+    return llvm::make_unique<SFIASTConsumer>(fileName, injectors, &CI);
 }

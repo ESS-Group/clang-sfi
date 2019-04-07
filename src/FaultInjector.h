@@ -6,6 +6,7 @@
 #include "clang/AST/AST.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Rewrite/Core/Rewriter.h"
+#include "clang/Frontend/CompilerInstance.h"
 
 #include "GenericRewriter.h"
 
@@ -204,6 +205,7 @@ class FaultInjector : public MatchFinder::MatchCallback {
     void nodeCallback(std::string binding, std::vector<const Decl *> list);
     std::string getFileName();
     void setFileName(std::string name);
+    void setCI(CompilerInstance *CI);
     void setVerbose(bool v);
     void setDirectory(std::string directory);
     void setRootDir(std::string);
@@ -232,6 +234,7 @@ class FaultInjector : public MatchFinder::MatchCallback {
     static bool comparefunc(StmtBinding st1, StmtBinding st2);
     bool verbose;
     std::string dir;
+    CompilerInstance *CI;
 };
 
 #include "FaultInjectors/_all.h"

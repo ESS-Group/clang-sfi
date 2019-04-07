@@ -4,10 +4,11 @@
 
 using namespace clang;
 
-SFIASTConsumer::SFIASTConsumer(std::string name, std::vector<FaultInjector *> injectors)
+SFIASTConsumer::SFIASTConsumer(std::string name, std::vector<FaultInjector *> injectors, CompilerInstance *CI)
     : faultInjectors(injectors), fileName(name) {
     for (FaultInjector *injector : faultInjectors) {
         injector->setFileName(name);
+        injector->setCI(CI);
     }
 }
 
