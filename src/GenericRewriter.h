@@ -18,6 +18,12 @@ public:
     bool ReplaceText(SourceRange range, StringRef NewStr);
     bool InsertText(SourceLocation Loc, StringRef Str, bool InsertAfter = true, bool indentNewLines = false);
 
+    bool startAndEndArePartOfTheSameExpansion(SourceRange range);
+    bool containsMacroExpansion(SourceRange range);
+    bool isCompletelyPartOfOneMacroExpansion(SourceRange range);
+    bool isFunctionLikeMacroWithoutArguments(SourceRange range);
+    bool rangeIsFreeOfMacroExpansions(SourceRange range);
+
     void setCI(CompilerInstance *CI);
 private:
     CompilerInstance *CI;
