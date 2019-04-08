@@ -19,6 +19,7 @@ namespace fs = ghc::filesystem;
 using namespace llvm;
 
 #include "SFIAction.h"
+#include "FaultInjector.h"
 
 #include "libs/json.hpp"
 using json = nlohmann::json;
@@ -30,26 +31,25 @@ using namespace clang::tooling;
 static llvm::cl::OptionCategory oCategory("clang-sfi");
 static llvm::cl::opt<bool> VerboseOption("v", llvm::cl::cat(oCategory), llvm::cl::desc("verbose execution"));
 static llvm::cl::opt<bool> VerboseVerboseOption("vv", llvm::cl::cat(oCategory), llvm::cl::desc("pass verbose to Clang"));
-static llvm::cl::opt<std::string> DirectoryOption("dir", llvm::cl::cat(oCategory), llvm::cl::init("injections"),
+static llvm::cl::opt<std::string> PatchDirectoryOption("patchdir", llvm::cl::cat(oCategory), llvm::cl::init("injections"),
                                                   llvm::cl::desc("Directory where to store the patch files"));
 static llvm::cl::opt<std::string> RootDirectoryOption(
-    "sourcetree", llvm::cl::cat(oCategory), llvm::cl::init("injections"),
+    "sourcetree", llvm::cl::cat(oCategory), llvm::cl::init("."),
     llvm::cl::desc("Absolute path to source directory or '.' for current working directory. If defined, matches in all "
                    "files in the directory that are referenced from main source file."));
 static llvm::cl::opt<std::string> ConfigOption("config", llvm::cl::cat(oCategory),
                                                llvm::cl::desc("Specify an optional configuration file"));
 
+/// Factory to create SFIFrontendAction needed to submit parameters to FrontendActions constructor.
 std::unique_ptr<FrontendActionFactory>
-newSFIFrontendActionFactory(std::vector<FaultInjector *> injectors) { // factory for creating
-                                                                      // SFIFrontendAction, needed to
-                                                                      // submit injectors to
-                                                                      // FrontendActions constructor
+newSFIFrontendActionFactory(std::vector<std::string> injectors, FaultInjectorOptions &fiOpt) {
     class SFIFrontendActionFactory : public FrontendActionFactory {
       public:
-        SFIFrontendActionFactory(std::vector<FaultInjector *> inj) : FrontendActionFactory(), injectors(inj) {
+        SFIFrontendActionFactory(std::vector<std::string> inj, FaultInjectorOptions &pfiOpt)
+            : FrontendActionFactory(), injectors(inj), fiOpt(pfiOpt) {
         }
         FrontendAction *create() override {
-            return new SFIAction(injectors);
+            return new SFIAction(injectors, fiOpt);
         }
         bool runInvocation(std::shared_ptr<CompilerInvocation> Invocation,
                            FileManager *Files,
@@ -60,9 +60,10 @@ newSFIFrontendActionFactory(std::vector<FaultInjector *> injectors) { // factory
         };
 
       private:
-        std::vector<FaultInjector *> injectors;
+        std::vector<std::string> injectors;
+        FaultInjectorOptions &fiOpt;
     };
-    return std::unique_ptr<FrontendActionFactory>(new SFIFrontendActionFactory(injectors));
+    return std::unique_ptr<FrontendActionFactory>(new SFIFrontendActionFactory(injectors, fiOpt));
 };
 
 int main(int argc, const char **argv) {
@@ -84,7 +85,6 @@ int main(int argc, const char **argv) {
     // LLVM_DEBUG(dbgs() << "Normal debug\n");
     // DEBUG_WITH_TYPE("clang2", dbgs() << "Extended debug\n");
 
-    std::string fileforInjection = "";
     auto sourcePathList = op.getSourcePathList();
     ClangTool Tool(op.getCompilations(), sourcePathList);
     bool verbose = VerboseOption.getValue() || VerboseVerboseOption.getValue();
@@ -92,45 +92,38 @@ int main(int argc, const char **argv) {
         ArgumentsAdjuster ardj = getInsertArgumentAdjuster("-v");
         Tool.appendArgumentsAdjuster(ardj);
     }
-    if (sourcePathList.size() != 1) {
-        std::cout << "Please select exactly one main file" << std::endl;
-        return 1;
-    } else {
-        fileforInjection = op.getSourcePathList()[0];
-    }
-    std::string mainFileName = sourcePathList.at(0);
-    std::vector<FaultInjector *> available;
-    std::vector<FaultInjector *> injectors;
+    std::vector<std::string> available;
+    std::vector<std::string> injectors;
 
     // Add an instance of every available FaultInjector to list.
     // Only these instances can be added by the config.
-    available.push_back(new SMIFSInjector);
-    available.push_back(new SMIAInjector);
-    available.push_back(new SMIEBInjector);
-    available.push_back(new SMLPAInjector);
+    available.push_back("SMIFS");
+    available.push_back("SMIA");
+    available.push_back("SMIEB");
+    available.push_back("SMLPA");
 
-    available.push_back(new MIFSInjector);
-    available.push_back(new MIAInjector);
-    available.push_back(new MIEBInjector);
-    available.push_back(new MFCInjector);
-    available.push_back(new MLACInjector);
-    available.push_back(new MLOCInjector);
-    available.push_back(new MFCInjector);
-    available.push_back(new MVIVInjector);
-    available.push_back(new MVAVInjector);
-    available.push_back(new WVAVInjector);
-    available.push_back(new MVAEInjector);
-    available.push_back(new OMVAEInjector);
-    available.push_back(new OMVAVInjector);
-    available.push_back(new OWVAVInjector);
-    available.push_back(new WAEPInjector);
-    available.push_back(new WPFVInjector);
-    available.push_back(new MLPAInjector);
-    available.push_back(new MRSInjector);
-    available.push_back(new MIESInjector);
+    available.push_back("MIFS");
+    available.push_back("MIA");
+    available.push_back("MIEB");
+    available.push_back("MFC");
+    available.push_back("MLAC");
+    available.push_back("MLOC");
+    available.push_back("MFC");
+    available.push_back("MVIV");
+    available.push_back("MVAV");
+    available.push_back("WVAV");
+    available.push_back("MVAE");
+    available.push_back("OMVAE");
+    available.push_back("OMVAV");
+    available.push_back("OWVAV");
+    available.push_back("WAEP");
+    available.push_back("WPFV");
+    available.push_back("MLPA");
+    available.push_back("MRS");
+    available.push_back("MIES");
 
     std::string cfgFileName = ConfigOption.getValue();
-    std::string dir = DirectoryOption.getValue();
+    std::string patchDir = PatchDirectoryOption.getValue();
     if (cfgFileName.compare("") == 0) {
         cfgFileName = "config.json";
     }
@@ -143,54 +136,49 @@ int main(int argc, const char **argv) {
         if (cfgFile.find("verbose") != cfgFile.end() && !verbose) {
             verbose = cfgFile["verbose"].get<bool>();
         }
-        if (dir.compare("") == 0 && cfgFile.find("destDirectory") != cfgFile.end()) {
-            dir = cfgFile["destDirectory"].get<std::string>();
+        if (patchDir.compare("") == 0 && cfgFile.find("destDirectory") != cfgFile.end()) {
+            patchDir = cfgFile["destDirectory"].get<std::string>();
         }
         if (cfgFile.find("injectors") != cfgFile.end()) {
             for (json::iterator it = cfgFile.find("injectors")->begin(); it != cfgFile.find("injectors")->end(); ++it) {
-                for (FaultInjector *injector : available) {
-                    if (injector->toString().compare(it->get<std::string>()) == 0) {
-                        LLVM_DEBUG(dbgs() << "Adding " << injector->toString() << "\n");
-                        injectors.push_back(injector);
+                for (auto injector : available) {
+                    if (injector.compare(it->get<std::string>()) == 0) {
+                        LLVM_DEBUG(dbgs() << "Adding " << injector << "\n");
+                        injectors.push_back(injector + "Injector");
                         break;
                     }
                 }
             }
         } else {
             LLVM_DEBUG(dbgs() << "Adding all injectors\n");
-            for (FaultInjector *injector : available) {
-                injectors.push_back(injector);
+            for (auto injector : available) {
+                LLVM_DEBUG(dbgs() << "Adding " << injector << "\n");
+                injectors.push_back(injector + "Injector");
             }
         }
     } else {
         // no config file => add all available injectors
         LLVM_DEBUG(dbgs() << "Adding all injectors\n");
 
-        for (FaultInjector *injector : available) {
-            injectors.push_back(injector);
+        for (auto injector : available) {
+            LLVM_DEBUG(dbgs() << "Adding " << injector << "\n");
+            injectors.push_back(injector + "Injector");
         }
     }
 
-    std::cout << "Injecting: ";
-    for (FaultInjector *injector : injectors) {
-        std::cout << (injector == injectors[0] ? "" : ", ") << injector->toString();
-    }
-    std::cout << std::endl;
-
-    dir = fs::absolute(dir);
-    std::cout << "Injection patches should be saved in directory '" << dir << "'" << std::endl;
-    if (!fs::exists(dir)) {
-        if (!fs::create_directories(dir)) {
-            std::cerr << "Could not create directory " << dir << std::endl;
+    patchDir = fs::absolute(patchDir);
+    std::cout << "Injection patches should be saved in directory '" << patchDir << "'" << std::endl;
+    if (!fs::exists(patchDir)) {
+        if (!fs::create_directories(patchDir)) {
+            std::cerr << "Could not create directory " << patchDir << std::endl;
             return 1;
         }
     }
-    dir += fs::path::preferred_separator;
+    patchDir += fs::path::preferred_separator;
 
     std::vector<std::string> filesToConsider;
     auto cwd = fs::current_path();
     std::string path = cwd.native() + fs::path::preferred_separator;
-    size_t pos = mainFileName.find_last_of('/');
 
     std::string rootDir = RootDirectoryOption.getValue();
     if (rootDir.compare("") != 0) {
@@ -201,9 +189,8 @@ int main(int argc, const char **argv) {
             std::cout << "Sourcetree directory defined, files in this directory are also considered for matches."
                       << std::endl;
         }
-        for (FaultInjector *injector : injectors) {
-            injector->setRootDir(rootDir);
-        }
+    } else {
+        rootDir = path;
     }
     if (cfgFile.find("consideredFilesList") != cfgFile.end()) {
         std::string fileList = cfgFile["consideredFilesList"];
@@ -237,21 +224,26 @@ int main(int argc, const char **argv) {
         for (json::iterator it = cfgFile.find("consideredFiles")->begin(); it != cfgFile.find("consideredFiles")->end(); ++it) {
             std::string file = it->get<std::string>();
             if (fs::exists(file)) {
+                if (verbose) {
+                    std::cout << "Adding " << file << " to the list of considered files.\n";
+                }
                 filesToConsider.push_back(file);
             }
         }
     }
 
-    for (FaultInjector *inj : injectors) {
-        // Set verbose and directory options for injectors.
-        inj->setVerbose(verbose);
-        inj->setDirectory(dir);
-        inj->setRootDir(path);
-        inj->setFileList(filesToConsider);
-        inj->setMatchMacro(true);
-    }
+    FaultInjectorOptions fiOpt;
+    fiOpt.patchDir = patchDir;
+    fiOpt.rootDir = rootDir;
+    fiOpt.verbose = verbose;
+    fiOpt.fileList = filesToConsider;
+    fiOpt.matchMacro = true;
 
-    int ret = Tool.run(newSFIFrontendActionFactory(injectors).get());
+    int ret = Tool.run(newSFIFrontendActionFactory(injectors, fiOpt).get());
+    if (ret > 2 || ret < 0) {
+        std::cerr << "Unknown error occurred." << std::endl;
+        return 1;
+    }
     if (ret == 2) {
         std::cout << "Some files were skipped, because there was no "
                      "compileCommand "
@@ -261,78 +253,6 @@ int main(int argc, const char **argv) {
     if (ret == 1) {
         std::cout << "An error occurred while running the tool..." << std::endl;
         return 1;
-    } else {
-        // Create overview in summary.json.
-        json summary;
-        int injectioncount = 0;
-        std::cout << std::endl << std::endl << std::endl;
-        std::cout << ">>>>> SUMMARY <<<<<" << std::endl;
-        for (FaultInjector *injector : injectors) {
-            int size = injector->locations.size();
-            injectioncount += size;
-        }
-        for (FaultInjector *injector : injectors) {
-            json injection;
-            int size = injector->locations.size();
-            std::string type = injector->toString();
-
-            injection["type"] = type;
-            injection["count"] = size;
-
-            int i = 0;
-            for (FaultInjector::StmtBinding &binding : injector->locations) {
-                json loc;
-                loc["begin"] = binding.location.begin.toString();
-                loc["end"] = binding.location.end.toString();
-                loc["index"] = i;
-                summary[type].push_back(loc);
-                i++;
-            }
-            summary["types"].push_back(type);
-            summary["injections"].push_back(injection);
-            float part = 0;
-            if (injectioncount > 0) {
-                part = ((float)size) / injectioncount * 100.0;
-            }
-
-            std::cout << "Injected " << size << " " << type << " faults." << std::endl
-                      << "> " << size << "/" << injectioncount << " (" << roundf(part * 100) / 100 << "\%)"
-                      << std::endl;
-        }
-        std::cout << ">>> Total injected faults: " << injectioncount << std::endl;
-        summary["injectionCount"] = injectioncount;
-        summary["fileName"] = fileforInjection;
-        if (cfgFile.find("multipleRuns") != cfgFile.end()) {
-            summary["multipleRuns"] = cfgFile["multipleRuns"];
-        }
-        if (cfgFile.find("timeout") != cfgFile.end()) {
-            summary["timeout"] = cfgFile["timeout"];
-        }
-        if (cfgFile.find("compileCommand") != cfgFile.end()) {
-            summary["compileCommand"] = cfgFile["compileCommand"];
-        }
-        if (cfgFile.find("compileCommandArgs") != cfgFile.end()) {
-            summary["compileCommandArgs"] = cfgFile["compileCommandArgs"];
-        }
-        if (cfgFile.find("fileToExec") != cfgFile.end()) {
-            summary["fileToExec"] = cfgFile["fileToExec"];
-        }
-        if (cfgFile.find("fileToExecArgs") != cfgFile.end()) {
-            summary["fileToExecArgs"] = cfgFile["fileToExecArgs"];
-        }
-        summary["directory"] = dir;
-        summary["verbose"] = verbose;
-
-        std::ofstream o(dir + "summary.json");
-        if (!o.good()) {
-            std::cerr << "File " << dir + "summary.json" << " could not be opened for write" << std::endl;
-        } else {
-            o << summary;
-            o.flush();
-            o.close();
-            std::cout << "Saved summary at \"" << dir + "summary.json"
-                    << "\"" << std::endl;
-        }
     }
 
     std::cout << "Operation succeeded." << std::endl;

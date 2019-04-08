@@ -1,0 +1,4 @@
+{
+	"injectors": ["MFC"],
+	"consideredFiles": ["source.cpp", "library.cpp"]
+}

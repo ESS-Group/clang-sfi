@@ -6,17 +6,20 @@
 
 #include "FaultInjector.h"
 
+#include <string>
+
 using namespace clang;
 
 class SFIAction : public ASTFrontendAction {
   public:
-    std::vector<FaultInjector *> injectors;
-    SFIAction(std::vector<FaultInjector *> injs);
+    SFIAction(std::vector<std::string> pinjectornames, FaultInjectorOptions &pfiOpt);
     void EndSourceFileAction() override;
     std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI, StringRef file) override;
 
   private:
     std::string fileName;
+    std::vector<std::string> injectornames;
+    FaultInjectorOptions &fiOpt;
 };
 
 #endif

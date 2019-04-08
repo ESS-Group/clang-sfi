@@ -14,7 +14,7 @@ REFERENCE_FILE=$SOURCE_DIR/reference.txt
 REFERENCE_FILE2=$SOURCE_DIR/reference2.txt
 
 # Check that injection is performed.
-$EXECUTABLE $SOURCE_DIR/source.cpp --config=$SOURCE_DIR/config.json --dir=$BUILD_DIR/injections -- > $OUTPUT_FILE
+$EXECUTABLE $SOURCE_DIR/source.cpp --config=$SOURCE_DIR/config.json --patchdir=$BUILD_DIR/injections -- > $OUTPUT_FILE
 tail -n +3 $BUILD_DIR/injections/MFC_0.patch | diff $REFERENCE_FILE - >> $OUTPUT_FILE || (echo "Test failed, reference output not given" && exit 1)
 
 # Check that it is performed in header file.

@@ -1,5 +1,12 @@
 #include "GenericRewriter.h"
 #include <iostream>
+#if defined(__cplusplus) && __cplusplus >= 201703L && defined(__has_include) && __has_include(<filesystem>)
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
+#include <ghc/filesystem.hpp>
+namespace fs = ghc::filesystem;
+#endif
 
 #include "clang/Lex/Lexer.h"
 #include "clang/Lex/Preprocessor.h"
@@ -219,7 +226,7 @@ bool GenericRewriter::isFunctionLikeMacroWithoutArguments(SourceRange range) {
         if (TheTok.getKind() != tok::r_paren) {
             // It is a function-like macro with argument (it had an opening parenthesis),
             // but we did not find a closing parenthesis, although we checked that the
-            // opening one was the last one -- that is weird.
+            // opening one was the last token -- that is weird.
             LLVM_DEBUG(dbgs() << "Token is no closing parenthesis, but " << TheTok.getName() << "\n");
             return false;
         }
@@ -237,19 +244,20 @@ bool GenericRewriter::rangeIsFreeOfMacroExpansions(SourceRange range) {
 }
 
 bool GenericRewriter::considerFile(SourceLocation loc) {
-    SourceManager &SM = getSourceMgr();
-    std::string patchingFileName = SM.getFilename(loc);
-    LLVM_DEBUG(dbgs() << "Checking if " << fileName << " should be considered: ");
     if (getSourceMgr().isInSystemHeader(loc)) {
-        LLVM_DEBUG(dbgs() << "No, it is a systemHeader.\n");
         return false;
     }
-    if (fileName.compare(patchingFileName) == 0) {
+    SourceManager &SM = getSourceMgr();
+    std::string patchingFileName = SM.getFilename(loc);
+    std::string patchingFileNameCan = fs::weakly_canonical(patchingFileName);
+    std::string rootDirCan = fs::weakly_canonical(rootDir);
+    std::string fileNameCan = fs::weakly_canonical(fileName);
+    LLVM_DEBUG(dbgs() << "Checking if " << patchingFileNameCan << " should be considered: ");
+    if (fs::equivalent(fileName, patchingFileName)) {
         LLVM_DEBUG(dbgs() << "Yes, main file\n");
         return true;
-    } else if (rootDir.compare("") != 0 && patchingFileName.find_first_of(rootDir, 0) == 0) {
-        // is in source tree and rootDir is defined
-        LLVM_DEBUG(dbgs() << "Yes, is in source tree file\n");
+    } else if (rootDir.compare("") != 0 && patchingFileNameCan.find_first_of(rootDirCan, 0) == 0) {
+        LLVM_DEBUG(dbgs() << "Yes, is in source tree\n");
         return true;
     } else if (fileList.size() != 0) {
         LLVM_DEBUG(dbgs() << "checking if in fileList... ");
@@ -268,7 +276,6 @@ bool GenericRewriter::considerFile(SourceLocation loc) {
 void GenericRewriter::setCI(CompilerInstance *CI) {
     this->CI = CI;
 }
-
 void GenericRewriter::setFileName(std::string fileName) {
     this->fileName = fileName;
 }

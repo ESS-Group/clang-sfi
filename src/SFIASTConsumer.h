@@ -10,12 +10,12 @@ using namespace clang;
 
 class SFIASTConsumer : public ASTConsumer {
   public:
-    SFIASTConsumer(std::string name, std::vector<FaultInjector *> injectors, CompilerInstance *CI);
+    SFIASTConsumer(std::string name, std::vector<std::unique_ptr<FaultInjector>> injectors, CompilerInstance *CI);
     void HandleTranslationUnit(ASTContext &Context) override;
 
   private:
     std::string fileName;
-    std::vector<FaultInjector *> faultInjectors;
+    std::vector<std::unique_ptr<FaultInjector>> faultInjectors;
 };
 
 #endif

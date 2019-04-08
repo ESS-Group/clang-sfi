@@ -9,7 +9,8 @@
 using namespace clang;
 using namespace clang::ast_matchers;
 
-SFIAction::SFIAction(std::vector<FaultInjector *> injs) : injectors(injs) {
+SFIAction::SFIAction(std::vector<std::string> pinjectornames, FaultInjectorOptions &pfiOpt)
+    : injectornames(pinjectornames), fiOpt(pfiOpt) {
 }
 
 void SFIAction::EndSourceFileAction() {
@@ -23,6 +24,16 @@ std::unique_ptr<ASTConsumer> SFIAction::CreateASTConsumer(CompilerInstance &CI, 
     // Do not print warnings:
     // CI.getDiagnostics().setClient(new IgnoringDiagConsumer());
 
-    // Rewrite.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
-    return llvm::make_unique<SFIASTConsumer>(fileName, injectors, &CI);
+    std::vector<std::unique_ptr<FaultInjector>> injectors;
+    for (std::string name : injectornames) {
+        auto fi = FaultInjector::create(name);
+        fi->setVerbose(fiOpt.verbose);
+        fi->setPatchDirectory(fiOpt.patchDir);
+        fi->setRootDir(fiOpt.rootDir);
+        fi->setFileList(fiOpt.fileList);
+        fi->setFileName(fileName);
+        fi->setMatchMacro(fiOpt.matchMacro);
+        injectors.push_back(std::move(fi));
+    }
+    return llvm::make_unique<SFIASTConsumer>(fileName, std::move(injectors), &CI);
 }

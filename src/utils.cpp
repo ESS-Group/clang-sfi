@@ -37,6 +37,8 @@ const CompoundStmt *getParentCompoundStmt(const T *stmtOrDecl, ASTContext &Conte
     }
     return NULL;
 }
+template const CompoundStmt *getParentCompoundStmt(const Decl *stmtOrDecl, ASTContext &Context);
+template const CompoundStmt *getParentCompoundStmt(const Stmt *stmtOrDecl, ASTContext &Context);
 
 bool isIncDecUO(const UnaryOperator *op) {
     if (op == NULL) {

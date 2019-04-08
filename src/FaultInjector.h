@@ -2,6 +2,7 @@
 #define FAULTINJECTOR_H
 
 #include <sstream>
+#include <string>
 
 #include "clang/AST/AST.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
@@ -15,6 +16,15 @@ class MatchHandler;
 using namespace clang;
 using namespace clang::ast_matchers;
 
+class FaultInjectorOptions {
+  public:
+    bool verbose;
+    std::string patchDir;
+    std::string rootDir;
+    std::vector<std::string> fileList;
+    bool matchMacro;
+};
+
 class FaultInjector : public MatchFinder::MatchCallback {
   public:
     class StmtBinding {
@@ -24,7 +34,7 @@ class FaultInjector : public MatchFinder::MatchCallback {
             unsigned int line;
             unsigned int column;
             Location(unsigned int pLine, unsigned int pColumn) : line(pLine), column(pColumn) {};
-            Location(){};
+            Location() {};
             std::string toString() {
                 std::stringstream ss;
                 ss << line << ":" << column;
@@ -156,10 +166,15 @@ class FaultInjector : public MatchFinder::MatchCallback {
         Range location;
         bool left;
     };
+
     FaultInjector *createMatchHandler(std::string binding);
+  protected:
     FaultInjector();
+  public:
     ~FaultInjector();
     FaultInjector(const FaultInjector &that) = delete;
+
+    static std::unique_ptr<FaultInjector> create(const std::string &name);
 
     virtual void run(const MatchFinder::MatchResult &Result);
     template <typename SD>
@@ -175,7 +190,7 @@ class FaultInjector : public MatchFinder::MatchCallback {
     /// \return True if the rewriting was successful.
     virtual bool inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) = 0;
     /// Generate a patch for a single StmtBinding.
-    virtual void generatePatchFile(StmtBinding current, ASTContext &Context, GenericRewriter &R, int i = 0);
+    virtual void generatePatchFile(StmtBinding current, ASTContext &Context, GenericRewriter &R);
     // default false
     virtual bool checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context);
     virtual bool checkStmt(const Decl &stmt, std::string binding, ASTContext &Context);
@@ -193,7 +208,7 @@ class FaultInjector : public MatchFinder::MatchCallback {
 
     void setCI(CompilerInstance *CI);
     void setVerbose(bool v);
-    void setDirectory(std::string directory);
+    void setPatchDirectory(std::string directory);
     void setFileName(std::string name);
     void setRootDir(std::string);
     void setFileList(std::vector<std::string> list);
@@ -217,10 +232,10 @@ class FaultInjector : public MatchFinder::MatchCallback {
     static bool comparefunc(StmtBinding st1, StmtBinding st2);
 
     bool verbose;
-    std::string dir;
+    std::string patchDir;
     CompilerInstance *CI;
     std::string fileName;
-    std::string rootDir = "";
+    std::string rootDir;
     std::vector<std::string> fileList;
     std::vector<std::string> bindings;
 };

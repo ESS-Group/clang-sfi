@@ -1,6 +1,8 @@
 #include "FaultInjector.h"
 
 #include <fstream>
+#include <map>
+#include <list>
 
 #include <iterator>
 
@@ -14,13 +16,9 @@ using namespace clang::ast_matchers;
 #define DEBUG_TYPE "clang-sfi-injector"
 using namespace llvm;
 
-void FaultInjector::setRootDir(std::string dir) {
-    rootDir = dir;
-}
-
-void FaultInjector::setFileList(std::vector<std::string> list) {
-    fileList = list;
-}
+/// This global variable keeps a list of patches, which were already dumped in this
+/// (or a previous) run and should not be dumped again.
+static std::map<std::string, std::list<std::string>*> dumpedInjections;
 
 FaultInjector *FaultInjector::createMatchHandler(std::string binding) {
     return this;
@@ -69,6 +67,65 @@ FaultInjector::FaultInjector() {
 FaultInjector::~FaultInjector() {
 }
 
+std::unique_ptr<FaultInjector> FaultInjector::create(const std::string &name) {
+    if (name.compare("MFCInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MFCInjector());
+    } else if (name.compare("MIAInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MIAInjector());
+    } else if (name.compare("SMIAInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new SMIAInjector());
+    } else if (name.compare("MIEBInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MIEBInjector());
+    } else if (name.compare("SMIEBInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new SMIEBInjector());
+    } else if (name.compare("MIESInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MIESInjector());
+    } else if (name.compare("MIFSInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MIFSInjector());
+    } else if (name.compare("SMIFSInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new SMIFSInjector());
+    } else if (name.compare("MLACInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MLACInjector());
+    } else if (name.compare("MLOCInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MLOCInjector());
+    } else if (name.compare("MLPAInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MLPAInjector());
+    } else if (name.compare("SMLPAInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new SMLPAInjector());
+    } else if (name.compare("MRSInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MRSInjector());
+    } else if (name.compare("MVAEInjectorSAFE") == 0) {
+        return std::unique_ptr<FaultInjector>(new MVAEInjectorSAFE());
+    } else if (name.compare("MVAEInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MVAEInjector());
+    } else if (name.compare("OMVAEInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new OMVAEInjector());
+    } else if (name.compare("MVAVInjectorSAFE") == 0) {
+        return std::unique_ptr<FaultInjector>(new MVAVInjectorSAFE());
+    } else if (name.compare("MVAVInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MVAVInjector());
+    } else if (name.compare("OMVAVInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new OMVAVInjector());
+    } else if (name.compare("MVIVInjectorSAFE") == 0) {
+        return std::unique_ptr<FaultInjector>(new MVIVInjectorSAFE());
+    } else if (name.compare("MVIVInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new MVIVInjector());
+    } else if (name.compare("WAEPInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new WAEPInjector());
+    } else if (name.compare("WPFVInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new WPFVInjector());
+    } else if (name.compare("WVAVInjectorSAFE") == 0) {
+        return std::unique_ptr<FaultInjector>(new WVAVInjectorSAFE());
+    } else if (name.compare("WVAVInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new WVAVInjector());
+    } else if (name.compare("OWVAVInjector") == 0) {
+        return std::unique_ptr<FaultInjector>(new OWVAVInjector());
+    }
+    assert(true && "Factory not found.");
+    std::cerr << "Factory not found." << std::endl;
+    return NULL;
+}
+
 template<class T>
 void FaultInjector::push(std::string binding, const T &stmtOrDecl, bool left) {
     StmtBinding sb(binding, stmtOrDecl, left);
@@ -90,16 +147,25 @@ void FaultInjector::matchAST(ASTContext &Context) {
 void FaultInjector::setFileName(std::string name) {
     fileName = std::string(name);
 }
-
 void FaultInjector::setCI(CompilerInstance *CI) {
     this->CI = CI;
 }
-
+void FaultInjector::setVerbose(bool v) {
+    verbose = v;
+}
+void FaultInjector::setPatchDirectory(std::string directory) {
+    patchDir = directory;
+}
+void FaultInjector::setRootDir(std::string dir) {
+    rootDir = dir;
+}
+void FaultInjector::setFileList(std::vector<std::string> list) {
+    fileList = list;
+}
 void FaultInjector::setMatchMacro(bool match) {
     matchMacroDefinition = match;
     matchMacroExpansion = match;
 }
-
 void FaultInjector::setMatchMacro(bool matchDef, bool matchExp) {
     matchMacroDefinition = matchDef;
     matchMacroExpansion = matchExp;
@@ -272,7 +338,7 @@ void getLines(std::string str, std::vector<std::string> &lines) {
     }
 }
 
-void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, GenericRewriter &R, int i) {
+void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     LLVM_DEBUG(dbgs() << "Entering generatePatchFile\n");
     std::map<clang::FileID, clang::RewriteBuffer>::iterator buffit;
     assert(R.buffer_begin() != R.buffer_end() && "No rewrite buffer found");
@@ -392,7 +458,25 @@ void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, 
                 // diff.print();
             }
 
-            std::string name = (dir.compare("") ? dir + "/" : "") + toString() + "_" + std::to_string(i) + ".patch";
+            // Check if this patch has already been dumped into a file.
+            // If not, continue, but add it to the global variable.
+            auto filtered = dumpedInjections.find(this->toString());
+            if (filtered == dumpedInjections.end()) {
+                auto empty = new std::list<std::string>();
+                dumpedInjections[this->toString()] = empty;
+                filtered = dumpedInjections.find(this->toString());
+            }
+            auto injected = filtered->second;
+            auto duplicate = std::find(injected->begin(), injected->end(), data.str());
+            if (duplicate != injected->end()) {
+                LLVM_DEBUG(dbgs() << "This is a duplicate\n");
+                continue;
+            }
+            injected->push_front(data.str());
+
+            auto i = injected->size() - 1;
+
+            std::string name = (patchDir.compare("") ? patchDir + "/" : "") + toString() + "_" + std::to_string(i) + ".patch";
             LLVM_DEBUG(dbgs() << "New Patch File: " << name << "\n");
             if (verbose) {
                 std::cerr << "New Patch File: " << name << std::endl;
@@ -416,19 +500,11 @@ void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, 
     }
 }
 
-void FaultInjector::setVerbose(bool v) {
-    verbose = v;
-}
-
-void FaultInjector::setDirectory(std::string directory) {
-    dir = directory;
-}
 void FaultInjector::inject(std::vector<StmtBinding> target, ASTContext &Context) {
     int i = 0;
-
     for (StmtBinding current : target) {
         if (verbose) {
-            printStep(current, Context.getSourceManager(), Context.getLangOpts(), i, target.size());
+            printStep(current, Context.getSourceManager(), Context.getLangOpts(), i++, target.size());
         }
         LLVM_DEBUG(dbgs() << "Trying injection\n");
         GenericRewriter R;
@@ -438,7 +514,7 @@ void FaultInjector::inject(std::vector<StmtBinding> target, ASTContext &Context)
         R.setRootDir(rootDir);
         R.setFileList(fileList);
         if (inject(current, Context, R)) {
-            generatePatchFile(current, Context, R, i++);
+            generatePatchFile(current, Context, R);
         } else {
             if (verbose) {
                 std::cout << "will not inject\n";

@@ -11,7 +11,7 @@ source ../init.sh
 OUTPUT_FILE=$BUILD_DIR/output.txt
 REFERENCE_FILE=$SOURCE_DIR/reference.txt
 
-$EXECUTABLE $SOURCE_DIR/source.cpp --config=$SOURCE_DIR/config.json --dir=$BUILD_DIR/injections -p ../../build > $OUTPUT_FILE
+$EXECUTABLE $SOURCE_DIR/source.cpp --config=$SOURCE_DIR/config.json --patchdir=$BUILD_DIR/injections -p ../../build > $OUTPUT_FILE
 
 AWK_OUTPUT="$(awk 'BEGIN {cnt=0}; {if(/Should not be removed/) {cnt+=1;}}; END {print cnt;}' injections/*)"
 AWK_OUTPUT_TRIMMED="$(echo -e "${AWK_OUTPUT}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
