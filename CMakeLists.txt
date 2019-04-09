@@ -66,7 +66,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	target_link_libraries(${PROJECT_NAME} PRIVATE stdc++fs)
 endif()
 # And sometimes it is not available...
-include_directories(${PROJECT_NAME} PRIVATE src/libs/filesystem/include/)
+include_directories(${PROJECT_NAME} src/libs/filesystem/include/)
 
 ###
 # Link clang libraries
