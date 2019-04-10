@@ -1,8 +1,17 @@
 set(PROJECT_TEST_NAME ${PROJECT_NAME}_integrationtests)
 
-add_custom_target(check ${CMAKE_COMMAND} -E env CTEST_OUTPUT_ON_FAILURE=1
-        ${CMAKE_CTEST_COMMAND} --output-on-failure
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+add_custom_target(
+    check ${CMAKE_COMMAND} -E env CTEST_OUTPUT_ON_FAILURE=1
+    ${CMAKE_CTEST_COMMAND} --output-on-failure
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    DEPENDS check_clean
+)
+
+add_custom_target(
+    check_clean
+    rm -Rf */injections */output*
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/integrationtests
+)
 
 MACRO(SUBDIRLIST result curdir)
     FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
