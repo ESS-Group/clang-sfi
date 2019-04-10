@@ -235,9 +235,18 @@ bool GenericRewriter::isFunctionLikeMacroWithoutArguments(SourceRange range) {
 bool GenericRewriter::rangeIsFreeOfMacroExpansions(SourceRange range) {
     Preprocessor &PP = CI->getPreprocessor();
     PreprocessingRecord *PC = PP.getPreprocessingRecord();
-    auto pprecordsInRange = PC->getPreprocessedEntitiesInRange(range);
-    // If the list is empty, there are no expansions in the range.
-    return !range.getBegin().isMacroID() && pprecordsInRange.begin() == pprecordsInRange.end();
+    if (getSourceMgr().isBeforeInTranslationUnit(range.getEnd(), range.getBegin())) {
+        // This can happen if one of the locations is a macro at the beginning of the file.
+        SourceRange inverseRange(range.getEnd(), range.getBegin());
+        auto pprecordsInRange = PC->getPreprocessedEntitiesInRange(inverseRange);
+        // If the list is empty, there are no expansions in the range.
+        return !range.getBegin().isMacroID() && pprecordsInRange.begin() == pprecordsInRange.end();
+    } else {
+        auto pprecordsInRange = PC->getPreprocessedEntitiesInRange(range);
+        // If the list is empty, there are no expansions in the range.
+        return !range.getBegin().isMacroID() && pprecordsInRange.begin() == pprecordsInRange.end();
+    }
+
 }
 
 bool GenericRewriter::considerFile(SourceLocation loc) {
