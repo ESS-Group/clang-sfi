@@ -383,21 +383,18 @@ bool isLocal(const Decl *decl, ASTContext &Context) {
     return isLocal(getParentOfType<DeclStmt>(decl, Context), Context);
 }
 
-bool isParentOf(const Stmt *parent, const Stmt &stmt) {
+bool isParentOf(const Stmt *parent, const Stmt &stmt, ASTContext &Context) {
     if (parent == NULL) {
         return false;
     }
 
-    return isParentOf(*parent, stmt);
+    return isParentOf(*parent, stmt, Context);
 }
 
-bool isParentOf(const Stmt &parent, const Stmt &stmt) {
-    for (Stmt::child_iterator i = cast_away_const(parent.child_begin()), e = cast_away_const(parent.child_end());
-         i != e; ++i) {
-        if (cast<const Stmt>(*i) == &stmt) {
-            return true;
-        }
-        if (isParentOf(**i, stmt)) {
+bool isParentOf(const Stmt &parent, const Stmt &stmt, ASTContext &Context) {
+    ASTContext::DynTypedNodeList list = Context.getParents(stmt);
+    for (auto p : list) {
+        if (std::addressof(stmt) == p.get<Stmt>()) {
             return true;
         }
     }
@@ -409,7 +406,7 @@ bool isParentOf(const Stmt *parent, const Decl &decl, ASTContext &Context) {
     if (stmt == NULL) {
         return false;
     }
-    return isParentOf(parent, *stmt);
+    return isParentOf(parent, *stmt, Context);
 }
 
 bool isParentOf(const Stmt &parent, const Decl &decl, ASTContext &Context) {
@@ -417,7 +414,7 @@ bool isParentOf(const Stmt &parent, const Decl &decl, ASTContext &Context) {
     if (stmt == NULL) {
         return false;
     }
-    return isParentOf(parent, *stmt);
+    return isParentOf(parent, *stmt, Context);
 }
 
 bool isInitializedBefore(const DeclRefExpr &ref, ASTContext &Context) {
@@ -526,7 +523,7 @@ bool isVisible(const Decl &decl, const Stmt &position, ASTContext &Context) {
             return false;
         }
 
-        if (isParentOf(*parent, position) && decl.getEndLoc() < position.getBeginLoc()) {
+        if (isParentOf(*parent, position, Context) && decl.getEndLoc() < position.getBeginLoc()) {
             return true;
         }
     }

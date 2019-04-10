@@ -114,9 +114,9 @@ bool hasChildOfType(const Stmt *stmt) {
     return false;
 }
 
-bool isParentOf(const Stmt *parent, const Stmt &stmt);
+bool isParentOf(const Stmt *parent, const Stmt &stmt, ASTContext &Context);
 
-bool isParentOf(const Stmt &parent, const Stmt &stmt);
+bool isParentOf(const Stmt &parent, const Stmt &stmt, ASTContext &Context);
 
 bool isParentOf(const Stmt *parent, const Decl &decl, ASTContext &Context);
 

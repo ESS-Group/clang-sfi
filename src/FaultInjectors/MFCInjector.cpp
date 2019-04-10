@@ -129,8 +129,8 @@ bool MFCInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &C
             for (const Stmt *stmt : stmts) {
                 const BinaryOperator *op = getParentOfType<BinaryOperator>(stmt, Context);
                 if (op) {
-                    bool left = op->getLHS() == stmt || isParentOf(op->getLHS(), *stmt);
-                    if (left || op->getRHS() == stmt || isParentOf(op->getRHS(), *stmt)) {
+                    bool left = op->getLHS() == stmt || isParentOf(op->getLHS(), *stmt, Context);
+                    if (left || op->getRHS() == stmt || isParentOf(op->getRHS(), *stmt, Context)) {
                         assert(op != NULL);
                         nodeCallback("CommaOperator", *op, left);
                     }

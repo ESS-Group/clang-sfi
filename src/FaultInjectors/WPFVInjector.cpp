@@ -103,7 +103,7 @@ bool WPFVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
             fkt = getParentFunctionDecl(parent, Context);
         }
         if (fkt == NULL) {
-            const FunctionDecl *_fkt = cast<FunctionDecl>(declContext->getNonClosureAncestor());
+            const FunctionDecl *_fkt = dyn_cast_or_null<FunctionDecl>(declContext->getNonClosureAncestor());
             if (_fkt != NULL) {
                 int paramCount = _fkt->getNumParams();
 
