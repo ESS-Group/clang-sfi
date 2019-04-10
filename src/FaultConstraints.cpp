@@ -3,6 +3,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "clang/ASTMatchers/ASTMatchers.h"
+#include "utils.h"
 
 #include "llvm/Support/Debug.h"
 #define DEBUG_TYPE "clang-sfi-constraints"
@@ -96,23 +97,12 @@ const Stmt *getParentIgnoringImplicit(const Stmt &stmt, ASTContext &Context) {
     return NULL;
 }
 
-const SwitchStmt *getParentSwitchStmt(const SwitchCase &sc, ASTContext &Context) {
-    const Stmt *parent = getParentIgnoringImplicit(sc, Context);
-    if (parent == NULL) {
-        return NULL;
-    } else if (isa<SwitchStmt>(parent)) {
-        return cast<SwitchStmt>(parent);
-    } else { // if(isa<SwitchCase>(parent)) {
-        return getParentSwitchStmt(*cast<SwitchCase>(parent), Context);
-    }
-}
-
 CaseChilds getCaseChilds(const SwitchCase &sc, ASTContext &Context) {
     CaseChilds ret;
     ret.endWithBreak = false;
-    const Stmt *begin = &sc;
+    const Stmt *begin = std::addressof(sc);
 
-    const SwitchStmt *switchStmt = getParentSwitchStmt(sc, Context);
+    const SwitchStmt *switchStmt = getParentOfType<SwitchStmt>(std::addressof(sc), Context, -1);
     if (switchStmt != NULL) {
         const Stmt *body = switchStmt->getBody();
         if (body == NULL) {
