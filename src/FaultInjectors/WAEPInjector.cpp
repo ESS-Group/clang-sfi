@@ -26,7 +26,7 @@ WAEPInjector::WAEPInjector() { // Wrong arithmetic expressino in parameter of fu
 // clang-format on
 
 bool WAEPInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
-    if (current.binding.compare("functionCall")) {
+    if (current.binding.compare("functionCall") == 0) {
         SourceLocation start, end;
 
         start = cast<const BinaryOperator>(current.stmt)->getOperatorLoc();

@@ -11,7 +11,7 @@ MRSInjector::MRSInjector() { // Missing if construct plus statements plus else
 }
 
 bool MRSInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
-    if (current.binding.compare("returnStmt")) {
+    if (current.binding.compare("returnStmt") == 0) {
         const Stmt *stmt = current.stmt;
 
         SourceLocation start = stmt->getBeginLoc(), end = stmt->getEndLoc();

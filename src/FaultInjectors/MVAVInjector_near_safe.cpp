@@ -10,7 +10,7 @@ MVAVInjectorSAFE::MVAVInjectorSAFE(bool alsoOverwritten) { // Missing variable a
 }
 
 bool MVAVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
-    if (current.binding.compare("varDecl")) {
+    if (current.binding.compare("varDecl") == 0) {
         SourceLocation start = current.stmt->getBeginLoc(), end = current.stmt->getEndLoc();
         SourceRange range(start, end);
         LLVM_DEBUG(dbgs() << "MVAV-safe: Removed range for varDecl"

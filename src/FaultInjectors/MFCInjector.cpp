@@ -54,7 +54,7 @@ bool MFCInjector::inject(StmtBinding current, ASTContext &Context, GenericRewrit
                           << range.getBegin().printToString(R.getSourceMgr()) << "\n"
                           << range.getEnd().printToString(R.getSourceMgr()) << "\n");
         return R.RemoveText(range);
-    } else if (current.binding.compare("CommaOperator") == 0) { // totest
+    } else if (current.binding.compare("CommaOperator") == 0) {
         SourceLocation start, end;
         if (current.left) {
             start = cast<const BinaryOperator>(current.stmt)->getLHS()->getBeginLoc();
