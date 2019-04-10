@@ -98,7 +98,7 @@ bool WPFVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
         const DeclContext *declContext = arg->getDeclContext();
         int varcount = 0;
         auto parent = getParentOfType<DeclStmt>(arg, Context);
-        const FunctionDecl *fkt;
+        const FunctionDecl *fkt = NULL;
         if (parent != NULL) {
             fkt = getParentFunctionDecl(parent, Context);
         }

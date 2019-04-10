@@ -41,7 +41,6 @@ bool MVIVInjectorSAFE::inject(StmtBinding current, ASTContext &Context, GenericR
         return R.RemoveText(range);
     } else {
         const VarDecl *vardecl = cast<VarDecl>(current.decl);
-        const DeclStmt *declstmt = getParentOfType<DeclStmt>(current.decl, Context, 3);
         SourceLocation start = vardecl->getLocation().getLocWithOffset(vardecl->getNameAsString().length()),
                        end = vardecl->getInit()->getEndLoc();
         SourceRange range(start, end);

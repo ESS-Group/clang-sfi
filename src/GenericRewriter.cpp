@@ -143,7 +143,6 @@ bool GenericRewriter::containsMacroExpansion(SourceRange range) {
 
 bool GenericRewriter::startAndEndArePartOfTheSameExpansion(SourceRange range) {
     SourceManager &SM = getSourceMgr();
-    Preprocessor &PP = CI->getPreprocessor();
     auto fileID1 = SM.getFileID(range.getBegin());
     auto fileID2 = SM.getFileID(range.getEnd());
     if (fileID1.isInvalid() || fileID2.isInvalid()) {
@@ -167,7 +166,6 @@ bool GenericRewriter::isCompletelyPartOfOneMacroExpansion(SourceRange range) {
     if (!startAndEndArePartOfTheSameExpansion(range)) {
         return false;
     }
-    SourceManager &SM = getSourceMgr();
     Preprocessor &PP = CI->getPreprocessor();
     PreprocessingRecord *PC = PP.getPreprocessingRecord();
     auto pprecordsInRange = PC->getPreprocessedEntitiesInRange(range);
@@ -235,7 +233,6 @@ bool GenericRewriter::isFunctionLikeMacroWithoutArguments(SourceRange range) {
 }
 
 bool GenericRewriter::rangeIsFreeOfMacroExpansions(SourceRange range) {
-    SourceManager &SM = getSourceMgr();
     Preprocessor &PP = CI->getPreprocessor();
     PreprocessingRecord *PC = PP.getPreprocessingRecord();
     auto pprecordsInRange = PC->getPreprocessedEntitiesInRange(range);

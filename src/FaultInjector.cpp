@@ -326,7 +326,7 @@ class Diff {
     std::string name;
     std::string dir;
     std::string diff;
-    Diff(std::string name, std::string dir, std::string diff) : diff(diff), dir(dir), name(name) {
+    Diff(std::string name, std::string dir, std::string diff) : name(name), dir(dir), diff(diff) {
     }
 };
 
