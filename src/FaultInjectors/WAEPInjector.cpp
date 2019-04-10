@@ -54,7 +54,7 @@ bool WAEPInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
         for (const BinaryOperator *op : arguments) {
             assert(op != NULL);
             if (isArithmetic(*op)) {
-                const BinaryOperator rightest = getBinaryOperatorWithRightedtRHS(*op);
+                const BinaryOperator &rightest = getBinaryOperatorWithRightedtRHS(*op);
                 nodeCallback(binding, rightest);
             }
         }
