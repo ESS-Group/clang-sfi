@@ -61,16 +61,16 @@ bool MLOCInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
         const Expr *condition = cast<IfStmt>(stmt).getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(*condition);
     } else if (binding.compare("do") == 0) {
-        const Stmt *condition = cast<IfStmt>(stmt).getCond();
+        const Stmt *condition = cast<DoStmt>(stmt).getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(*condition);
     } else if (binding.compare("switch") == 0) {
-        const Stmt *condition = cast<IfStmt>(stmt).getCond();
+        const Stmt *condition = cast<SwitchStmt>(stmt).getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(*condition);
     } else if (binding.compare("while") == 0) {
-        const Stmt *condition = cast<IfStmt>(stmt).getCond();
+        const Stmt *condition = cast<WhileStmt>(stmt).getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(*condition);
     } else if (binding.compare("for") == 0) {
-        const Stmt *condition = cast<IfStmt>(stmt).getCond();
+        const Stmt *condition = cast<ForStmt>(stmt).getCond();
         binaryOperators = getChildrenOfType<BinaryOperator>(*condition);
     } else {
         assert(false && "Unknown binding in MLOC injector");
