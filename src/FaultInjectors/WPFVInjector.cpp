@@ -94,7 +94,7 @@ bool WPFVInjector::inject(StmtBinding current, ASTContext &Context, GenericRewri
 
 bool WPFVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &Context) {
     for (auto i : getArgumentsOfType<DeclRefExpr>(cast<CallExpr>(&stmt))) {
-        const VarDecl *arg = cast<VarDecl>(i->getDecl());
+        const ValueDecl *arg = cast<ValueDecl>(i->getDecl());
         const DeclContext *declContext = arg->getDeclContext();
         int varcount = 0;
         auto parent = getParentOfType<DeclStmt>(arg, Context);
