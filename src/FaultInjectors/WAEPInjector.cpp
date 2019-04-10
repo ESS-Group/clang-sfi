@@ -6,7 +6,7 @@ std::string WAEPInjector::toString() {
 };
 
 // clang-format off
-WAEPInjector::WAEPInjector() { // Wrong arithmetic expressino in parameter of function call
+WAEPInjector::WAEPInjector() { // Wrong arithmetic expression in parameter of function call
     Matcher.addMatcher(
         callExpr(
             allOf(
@@ -27,6 +27,10 @@ WAEPInjector::WAEPInjector() { // Wrong arithmetic expressino in parameter of fu
 
 bool WAEPInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("functionCall") == 0) {
+        if (!isa<BinaryOperator>(current.stmt)) {
+            // If it is no binaryOperator, we do not have an expression to modify.
+            return false;
+        }
         SourceLocation start, end;
 
         start = cast<const BinaryOperator>(current.stmt)->getOperatorLoc();
