@@ -67,12 +67,15 @@ std::vector<const BinaryOperator *> getChildForFindVarAssignment(const Stmt *par
 template <class T, class SD>
 const T *getParentOfType(const SD *stmt, ASTContext &Context, int maxDepth = 3) { // MaxDepth = -1 for to the root
     if (stmt != NULL && maxDepth != 0) {
+        int i = 0;
         ASTContext::DynTypedNodeList list = Context.getParents(*stmt);
         for (auto p : list) {
             if (auto ret = dyn_cast_or_null<T>(p.get<Stmt>())) {
                 return ret;
-            } else {
-                return getParentOfType<T>(p.get<T>(), Context, maxDepth - 1);
+            }
+            i++;
+            if (maxDepth != 1 && i > maxDepth) {
+                return NULL;
             }
         }
     }
