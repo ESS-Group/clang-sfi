@@ -405,15 +405,11 @@ void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, 
                                         // more efficient this way because already calculated before.
                             unified << "@@ -" << hunk.a + prefixpadding;
                             int b = hunk.b - postfixpadding - prefixpadding;
-                            if (b > 1) { // if hunk.b==1 ',1' is optional
-                                unified << "," << b;
-                            }
+                            unified << "," << b;
                             unified << " +" << hunk.c + prefixpadding;
 
                             int d = hunk.d - postfixpadding - prefixpadding;
-                            if (d > 1) { // if hunk.d==1 ',1' is optional
-                                unified << "," << d;
-                            }
+                            unified << "," << d;
                             unified << " @@" << std::endl;
 
                             int iCurr = -1;
