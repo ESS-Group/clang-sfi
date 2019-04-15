@@ -9,8 +9,7 @@ std::string MVAEInjectorSAFE::toString() {
 MVAEInjectorSAFE::MVAEInjectorSAFE() { // Missing variable assignment using an expression
     Matcher.addMatcher(
             varDecl(
-                //commented to include global assignments
-                    hasAncestor(compoundStmt())
+                hasAncestor(compoundStmt())
             ).bind("varDecl"), createMatchHandler("varDecl"));
 }
 // clang-format on

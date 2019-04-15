@@ -30,7 +30,7 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten) { // Missing variable assignmen
                                         ))    
                                     )),
                                     
-                                    //assignment to one time dereferred local pointer
+                                    //assignment to one time dereferenced local pointer
                                     ignoringParenCasts(ignoringImplicit(
                                             unaryOperator(allOf(
                                                 hasOperatorName("*"),
@@ -38,7 +38,7 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten) { // Missing variable assignmen
                                         ))
                                     )),
 
-                                    //assignment to one time dereferred pointer, which is member of a local object
+                                    //assignment to one time dereferenced pointer, which is member of a local object
                                     ignoringParenCasts(ignoringImplicit(
                                             unaryOperator(allOf(
                                                 hasOperatorName("*"),
@@ -49,7 +49,7 @@ MVAEInjector::MVAEInjector(bool alsoOverwritten) { // Missing variable assignmen
                             )
                         ),
                         hasRHS(
-                            anyOf(//assure right side is an expressions
+                            anyOf(//assure right side is an expression
                                 ignoringParenCasts(ignoringImplicit(callExpr())),
                                 ignoringParenCasts(ignoringImplicit(cxxNewExpr())),
                                 ignoringParenCasts(ignoringImplicit(binaryOperator())),

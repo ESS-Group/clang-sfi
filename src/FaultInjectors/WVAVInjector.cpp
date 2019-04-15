@@ -30,14 +30,14 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten) { // Wrong value assigned to va
                                         ))    
                                     )),
                                     
-                                    ignoringParenCasts(ignoringImplicit(//assignment to one time dereferred local pointer
+                                    ignoringParenCasts(ignoringImplicit(//assignment to one time dereferenced local pointer
                                             unaryOperator(allOf(
                                                 hasOperatorName("*"),
                                                 hasUnaryOperand(ignoringParenCasts(ignoringImplicit(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))))
                                         ))
                                     )),
                                     
-                                    ignoringParenCasts(ignoringImplicit(//assignment to one time dereferred pointer, which is member of a local object
+                                    ignoringParenCasts(ignoringImplicit(//assignment to one time dereferenced pointer, which is member of a local object
                                             unaryOperator(allOf(
                                                 hasOperatorName("*"),
                                                 hasUnaryOperand(ignoringParenCasts(ignoringImplicit(memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))))))
@@ -60,7 +60,6 @@ WVAVInjector::WVAVInjector(bool alsoOverwritten) { // Wrong value assigned to va
                             )
                         ))
                     )
-                    // hasAncestor(compoundStmt())
             ).bind("assignment"), createMatchHandler("assignment"));
 
         if(alsoOverwritten) { // overwritten assignmentoperator call, rest like above

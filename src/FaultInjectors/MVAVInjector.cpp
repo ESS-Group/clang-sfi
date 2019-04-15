@@ -30,14 +30,14 @@ MVAVInjector::MVAVInjector(bool alsoOverwritten) { // Missing variable assignmen
                                         ))    
                                     )),
                                     
-                                    ignoringParenCasts(ignoringImplicit(//assignment to one time dereferred local pointer
+                                    ignoringParenCasts(ignoringImplicit(//assignment to one time dereferenced local pointer
                                             unaryOperator(allOf(
                                                 hasOperatorName("*"),
                                                 hasUnaryOperand(ignoringParenCasts(ignoringImplicit(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))))
                                         ))
                                     )),
                                     
-                                    ignoringParenCasts(ignoringImplicit(//assignment to one time dereferred pointer, which is member of a local object
+                                    ignoringParenCasts(ignoringImplicit(//assignment to one time dereferenced pointer, which is member of a local object
                                             unaryOperator(allOf(
                                                 hasOperatorName("*"),
                                                 hasUnaryOperand(ignoringParenCasts(ignoringImplicit(memberExpr(hasObjectExpression(declRefExpr(to(varDecl(hasDeclContext(functionDecl())))))))))
