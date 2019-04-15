@@ -39,6 +39,8 @@ static llvm::cl::opt<std::string> RootDirectoryOption(
                    "files in the directory that are referenced from main source file."));
 static llvm::cl::opt<std::string> ConfigOption("config", llvm::cl::cat(oCategory),
                                                llvm::cl::desc("Specify an optional configuration file"));
+static llvm::cl::list<std::string> InjectorList("injectors", llvm::cl::cat(oCategory),
+                                         llvm::cl::desc("Comma-separated list of injectors which should be applied. Leave empty for all (default)"), cl::CommaSeparated);
 
 /// Factory to create SFIFrontendAction needed to submit parameters to FrontendActions constructor.
 std::unique_ptr<FrontendActionFactory>
@@ -149,15 +151,25 @@ int main(int argc, const char **argv) {
                     }
                 }
             }
-        } else {
-            LLVM_DEBUG(dbgs() << "Adding all injectors\n");
-            for (auto injector : available) {
-                LLVM_DEBUG(dbgs() << "Adding " << injector << "\n");
-                injectors.push_back(injector + "Injector");
-            }
         }
-    } else {
-        // no config file => add all available injectors
+    }
+    if (InjectorList.size() > 0) {
+        if (injectors.empty()) {
+            for (int i = 0; i < InjectorList.size(); i++) {
+                for (auto injector : available) {
+                    if (injector.compare(InjectorList[i]) == 0) {
+                        LLVM_DEBUG(dbgs() << "Adding " << injector << "\n");
+                        injectors.push_back(injector + "Injector");
+                        break;
+                    }
+                }
+            }
+        } else {
+            std::cout << "A list of injectors was passed as CMD option, but we used the config file" << std::endl;
+        }
+    }
+    if (injectors.empty()) {
+        // no config file nor cmd option => add all available injectors
         LLVM_DEBUG(dbgs() << "Adding all injectors\n");
 
         for (auto injector : available) {
