@@ -183,7 +183,7 @@ bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, GenericRewri
                           << range.getEnd().printToString(R.getSourceMgr()) << " with "
                           << "(" + type.getAsString() + ")" + text + "^0xFF"
                           << "\n");
-        return R.ReplaceText(range, "(" + type.getAsString() + ")" + text + "^0xFF");
+        return R.ReplaceText(range, "(" + type.getAsString() + ")(" + text + "^0xFF)");
     }
 
     return false;
