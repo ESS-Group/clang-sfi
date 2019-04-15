@@ -7,8 +7,7 @@ std::string MRSInjector::toString() {
     return "MRS";
 };
 
-MRSInjector::MRSInjector() { // Missing if construct plus statements plus else
-                             // plus statements
+MRSInjector::MRSInjector() { // Missing return statement
     Matcher.addMatcher(returnStmt().bind("returnStmt"), createMatchHandler("returnStmt"));
 }
 
