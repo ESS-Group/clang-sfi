@@ -1,4 +1,6 @@
 #include "_all.h"
+#include "clang/Lex/Lexer.h"
+
 #define DEBUG_TYPE "clang-sfi-injector-mrs"
 
 std::string MRSInjector::toString() {
@@ -13,6 +15,16 @@ MRSInjector::MRSInjector() { // Missing if construct plus statements plus else
 bool MRSInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {
     if (current.binding.compare("returnStmt") == 0) {
         const Stmt *stmt = current.stmt;
+        LLVM_DEBUG(dbgs() << "MRS: matched statement\n");
+
+        Token TheTok;
+        if (Lexer::getRawToken(stmt->getBeginLoc(), TheTok, Context.getSourceManager(), Context.getLangOpts())) {
+            LLVM_DEBUG(dbgs() << "getRawToken failed\n");
+            return false;
+        } else if (TheTok.getRawIdentifier().compare("return") != 0) {
+            LLVM_DEBUG(dbgs() << TheTok.getName() << " does not look like an explicit return stmt; we do not care\n");
+            return false;
+        }
 
         SourceLocation start = stmt->getBeginLoc(), end = stmt->getEndLoc();
         SourceRange range(start, end);
