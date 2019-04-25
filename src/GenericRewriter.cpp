@@ -240,13 +240,12 @@ bool GenericRewriter::rangeIsFreeOfMacroExpansions(SourceRange range) {
         SourceRange inverseRange(range.getEnd(), range.getBegin());
         auto pprecordsInRange = PC->getPreprocessedEntitiesInRange(inverseRange);
         // If the list is empty, there are no expansions in the range.
-        return !range.getBegin().isMacroID() && pprecordsInRange.begin() == pprecordsInRange.end();
+        return !range.getBegin().isMacroID() && !range.getEnd().isMacroID() && pprecordsInRange.begin() == pprecordsInRange.end();
     } else {
         auto pprecordsInRange = PC->getPreprocessedEntitiesInRange(range);
         // If the list is empty, there are no expansions in the range.
-        return !range.getBegin().isMacroID() && pprecordsInRange.begin() == pprecordsInRange.end();
+        return !range.getBegin().isMacroID() && !range.getEnd().isMacroID() && pprecordsInRange.begin() == pprecordsInRange.end();
     }
-
 }
 
 bool GenericRewriter::considerFile(SourceLocation loc) {
