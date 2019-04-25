@@ -140,8 +140,6 @@ bool MVAEInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
             return false;
         }
         if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
-            assert(forstmt->getCond() != NULL);
-            assert(forstmt->getInc() != NULL);
             if (isParentOf(forstmt->getCond(), stmt, Context) || isParentOf(forstmt->getInc(), stmt, Context)) {
                 return false;
             }
@@ -149,8 +147,6 @@ bool MVAEInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
         return true;
     }
     if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
-        assert(forstmt->getCond() != NULL);
-        assert(forstmt->getInc() != NULL);
         return !isParentOf(forstmt->getCond(), stmt, Context) && !isParentOf(forstmt->getInc(), stmt, Context) && C2(stmt, Context);
     } else {
         return (C2(stmt, Context));
