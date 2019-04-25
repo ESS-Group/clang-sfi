@@ -118,8 +118,8 @@ bool WPFVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
                 }
 
                 for (DeclContext::decl_iterator it = _fkt->decls_begin(), e = _fkt->decls_end(); it != e; ++it) {
-                    const VarDecl *vardecl = cast<VarDecl>(*it);
-                    if (vardecl != arg &&
+                    const VarDecl *vardecl = dyn_cast_or_null<VarDecl>(*it);
+                    if (vardecl != NULL && vardecl != arg &&
                         vardecl->getType().getNonReferenceType().getDesugaredType(Context) ==
                             arg->getType().getNonReferenceType().getDesugaredType(Context)) {
                         assert(vardecl != NULL);
@@ -147,8 +147,8 @@ bool WPFVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
             }
 
             for (DeclContext::decl_iterator it = fkt->decls_begin(), e = fkt->decls_end(); it != e; ++it) {
-                const VarDecl *vardecl = cast<VarDecl>(*it);
-                if (vardecl != arg &&
+                const VarDecl *vardecl = dyn_cast_or_null<VarDecl>(*it);
+                if (vardecl != NULL && vardecl != arg &&
                     vardecl->getType().getNonReferenceType().getDesugaredType(Context) ==
                         arg->getType().getNonReferenceType().getDesugaredType(Context)) {
                     assert(vardecl != NULL);
