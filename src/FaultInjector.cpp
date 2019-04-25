@@ -3,6 +3,7 @@
 #include <fstream>
 #include <map>
 #include <list>
+#include <functional>
 
 #include <iterator>
 
@@ -18,7 +19,7 @@ using namespace llvm;
 
 /// This global variable keeps a list of patches, which were already dumped in this
 /// (or a previous) run and should not be dumped again.
-static std::map<std::string, std::list<std::string>*> dumpedInjections;
+static std::map<std::string, std::list<std::size_t>*> dumpedInjections;
 
 FaultInjector *FaultInjector::createMatchHandler(std::string binding) {
     return this;
@@ -458,17 +459,18 @@ void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, 
             // If not, continue, but add it to the global variable.
             auto filtered = dumpedInjections.find(this->toString());
             if (filtered == dumpedInjections.end()) {
-                auto empty = new std::list<std::string>();
+                auto empty = new std::list<std::size_t>();
                 dumpedInjections[this->toString()] = empty;
                 filtered = dumpedInjections.find(this->toString());
             }
             auto injected = filtered->second;
-            auto duplicate = std::find(injected->begin(), injected->end(), data.str());
+            auto hashedDiff = std::hash<std::string>{}(data.str());
+            auto duplicate = std::find(injected->begin(), injected->end(), hashedDiff);
             if (duplicate != injected->end()) {
                 LLVM_DEBUG(dbgs() << "This is a duplicate\n");
                 continue;
             }
-            injected->push_front(data.str());
+            injected->push_front(hashedDiff);
 
             auto i = injected->size() - 1;
 
