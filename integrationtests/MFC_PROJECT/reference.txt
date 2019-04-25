@@ -1,6 +1,6 @@
-@@ -8 +8 @@
+@@ -8,1 +8,1 @@
 -	removablefunctioncall();
 +	;
-@@ -9 +9 @@
+@@ -9,1 +9,1 @@
 -	removablefunctioncall();
 +	;
