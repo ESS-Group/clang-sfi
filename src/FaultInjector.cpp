@@ -448,8 +448,8 @@ void FaultInjector::generatePatchFile(StmtBinding current, ASTContext &Context, 
             std::stringstream data;
             for (Diff diff : diffs) {
                 // first filename
-                data << "--- " << diff.name << std::endl;
-                data << "+++ " << diff.name << std::endl;
+                data << "--- a/" << diff.name << std::endl;
+                data << "+++ b/" << diff.name << std::endl;
                 // then hunks
                 data << diff.diff;
                 // diff.print();
