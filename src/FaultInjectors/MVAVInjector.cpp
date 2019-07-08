@@ -134,20 +134,11 @@ bool MVAVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
         if (!opCall.isInfixBinaryOp()) {
             return false;
         }
-        if (!C2(stmt, Context)) {
-            return false;
-        }
-        if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
-            if (isParentOf(forstmt->getCond(), stmt, Context) || isParentOf(forstmt->getInc(), stmt, Context) || isParentOf(forstmt->getInit(), stmt, Context)) {
-                return false;
-            }
-        }
-        return true;
     }
     if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
-        return !isParentOf(forstmt->getCond(), stmt, Context) && !isParentOf(forstmt->getInc(), stmt, Context) && !isParentOf(forstmt->getInit(), stmt, Context) && C2(stmt, Context);
+        return !isParentOfOrSelf(forstmt->getCond(), stmt, Context) && !isParentOfOrSelf(forstmt->getInc(), stmt, Context) && !isParentOfOrSelf(forstmt->getInit(), stmt, Context) && C2(stmt, Context);
     } else {
-        return (C2(stmt, Context));
+        return C2(stmt, Context);
     }
 }
 

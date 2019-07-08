@@ -383,6 +383,16 @@ bool isLocal(const Decl *decl, ASTContext &Context) {
     return isLocal(getParentOfType<DeclStmt>(decl, Context), Context);
 }
 
+bool isParentOfOrSelf(const Stmt *parent, const Stmt &stmt, ASTContext &Context) {
+    if (parent == NULL) {
+        return false;
+    } else if (parent == std::addressof(stmt)) {
+        return true;
+    } else {
+        return isParentOf(parent, stmt, Context);
+    }
+}
+
 bool isParentOf(const Stmt *parent, const Stmt &stmt, ASTContext &Context) {
     if (parent == NULL) {
         return false;
