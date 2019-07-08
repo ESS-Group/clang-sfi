@@ -74,7 +74,7 @@ const T *getParentOfType(const SD *stmt, ASTContext &Context, int maxDepth = 3) 
                 return ret;
             }
             i++;
-            if (maxDepth != 1 && i > maxDepth) {
+            if (maxDepth != -1 && i > maxDepth) {
                 return NULL;
             }
         }
