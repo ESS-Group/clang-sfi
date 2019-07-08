@@ -28,9 +28,6 @@ bool isaJumpStmt(const Stmt &stmt, bool returnIsAJump) {
  */
 bool C9(const Stmt *stmt, ASTContext *Context, bool returnIsAJump, int maxNum, bool noDeclStmt) {
     if (stmt == NULL) {
-        /**
-         * @TODO Should it not return false in that case?
-         */
         LLVM_DEBUG(dbgs() << "C9: stmt is NULL\n");
         return true;
     } else if (isa<CompoundStmt>(stmt)) {
