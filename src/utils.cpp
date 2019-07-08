@@ -394,7 +394,7 @@ bool isParentOf(const Stmt *parent, const Stmt &stmt, ASTContext &Context) {
 bool isParentOf(const Stmt &parent, const Stmt &stmt, ASTContext &Context) {
     ASTContext::DynTypedNodeList list = Context.getParents(stmt);
     for (auto p : list) {
-        if (std::addressof(stmt) == p.get<Stmt>()) {
+        if (std::addressof(parent) == p.get<Stmt>()) {
             return true;
         }
     }
