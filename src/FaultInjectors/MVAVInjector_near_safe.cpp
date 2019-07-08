@@ -34,7 +34,7 @@ bool MVAVInjectorSAFE::checkStmt(const Decl &decl, std::string binding, ASTConte
             auto lhs = op->getLHS();
             if (isValueAssignment(op) && isInitializedBefore(cast<const DeclRefExpr>(*lhs), Context)) {
                 if (const ForStmt *forstmt = getParentOfType<ForStmt>(&decl, Context, 3)) {
-                    if (isParentOf(forstmt->getCond(), decl, Context) || isParentOf(forstmt->getInc(), decl, Context)) {
+                    if (isParentOf(forstmt->getCond(), decl, Context) || isParentOf(forstmt->getInc(), decl, Context) || isParentOf(forstmt->getInit(), decl, Context)) {
                     } else {
                         nodeCallback(binding, *op);
                     }

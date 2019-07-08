@@ -123,22 +123,16 @@ bool WVAVInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
         if (!opCall.isInfixBinaryOp()) {
             return false;
         }
-        if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
-            assert(forstmt->getCond() != NULL);
-            assert(forstmt->getInc() != NULL);
-            if (isParentOf(forstmt->getCond(), stmt, Context) || isParentOf(forstmt->getInc(), stmt, Context)) {
-                return false;
-            }
-        }
-        return true;
     }
     if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
         assert(forstmt->getCond() != NULL);
         assert(forstmt->getInc() != NULL);
-        return !isParentOf(forstmt->getCond(), stmt, Context) && !isParentOf(forstmt->getInc(), stmt, Context);
-    } else {
-        return true;
+        assert(forstmt->getInit() != NULL);
+        if (isParentOf(forstmt->getCond(), stmt, Context) || isParentOf(forstmt->getInc(), stmt, Context) || isParentOf(forstmt->getInit(), stmt, Context)) {
+            return false;
+        }
     }
+    return true;
 }
 
 bool WVAVInjector::inject(StmtBinding current, ASTContext &Context, GenericRewriter &R) {

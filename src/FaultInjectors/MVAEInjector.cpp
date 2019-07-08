@@ -140,14 +140,14 @@ bool MVAEInjector::checkStmt(const Stmt &stmt, std::string binding, ASTContext &
             return false;
         }
         if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
-            if (isParentOf(forstmt->getCond(), stmt, Context) || isParentOf(forstmt->getInc(), stmt, Context)) {
+            if (isParentOf(forstmt->getCond(), stmt, Context) || isParentOf(forstmt->getInc(), stmt, Context) || isParentOf(forstmt->getInit(), stmt, Context)) {
                 return false;
             }
         }
         return true;
     }
     if (const ForStmt *forstmt = getParentOfType<ForStmt>(&stmt, Context, 3)) {
-        return !isParentOf(forstmt->getCond(), stmt, Context) && !isParentOf(forstmt->getInc(), stmt, Context) && C2(stmt, Context);
+        return !isParentOf(forstmt->getCond(), stmt, Context) && !isParentOf(forstmt->getInc(), stmt, Context) && !isParentOf(forstmt->getInit(), stmt, Context) && C2(stmt, Context);
     } else {
         return (C2(stmt, Context));
     }
