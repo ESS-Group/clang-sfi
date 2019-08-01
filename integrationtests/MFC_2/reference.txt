@@ -1,3 +1,3 @@
-@@ -11 +11 @@
--	callf();
-+	;
+@@ -1,1 +1,1 @@
+-#define callf() f()
++#define callf() 

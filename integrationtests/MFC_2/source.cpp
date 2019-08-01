@@ -1,4 +1,4 @@
-#define callf f
+#define callf() f()
 
 int f() {
 	return 1;
