@@ -264,18 +264,18 @@ bool GenericRewriter::considerFile(SourceLocation loc) {
         return false;
     }
     SourceManager &SM = getSourceMgr();
+    if (SM.getFilename(loc).empty()) {
+        loc = SM.getSpellingLoc(loc);
+    }
     std::string patchingFileName = SM.getFilename(loc);
     std::string patchingFileNameCan = fs::weakly_canonical(patchingFileName);
     std::string rootDirCan = fs::weakly_canonical(rootDir);
     std::string fileNameCan = fs::weakly_canonical(fileName);
     LLVM_DEBUG(dbgs() << "Checking if " << patchingFileNameCan << " should be considered: ");
-    if (patchingFileName.empty()) {
-        LLVM_DEBUG(dbgs() << "No, empty filename\n");
-        return false;
-    } else if (fs::equivalent(fileName, patchingFileName)) {
+    if (fs::equivalent(fileName, patchingFileName)) {
         LLVM_DEBUG(dbgs() << "Yes, main file\n");
         return true;
-    } else if (rootDir.compare("") != 0 && patchingFileNameCan.find_first_of(rootDirCan, 0) == 0) {
+    } else if (rootDir.compare("") != 0 && patchingFileNameCan.rfind(rootDirCan) == 0) {
         LLVM_DEBUG(dbgs() << "Yes, is in source tree\n");
         return true;
     } else if (fileList.size() != 0) {
