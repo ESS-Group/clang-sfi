@@ -30,7 +30,7 @@ bool GenericRewriter::RemoveText(SourceRange range, RewriteOptions opts) {
         return true;
     }
 
-    if (SM.isInSystemMacro(range.getBegin())) {
+    if (SM.isInSystemMacro(range.getBegin()) || SM.isInSystemMacro(range.getEnd()) || !considerFile(range.getBegin()) || !considerFile(range.getEnd())) {
         LLVM_DEBUG(dbgs() << "It is a system macro, we do not modify it.\n");
         return false;
     }
@@ -67,6 +67,14 @@ bool GenericRewriter::RemoveText(SourceRange range, RewriteOptions opts) {
         remove.setBegin(SM.getSpellingLoc(range.getBegin()));
         remove.setEnd(SM.getSpellingLoc(loc));
     }
+    if (getSourceMgr().isBeforeInTranslationUnit(remove.getEnd(), remove.getBegin())) {
+        SourceLocation tmp = remove.getBegin();
+        remove.setBegin(remove.getEnd());
+        remove.setEnd(tmp);
+    }
+    LLVM_DEBUG(dbgs() << "Range to be removed:\n"
+        << remove.getBegin().printToString(getSourceMgr()) << "\n"
+        << remove.getEnd().printToString(getSourceMgr()) << "\n");
     if (!considerFile(remove.getBegin()) || !considerFile(remove.getEnd())) {
         LLVM_DEBUG(dbgs() << "File should not be considered.\n");
         return false;
@@ -97,7 +105,7 @@ bool GenericRewriter::ReplaceText(SourceRange range, StringRef NewStr) {
         return true;
     }
 
-    if (SM.isInSystemMacro(range.getBegin())) {
+    if (SM.isInSystemMacro(range.getBegin()) || SM.isInSystemMacro(range.getEnd()) || !considerFile(range.getBegin()) || !considerFile(range.getEnd())) {
         LLVM_DEBUG(dbgs() << "It is a system macro, we do not modify it.\n");
         return false;
     }
@@ -134,6 +142,14 @@ bool GenericRewriter::ReplaceText(SourceRange range, StringRef NewStr) {
         remove.setBegin(SM.getSpellingLoc(range.getBegin()));
         remove.setEnd(SM.getSpellingLoc(loc));
     }
+    if (getSourceMgr().isBeforeInTranslationUnit(remove.getEnd(), remove.getBegin())) {
+        SourceLocation tmp = remove.getBegin();
+        remove.setBegin(remove.getEnd());
+        remove.setEnd(tmp);
+    }
+    LLVM_DEBUG(dbgs() << "Range to be removed:\n"
+        << remove.getBegin().printToString(getSourceMgr()) << "\n"
+        << remove.getEnd().printToString(getSourceMgr()) << "\n");
     if (!considerFile(remove.getBegin()) || !considerFile(remove.getEnd())) {
         LLVM_DEBUG(dbgs() << "File should not be considered.\n");
         return false;
