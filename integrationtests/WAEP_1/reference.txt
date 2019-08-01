@@ -1,0 +1,12 @@
+@@ -12,1 +12,1 @@
+-	int a = f(TEST_1 | TEST_2 CLOSING;
++	int a = f(TEST_1  CLOSING;
+@@ -5,1 +5,1 @@
+-#define mymakro f(TEST_1 | TEST_2 CLOSING;
++#define mymakro f(TEST_1  CLOSING;
+@@ -14,1 +14,1 @@
+-	int c = f(TEST_1 | TEST_2);
++	int c = f(TEST_1 );
+@@ -6,1 +6,1 @@
+-#define mymakro2 f(TEST_1 | TEST_2);
++#define mymakro2 f(TEST_1 );

@@ -25,9 +25,9 @@ public:
 
     bool startAndEndArePartOfTheSameExpansion(SourceRange range);
     bool containsMacroExpansion(SourceRange range);
-    bool isCompletelyPartOfOneMacroExpansion(SourceRange range);
-    bool isFunctionLikeMacroWithoutArguments(SourceRange range);
     bool rangeIsFreeOfMacroExpansions(SourceRange range);
+    int numberNestedMacros(SourceLocation loc);
+    SourceLocation getDirectExpansionLoc(SourceLocation loc);
 
     /// Check if the file given by \p patchingFileName is in the "project", i.e. is the main file or lies in the source tree.
     bool considerFile(SourceLocation loc);

@@ -3,13 +3,9 @@
 #configure_file("${CMAKE_CURRENT_SOURCE_DIR}/run.sh" "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
 #configure_file("${CMAKE_CURRENT_SOURCE_DIR}/reference.txt" "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
 
-# Not working at the moment anyway.
-
-# add_test(IntegrationTest_MFC_3
-# 		${CMAKE_CURRENT_SOURCE_DIR}/run.sh
-#         ${CMAKE_BINARY_DIR}/${PROJECT_NAME}
-# 		${CMAKE_CURRENT_SOURCE_DIR}
-# 		${CMAKE_CURRENT_BINARY_DIR}
-#         )
-
-# add_executable(${PROJECT_NAME}_INTEGRATIONTEST_MFC_3 source.cpp)
+add_test(IntegrationTest_WAEP_1
+		${CMAKE_CURRENT_SOURCE_DIR}/run.sh
+        ${CMAKE_BINARY_DIR}/${PROJECT_NAME}
+		${CMAKE_CURRENT_SOURCE_DIR}
+		${CMAKE_CURRENT_BINARY_DIR}
+        )
